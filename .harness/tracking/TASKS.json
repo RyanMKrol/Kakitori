@@ -1047,7 +1047,7 @@
     {
       "id": "T041",
       "title": "AudioService: deck MP3 playback + ja-JP speech fallback",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [
         "T001"
       ],
