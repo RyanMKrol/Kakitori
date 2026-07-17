@@ -479,7 +479,7 @@
     {
       "id": "T020",
       "title": "ApkgImporter: first-import upsert into SwiftData",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [
         "T004",
         "T005",
