@@ -17,6 +17,8 @@ DerivedData/
 *.xcodeproj/xcuserdata/
 *.xcodeproj/project.xcworkspace/xcuserdata/
 xcuserdata/
+TestResults.xcresult/
+*.xcresult
 
 # Swift Package Manager
 .build/
