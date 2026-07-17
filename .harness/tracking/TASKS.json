@@ -509,7 +509,7 @@
     {
       "id": "T021",
       "title": "ApkgImporter: re-import idempotence + soft delete",
-      "status": "pending",
+      "status": "blocked",
       "dependsOn": [
         "T019",
         "T020"
