@@ -3,5 +3,10 @@
     "failed": true,
     "reason": "review-failed: superseded by T056 — same spec plus .gitignore of TestResults.xcresult and targeted staging, so the scope-creep artifact leak that blocked it can't recur; 6 dependents rewired onto T056.",
     "at": "2026-07-17T19:53:04Z"
+  },
+  "T021": {
+    "failed": true,
+    "reason": "review-failed: superseded by T057 — widened scope to rename Note.isDeleted -> isSoftDeleted (off the read-only NSManagedObject.isDeleted collision the original scope forbade fixing); T039 rewired onto T057.",
+    "at": "2026-07-17T19:53:06Z"
   }
 }
