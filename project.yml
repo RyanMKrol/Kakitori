@@ -1,0 +1,49 @@
+name: Kakitori
+options:
+  bundleIdPrefix: com.ryankrol
+  deploymentTarget:
+    iOS: "18.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    SWIFT_STRICT_CONCURRENCY: complete
+    TARGETED_DEVICE_FAMILY: "1,2"          # universal: iPhone + iPad
+    CODE_SIGNING_ALLOWED: "NO"
+targets:
+  Kakitori:
+    type: application
+    platform: iOS
+    sources: [Sources]
+    settings:
+      base:
+        # Explicit — XcodeGen's derived id would be com.ryankrol.Kakitori (capital K);
+        # build_run.sh, the harness overlays, and sibling-repo convention use lowercase.
+        PRODUCT_BUNDLE_IDENTIFIER: com.ryankrol.kakitori
+    info:
+      path: Sources/Info.plist
+      properties:
+        UILaunchScreen: {}                  # REQUIRED — no letterboxing (legacy mode)
+        CFBundleDisplayName: Kakitori
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+  KakitoriTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources: [Tests/UnitTests]
+    dependencies:
+      - target: Kakitori
+  KakitoriUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources: [Tests/UITests]
+    dependencies:
+      - target: Kakitori
+schemes:
+  Kakitori:
+    build:
+      targets: { Kakitori: all }
+    test:
+      targets: [KakitoriTests, KakitoriUITests]

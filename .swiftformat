@@ -1,0 +1,11 @@
+# SwiftFormat config — minimal and stable; the DoD runs `tools/bin/swiftformat Sources Tests --lint`
+# with the version-pinned binary from tools/ensure-dod-tools.sh.
+--swiftversion 6.0
+
+--indent 4
+--maxwidth 120
+--wraparguments before-first
+--wrapcollections before-first
+
+# Rules that fight SwiftLint or churn diffs for no benefit:
+--disable wrapMultilineStatementBraces
