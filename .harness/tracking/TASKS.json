@@ -402,7 +402,7 @@
     {
       "id": "T017",
       "title": "AnkiCollection: read models/decks/notes from collection.anki2",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [
         "T015",
         "T016"
