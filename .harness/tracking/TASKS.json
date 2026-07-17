@@ -239,7 +239,7 @@
     {
       "id": "T010",
       "title": "TargetSegmenter: writeable units + script classification",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [
         "T001"
       ],
