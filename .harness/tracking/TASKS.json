@@ -125,7 +125,7 @@
     {
       "id": "T006",
       "title": "SwiftData model: CardSchedule + CardState",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [
         "T005"
       ],
