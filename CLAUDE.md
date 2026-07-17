@@ -205,6 +205,11 @@ them, don't abandon the task:**
   sim-touching script a task creates — the build preamble carries a standing override for spec
   prose), not just the gate. CI is the deliberate exception: its workflow resolves a generic sim on
   its own ephemeral runner (one loop per runner, no shared machine) — never "fix" CI to `Kakitori-Sim`.
+  A SECOND dedicated device exists for one purpose only: **`Kakitori-Sim-Phone`** (an iPhone 16,
+  ensured by `tools/loop_sim.sh phone`) is used by iPhone/compact-layout tasks for their screenshots
+  (`./build_run.sh Kakitori-Sim-Phone`) — the compact layout can't appear on the iPad. Tests and the
+  DoD never run there; generic iPhone model names stay banned locally (they're ambiguous across
+  runtimes and shared with the other loops on this Mac).
 - **Testing convention: XCTest** (not Swift Testing — for consistency with the team's sibling
   harness projects; deliberately chosen at harness setup, overriding the older note in
   `docs/05-architecture.md`). The high-value unit-test targets are the **pure logic** modules:

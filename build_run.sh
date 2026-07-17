@@ -30,6 +30,9 @@ if [[ "$SIM_NAME" =~ ^[0-9A-Fa-f]{8}-[0-9A-Fa-f-]{27}$ ]]; then
   SIM="$SIM_NAME"
 elif [ "$SIM_NAME" = "${KAKITORI_SIM_NAME:-Kakitori-Sim}" ]; then
   SIM="$("$PROJECT_DIR/tools/loop_sim.sh")"
+elif [ "$SIM_NAME" = "${KAKITORI_SIM_PHONE_NAME:-Kakitori-Sim-Phone}" ]; then
+  # dedicated iPhone for compact-layout screenshot tasks — ensured by loop_sim.sh, like the iPad
+  SIM="$("$PROJECT_DIR/tools/loop_sim.sh" phone)"
 else
   SIM_ID="$(xcrun simctl list devices booted | grep -F "$SIM_NAME (" | grep -Eo '[0-9A-Fa-f-]{36}' | head -1 || true)"
   if [ -z "$SIM_ID" ]; then

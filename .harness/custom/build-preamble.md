@@ -11,9 +11,10 @@
   generic model. Simulators are exclusive resources — several autonomous iOS loops share this Mac
   (Scout, Sprout, Enough, Basket), and two loops installing/launching onto one device stamp on each
   other. (Exception 1: CI workflows resolve their own runner-local sim — never "fix" CI to
-  `Kakitori-Sim`.) (Exception 2: a task whose spec EXPLICITLY verifies the iPhone/compact layout may
-  take its screenshot on a generic iPhone via `./build_run.sh "iPhone 16"` — the compact layout
-  cannot appear on the iPad — but all tests and the DoD still run on `Kakitori-Sim`.)
+  `Kakitori-Sim`.) (Exception 2: a task whose spec EXPLICITLY verifies the iPhone/compact layout
+  takes its screenshot on the DEDICATED iPhone `Kakitori-Sim-Phone` via
+  `./build_run.sh Kakitori-Sim-Phone` (`tools/loop_sim.sh phone` ensures it exists) — the compact
+  layout cannot appear on the iPad — but all tests and the DoD still run on `Kakitori-Sim`.)
 - **Determinism — injected clock, injected randomness.** Any "current time" read in scheduler /
   session-queue / streak / daily-stats code comes from an injected clock (`now: Date` parameter or an
   `AppClock`-style provider), never a bare `Date()` / `.now` — the 4 AM day-rollover and interval math
