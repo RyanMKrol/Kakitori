@@ -264,7 +264,7 @@
     {
       "id": "T011",
       "title": "Guide box row component (genkō yōshi boxes)",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [
         "T010",
         "T056"
