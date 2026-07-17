@@ -71,7 +71,7 @@
     {
       "id": "T004",
       "title": "SwiftData models: Deck + Section",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [
         "T001"
       ],
