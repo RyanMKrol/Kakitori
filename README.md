@@ -10,6 +10,11 @@ produced by the companion [anki-builder](../anki-builder) pipeline.
 
 📐 **Design phase.** Documentation is complete; implementation has not started.
 
+## Building this project
+
+This project is built by an autonomous implementation harness. To add work and run it, see
+[`.harness/README.md`](.harness/README.md).
+
 ## Documentation
 
 | Doc | Contents |

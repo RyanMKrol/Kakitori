@@ -11,7 +11,7 @@
 | Deck import | SQLite3 (system C library) + `Foundation` zip handling | read-only access to `collection.anki2` |
 | Audio | AVAudioPlayer (deck MP3s), AVSpeechSynthesizer (fallback) | |
 | Min deployment | iOS 18 / iPadOS 18 | universal app, iPad-first layout |
-| Testing | Swift Testing (`@Test`) | scheduler + importer are the high-value targets |
+| Testing | XCTest | scheduler + importer are the high-value targets; XCTest (not Swift Testing) for consistency with the team's sibling harness projects — decided at harness setup |
 
 No third-party dependencies in v1. If raw SQLite proves painful, GRDB is the sanctioned
 escape hatch (already covered by project tooling/audits).

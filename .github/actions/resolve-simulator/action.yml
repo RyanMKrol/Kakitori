@@ -1,0 +1,42 @@
+# Picks the simulator the Test job runs on. Kakitori is a universal iPad-first app, so
+# prefer an iPad model when the runner image has one — device class changes layout and
+# hit-testing, so runs should land on the same class whenever possible. A missing model
+# must NOT fail the build (a pinned name hard-fails the merge gate the day the runner
+# image drops that device), hence the any-iPad then any-iPhone fallback.
+#
+# NOTE the fallback parsing: iPad names legitimately CONTAIN parentheses ("iPad Air
+# 11-inch (M4)"), so we can't split on '(' like an iPhone-only resolver would — instead
+# strip the trailing "(<UDID>) (<State>)" suffix simctl appends and keep the rest.
+name: Resolve simulator
+description: Resolve a preferred (or any) available iPad/iPhone simulator name
+outputs:
+  name:
+    description: The resolved simulator device name
+    value: ${{ steps.resolve.outputs.name }}
+runs:
+  using: composite
+  steps:
+    - id: resolve
+      shell: bash
+      run: |
+        available=$(xcrun simctl list devices available)
+        strip_suffix() {
+          sed -E 's/ \([0-9A-Fa-f-]{36}\) \((Shutdown|Booted|Booting|Shutting Down)\).*$//; s/^[[:space:]]+|[[:space:]]+$//g'
+        }
+        name=""
+        for p in "iPad Pro 11-inch (M4)" "iPad Air 11-inch (M4)" "iPad (A16)" "iPad Air 13-inch (M4)"; do
+          if echo "$available" | grep -qF "$p ("; then name="$p"; break; fi
+        done
+        if [ -z "$name" ]; then
+          name=$(echo "$available" | grep -m1 'iPad' | strip_suffix || true)
+        fi
+        if [ -z "$name" ]; then
+          name=$(echo "$available" | grep -m1 'iPhone' | strip_suffix || true)
+        fi
+        if [ -z "$name" ]; then
+          echo "No available iPad/iPhone simulator found on this runner." >&2
+          echo "$available" >&2
+          exit 1
+        fi
+        echo "Resolved simulator: $name"
+        echo "name=$name" >> "$GITHUB_OUTPUT"

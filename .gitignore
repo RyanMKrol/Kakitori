@@ -1,0 +1,55 @@
+# XcodeGen output — the .xcodeproj is regenerated from project.yml, never committed.
+*.xcodeproj/
+# XcodeGen also generates Sources/Info.plist from project.yml's info.properties.
+Sources/Info.plist
+
+# Visual-verification scratch (build_run.sh output)
+screenshots/
+
+# Pinned DoD tool binaries (fetched by tools/ensure-dod-tools.sh — never committed)
+tools/bin/
+
+# Xcode / Swift
+build/
+DerivedData/
+*.xcuserstate
+*.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+*.xcodeproj/project.xcworkspace/xcuserdata/
+xcuserdata/
+
+# Swift Package Manager
+.build/
+.swiftpm/
+
+# macOS
+.DS_Store
+
+# Secrets / local config
+*.xcconfig.local
+secrets.plist
+
+# >>> implementation-harness managed (auto-maintained — do not edit inside) >>>
+# Transient loop scratch (last-iteration verdict) + the generated status board.
+.harness/worklog/.result
+.harness/worklog/.claude-out*
+.harness/worklog/.claude-prompt*
+.harness/worklog/.failures.buf
+.harness/worklog/.current.json
+.harness/worklog/STATUS.md
+.harness/worklog/*.log
+.harness/worklog/*.audit.md
+# atomic-write temps (TASKS.json + the owner-overlay files never keep a crashed-mid-write file)
+.harness/tracking/*.tmp
+.harness/tracking/*.tmp.*
+# ideas->tasks pipeline — ephemeral per-sweep scratch (the .gitkeep keeps each dir in a fresh clone)
+.harness/.pending-tasks/*
+!.harness/.pending-tasks/.gitkeep
+.harness/.pending-questions/*
+!.harness/.pending-questions/.gitkeep
+# scope-gap dismissals — check-task-scope.sh's per-task "already reviewed" record (fix-scope-gaps)
+.harness/.scope-gap-ignores/*
+!.harness/.scope-gap-ignores/.gitkeep
+# harness-fetched tool binaries (e.g. actionlint — ensure-actionlint.sh) — machine-specific, never committed
+.harness/.bin/
+# <<< implementation-harness managed <<<

@@ -1,0 +1,23 @@
+# Pins the toolchain to the newest installed Xcode 26.x. `macos-latest` runners ship
+# several Xcodes and the default (xcode-select) isn't guaranteed to be the latest — and
+# Kakitori builds with Swift 6 strict concurrency, so an older default Xcode may lack the
+# toolchain/simulator runtime needed. Selecting explicitly makes every job's SDK
+# deterministic. Newest-26 rather than a pinned patch so a runner-image bump to 26.7
+# doesn't need a workflow edit; fails loudly if no Xcode 26 is present rather than
+# silently falling back to an older SDK.
+name: Select Xcode 26
+description: Select the newest installed Xcode 26.x as the active toolchain
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      run: |
+        xc=$(ls -d /Applications/Xcode_26*.app 2>/dev/null | sort -V | tail -1)
+        if [ -z "$xc" ]; then
+          echo "No Xcode 26.x found on this runner; available:" >&2
+          ls -d /Applications/Xcode_*.app >&2 || true
+          exit 1
+        fi
+        echo "Selecting $xc"
+        sudo xcode-select -s "$xc/Contents/Developer"
+        xcodebuild -version

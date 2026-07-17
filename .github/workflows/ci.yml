@@ -1,0 +1,68 @@
+name: CI
+# ▲ The loop gates on a workflow whose `name:` matches CI_WORKFLOW (default "CI").
+#   If you rename this, set CI_WORKFLOW to match in .harness/config/harness.env.
+
+# Run on every push (so the loop's per-task branches get a run to watch) and on PRs
+# to main. The loop merges a branch into `main` ONLY when this workflow goes green.
+on:
+  push:
+  pull_request:
+    branches: [main]
+
+# Cancel superseded runs on the same ref to save CI minutes (macOS minutes bill ~10×).
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Definition of Done
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Kakitori targets iOS 18 but builds with Swift 6 strict concurrency — pin the newest
+      # Xcode 26 so the toolchain/simulator runtime is deterministic across runner images.
+      - name: Select Xcode 26
+        uses: ./.github/actions/select-xcode
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      # The Kakitori.xcodeproj is generated, not committed — build it from project.yml.
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      # SwiftFormat/SwiftLint are PINNED (version + checksum) via tools/ensure-dod-tools.sh so CI
+      # and the local gate run byte-identical tools — a new brew release can't redline CI with
+      # failures unrelated to the diff. Bump versions in that script, never here.
+      - name: Install pinned DoD tools
+        run: ./tools/ensure-dod-tools.sh
+
+      - name: Format check
+        run: ./tools/bin/swiftformat Sources Tests --lint
+
+      - name: Lint
+        run: ./tools/bin/swiftlint --strict
+
+      - name: Resolve an available simulator
+        id: sim
+        uses: ./.github/actions/resolve-simulator
+
+      - name: Test
+        run: |
+          xcodebuild test \
+            -project Kakitori.xcodeproj -scheme Kakitori \
+            -destination "platform=iOS Simulator,name=${{ steps.sim.outputs.name }}" \
+            -resultBundlePath TestResults.xcresult \
+            CODE_SIGNING_ALLOWED=NO
+
+      # Without this an unattended loop's CI failure leaves nothing to diagnose once the
+      # ephemeral runner is gone — the failure logs / screenshots live inside the bundle.
+      - name: Upload result bundle on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: TestResults.xcresult
+          retention-days: 14
