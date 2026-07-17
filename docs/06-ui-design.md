@@ -1,8 +1,9 @@
 # Kakitori — UI Design
 
-The HTML prototype (`../reference/Kaki - Kana Writing Practice.dc.html`) and its screenshots
-(`../reference/screenshots/`) define the visual direction. This doc translates it into an
-iOS design language.
+The HTML prototypes define the visual direction — `../reference/Kaki - Kana Writing
+Practice.dc.html` for iPad/landscape, `../reference/Kaki - iPhone.dc.html` for
+iPhone/portrait — along with the screenshots in `../reference/screenshots/`. This doc
+translates them into an iOS design language.
 
 ## 1. Visual language
 
@@ -43,8 +44,10 @@ light first (paper is the identity); verify dark before ship.
   large numerals.
 - **Today banner**: full-width tinted card. "N characters to write · across M scripts".
 - **Deck cards**: JP title large (ひらがな), EN title + subtitle small, mastery % right-aligned,
-  chips row (`3 new · 3 learning · 4 due`), Study button. One column on iPhone, 2-up grid on
-  iPad.
+  chips row (`3 new · 3 learning · 4 due`), Study button. 2-up grid on iPad; on iPhone a
+  single-column list where each row leads with a representative glyph (あ / ア / 語 — the
+  prototype's `deck.rep`), the whole row is tappable, and stat captions compress to
+  "Streak / Written / Studied".
 - Empty state (no decks yet): 書 mark + "Import a deck to start writing" + Import button →
   Files picker. Import also lives behind a toolbar `+`.
 
@@ -85,8 +88,35 @@ Layout (iPad / landscape) — matches screenshots:
 - **Grade row** (after reveal), replacing Show answer:
   `[Again <1m] [Hard 6m] [Good 10m] [Easy 4d]` — interval previews under each label. Again
   tinted red, Easy tinted ink-solid, middle two neutral.
-- iPhone / portrait: prompt collapses to a compact header band above the canvas; answer
-  reveal presents as a bottom sheet over the canvas with grade buttons.
+#### iPhone / portrait (per the iPhone prototype)
+
+```
+┌──────────────────────────┐
+│ ✕  Hiragana · Trace  3 3 4│   top bar; chips are bare numbers
+├──────────────────────────┤
+│       TRACE MODE         │   prompt band (accent caption,
+│ Write over the faded     │   headline, one sub-line)
+│        guide             │
+├──────────────────────────┤
+│ Trace the character…  ↶ ✕│   canvas hint + Undo/Clear
+│        ┌───────┐         │
+│        │  ﹁い﹂ │         │   guide box(es), centred
+│        └───────┘         │
+│                          │
+│ ┌──────────────────────┐ │
+│ │     Show answer      │ │   full-width pinned action
+│ └──────────────────────┘ │
+└──────────────────────────┘
+```
+
+- The prompt collapses to a **band above the canvas** (caption + headline + one sub-line);
+  the answer reveal replaces this band in place (target, reading, English, play-audio) —
+  no bottom sheet.
+- The action area is **pinned full-width at the bottom**: Show answer before reveal, the
+  four grade buttons after.
+- Top-bar count chips drop their word labels and show bare numbers.
+- Long phrases wrap boxes in rows of ≤4 (vs ≤6 on iPad), shrinking box size to fit before
+  wrapping.
 
 Interaction details:
 
@@ -100,8 +130,10 @@ Interaction details:
 - Centred column: 済 in a red disc, "お疲れさま！", "Session complete — 12 cards written in
   6 min".
 - 2×2 grade count grid (Again / Hard / Good / Easy).
-- Streak footer: "🔥 5 day streak · keep it going tomorrow".
-- Buttons: **Back to decks** (primary), **Study another deck** (quiet).
+- Streak footer: "🔥 5 day streak · keep it going tomorrow" (iPhone: just "🔥 5 day streak").
+- Buttons: **Back to decks** (primary), **Study another deck** (quiet). The iPhone prototype
+  words these "Back home" / "Study another script" — unify the copy during implementation
+  (one pair of labels across devices; pick at M5 polish).
 
 ## 3. Motion
 

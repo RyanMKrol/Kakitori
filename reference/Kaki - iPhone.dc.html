@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=Klee+One:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;}
+  body{margin:0;}
+  @keyframes kFade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  @keyframes kSheet{from{transform:translateY(100%)}to{transform:none}}
+  a{color:#C4122F;text-decoration:none;}
+  a:hover{color:#980E24;}
+</style>
+</helmet>
+<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:radial-gradient(120% 120% at 50% 0%,#332f2b,#1b1917);padding:26px;font-family:'Zen Kaku Gothic New',system-ui,sans-serif;color:#1C1A18;">
+  <div style="position:relative;width:390px;height:844px;background:#0d0c0b;border-radius:56px;padding:12px;box-shadow:0 40px 90px rgba(0,0,0,.55),inset 0 0 0 2px #2a2724;">
+    <div style="position:absolute;top:20px;left:50%;transform:translateX(-50%);width:110px;height:31px;border-radius:16px;background:#000;z-index:60;"></div>
+    <div style="width:100%;height:100%;border-radius:44px;overflow:hidden;position:relative;background:#F6F3EE;">
+
+      <!-- status bar -->
+      <div style="position:absolute;top:0;left:0;right:0;height:50px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 28px 9px;z-index:25;pointer-events:none;font-size:14px;font-weight:700;color:#1C1A18;">
+        <div>9:41</div>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <span style="font-size:12px;">100%</span>
+          <div style="width:22px;height:11px;border:1.5px solid #1C1A18;border-radius:3px;position:relative;"><div style="position:absolute;inset:1.5px;background:#1C1A18;border-radius:1px;"></div></div>
+        </div>
+      </div>
+
+      <!-- ===================== HOME ===================== -->
+      <sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+      <div style="position:absolute;inset:0;display:flex;flex-direction:column;padding-top:54px;animation:kFade .35s ease;">
+        <div style="padding:6px 20px 0;display:flex;align-items:center;gap:12px;">
+          <div style="width:44px;height:44px;border-radius:50%;background:#C4122F;display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Klee One';font-weight:600;font-size:26px;box-shadow:0 8px 20px rgba(196,18,47,.28);">書</div>
+          <div>
+            <div style="font-size:22px;font-weight:700;letter-spacing:-.01em;">Kaki</div>
+            <div style="font-size:12px;color:#8A8178;margin-top:1px;">Write your Japanese, card by card</div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:10px;padding:16px 20px 0;">
+          <div style="flex:1;background:#fff;border:1px solid #EAE3D8;border-radius:16px;padding:12px 6px;text-align:center;">
+            <div style="font-size:20px;font-weight:700;color:#C4122F;">{{ today.streak }}</div>
+            <div style="font-size:10px;color:#8A8178;text-transform:uppercase;letter-spacing:.06em;margin-top:2px;">Streak</div>
+          </div>
+          <div style="flex:1;background:#fff;border:1px solid #EAE3D8;border-radius:16px;padding:12px 6px;text-align:center;">
+            <div style="font-size:20px;font-weight:700;">{{ today.written }}</div>
+            <div style="font-size:10px;color:#8A8178;text-transform:uppercase;letter-spacing:.06em;margin-top:2px;">Written</div>
+          </div>
+          <div style="flex:1;background:#fff;border:1px solid #EAE3D8;border-radius:16px;padding:12px 6px;text-align:center;">
+            <div style="font-size:20px;font-weight:700;">{{ today.minutes }}<span style="font-size:12px;color:#8A8178;">m</span></div>
+            <div style="font-size:10px;color:#8A8178;text-transform:uppercase;letter-spacing:.06em;margin-top:2px;">Studied</div>
+          </div>
+        </div>
+
+        <div style="margin:14px 20px 0;background:linear-gradient(100deg,#1C1A18,#2a2723);border-radius:20px;padding:20px 22px;color:#F6F3EE;position:relative;overflow:hidden;">
+          <div style="position:absolute;right:-24px;top:-30px;width:130px;height:130px;border-radius:50%;background:#C4122F;opacity:.9;"></div>
+          <div style="position:relative;">
+            <div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#C9C2B8;">Today's practice</div>
+            <div style="font-size:27px;font-weight:700;margin-top:5px;">{{ totalDue }} characters</div>
+            <div style="font-size:13px;color:#B7AFA4;margin-top:3px;">Across {{ deckCount }} scripts · pick one below</div>
+          </div>
+          <div style="position:absolute;right:20px;bottom:12px;font-family:'Klee One';font-size:42px;font-weight:600;opacity:.95;color:#F6F3EE;">筆</div>
+        </div>
+
+        <div style="padding:18px 20px 8px;font-size:12px;font-weight:700;color:#8A8178;letter-spacing:.1em;text-transform:uppercase;">Choose a script</div>
+        <div style="flex:1;overflow-y:auto;padding:0 20px 28px;display:flex;flex-direction:column;gap:13px;">
+          <sc-for list="{{ decksView }}" as="deck" hint-placeholder-count="3">
+            <div onClick="{{ deck.start }}" style="cursor:pointer;background:#fff;border:1px solid #EAE3D8;border-radius:18px;padding:16px 16px;display:flex;flex-direction:column;gap:13px;transition:transform .15s,box-shadow .15s;" style-hover="transform:translateY(-2px);box-shadow:0 14px 30px rgba(28,26,24,.10);border-color:#E0D8CB;">
+              <div style="display:flex;align-items:center;gap:14px;">
+                <div style="width:56px;height:56px;border-radius:15px;background:#1C1A18;color:#F6F3EE;display:flex;align-items:center;justify-content:center;font-family:'Klee One';font-size:32px;font-weight:600;flex-shrink:0;">{{ deck.rep }}</div>
+                <div style="flex:1;min-width:0;">
+                  <div style="font-family:'Klee One';font-size:19px;font-weight:600;line-height:1;">{{ deck.jp }}</div>
+                  <div style="font-size:14px;font-weight:700;margin-top:5px;">{{ deck.en }}</div>
+                  <div style="font-size:12px;color:#8A8178;margin-top:2px;">{{ deck.sub }}</div>
+                </div>
+                <div style="width:44px;height:44px;border-radius:13px;background:#FBEAEC;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#C4122F;flex-shrink:0;">{{ deck.pct }}%</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;">
+                <div style="display:flex;align-items:center;gap:5px;background:#F0EDE6;color:#5c554d;border-radius:20px;padding:4px 10px;font-size:11px;font-weight:600;"><span style="width:6px;height:6px;border-radius:50%;background:#9a9186;"></span>{{ deck.newC }} new</div>
+                <div style="display:flex;align-items:center;gap:5px;background:#FBEAEC;color:#C4122F;border-radius:20px;padding:4px 10px;font-size:11px;font-weight:600;"><span style="width:6px;height:6px;border-radius:50%;background:#C4122F;"></span>{{ deck.learnC }} learning</div>
+                <div style="display:flex;align-items:center;gap:5px;background:#1C1A18;color:#F6F3EE;border-radius:20px;padding:4px 10px;font-size:11px;font-weight:600;"><span style="width:6px;height:6px;border-radius:50%;background:#F6F3EE;"></span>{{ deck.revC }} due</div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- ===================== SETUP SHEET ===================== -->
+      <sc-if value="{{ setupOpen }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute;inset:0;background:rgba(20,18,16,.42);backdrop-filter:blur(3px);display:flex;align-items:flex-end;z-index:40;animation:kFade .2s ease;">
+        <div style="width:100%;background:#F6F3EE;border-radius:28px 28px 0 0;overflow:hidden;box-shadow:0 -20px 60px rgba(0,0,0,.4);animation:kSheet .3s cubic-bezier(.2,.8,.2,1);padding-bottom:28px;">
+          <div style="display:flex;justify-content:center;padding-top:10px;"><div style="width:38px;height:5px;border-radius:3px;background:#D8D0C3;"></div></div>
+          <div style="padding:14px 24px 6px;display:flex;align-items:center;justify-content:space-between;">
+            <div>
+              <div style="font-family:'Klee One';font-size:26px;font-weight:600;">{{ setupDeckView.jp }}</div>
+              <div style="font-size:13px;color:#8A8178;margin-top:2px;">{{ setupDeckView.en }} · {{ setupDeckView.dueTotal }} cards due</div>
+            </div>
+            <div onClick="{{ onCloseSetup }}" style="cursor:pointer;width:34px;height:34px;border-radius:50%;background:#EDE7DC;display:flex;align-items:center;justify-content:center;color:#8A8178;font-size:17px;" style-hover="background:#e2dbcf;">✕</div>
+          </div>
+          <div style="padding:12px 24px 0;">
+            <div style="font-size:11px;font-weight:700;color:#8A8178;letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px;">Practice mode</div>
+            <div style="display:flex;flex-direction:column;gap:9px;">
+              <sc-for list="{{ modesView }}" as="m" hint-placeholder-count="5">
+                <div onClick="{{ m.pick }}" style="{{ m.style }}">
+                  <div style="width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-family:'Klee One';font-size:19px;font-weight:600;flex-shrink:0;{{ m.iconStyle }}">{{ m.jp }}</div>
+                  <div style="flex:1;">
+                    <div style="font-size:15px;font-weight:700;">{{ m.label }}</div>
+                    <div style="font-size:12px;color:#8A8178;margin-top:1px;">{{ m.desc }}</div>
+                  </div>
+                  <div style="{{ m.dotStyle }}"></div>
+                </div>
+              </sc-for>
+            </div>
+            <div onClick="{{ onStart }}" style="margin-top:20px;background:#C4122F;color:#fff;text-align:center;padding:16px;border-radius:14px;font-size:17px;font-weight:700;cursor:pointer;box-shadow:0 10px 24px rgba(196,18,47,.28);" style-hover="background:#a80f28;">Start writing</div>
+          </div>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- ===================== WRITING ===================== -->
+      <sc-if value="{{ isWriting }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute;inset:0;display:flex;flex-direction:column;background:#F6F3EE;padding-top:50px;">
+        <div style="padding:6px 18px 12px;background:#fff;border-bottom:1px solid #EAE3D8;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div onClick="{{ onClose }}" style="cursor:pointer;width:34px;height:34px;border-radius:50%;background:#F0EDE6;display:flex;align-items:center;justify-content:center;font-size:16px;color:#5c554d;flex-shrink:0;" style-hover="background:#e6e1d8;">✕</div>
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:14px;font-weight:700;">{{ deckName }}</div>
+              <div style="font-size:11px;color:#8A8178;">{{ modeJp }} · {{ modeLabel }}</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:5px;">
+              <div style="background:#F0EDE6;color:#5c554d;border-radius:14px;padding:4px 9px;font-size:11px;font-weight:700;">{{ rNew }}</div>
+              <div style="background:#FBEAEC;color:#C4122F;border-radius:14px;padding:4px 9px;font-size:11px;font-weight:700;">{{ rLearn }}</div>
+              <div style="background:#1C1A18;color:#F6F3EE;border-radius:14px;padding:4px 9px;font-size:11px;font-weight:700;">{{ rReview }}</div>
+            </div>
+          </div>
+          <div style="margin-top:10px;height:7px;background:#EDE7DC;border-radius:6px;overflow:hidden;">
+            <div style="height:100%;background:#C4122F;border-radius:6px;transition:width .3s;width:{{ progressPct }}%;"></div>
+          </div>
+        </div>
+
+        <!-- prompt / answer -->
+        <div style="min-height:148px;background:#fff;border-bottom:1px solid #EAE3D8;display:flex;align-items:center;justify-content:center;padding:16px 22px;">
+          <sc-if value="{{ notRevealed }}" hint-placeholder-val="{{ true }}">
+          <div style="width:100%;">
+            <sc-if value="{{ isTrace }}" hint-placeholder-val="{{ true }}">
+              <div style="text-align:center;">
+                <div style="font-size:11px;font-weight:700;color:#C4122F;letter-spacing:.1em;text-transform:uppercase;">Trace mode</div>
+                <div style="font-size:18px;font-weight:700;margin-top:7px;">Write over the faded guide</div>
+                <div style="font-size:13px;color:#8A8178;margin-top:5px;">Follow the light strokes · correct stroke order</div>
+              </div>
+            </sc-if>
+            <sc-if value="{{ isListen }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;align-items:center;justify-content:center;gap:20px;">
+                <div onClick="{{ onPlay }}" style="width:78px;height:78px;border-radius:50%;background:#C4122F;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 10px 22px rgba(196,18,47,.3);flex-shrink:0;transition:transform .15s;" style-hover="transform:scale(1.05)">
+                  <div style="width:0;height:0;border-top:16px solid transparent;border-bottom:16px solid transparent;border-left:25px solid #fff;margin-left:6px;"></div>
+                </div>
+                <div>
+                  <div style="font-size:11px;font-weight:700;color:#C4122F;letter-spacing:.1em;text-transform:uppercase;">Listen &amp; write</div>
+                  <div style="font-size:16px;font-weight:700;margin-top:4px;">Tap to hear it</div>
+                  <div style="font-size:13px;color:#8A8178;margin-top:2px;">Write what you hear.</div>
+                </div>
+              </div>
+            </sc-if>
+            <sc-if value="{{ isTranslate }}" hint-placeholder-val="{{ false }}">
+              <div style="text-align:center;">
+                <div style="font-size:11px;color:#8A8178;text-transform:uppercase;letter-spacing:.08em;font-weight:600;">English · write the Japanese</div>
+                <div style="font-size:30px;font-weight:700;margin-top:8px;line-height:1.2;text-wrap:pretty;">{{ english }}</div>
+              </div>
+            </sc-if>
+            <sc-if value="{{ isRecall }}" hint-placeholder-val="{{ false }}">
+              <div style="text-align:center;">
+                <div style="font-size:11px;color:#8A8178;text-transform:uppercase;letter-spacing:.08em;font-weight:600;">Reading · write from memory</div>
+                <div style="font-family:'Klee One';font-size:34px;font-weight:600;margin-top:5px;">{{ reading }}</div>
+                <div style="font-size:13px;color:#8A8178;margin-top:4px;">“{{ english }}”</div>
+              </div>
+            </sc-if>
+          </div>
+          </sc-if>
+          <sc-if value="{{ revealed }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:22px;animation:kFade .3s ease;">
+            <div style="font-family:'Klee One';font-size:62px;font-weight:600;line-height:1;color:#1C1A18;">{{ target }}</div>
+            <div>
+              <div style="font-size:11px;font-weight:700;color:#C4122F;letter-spacing:.1em;text-transform:uppercase;">Answer</div>
+              <div style="font-family:'Klee One';font-size:21px;color:#C4122F;margin-top:3px;">{{ reading }}</div>
+              <div style="font-size:15px;color:#5c554d;margin-top:1px;">{{ english }}</div>
+              <div onClick="{{ onPlay }}" style="margin-top:8px;display:flex;align-items:center;gap:7px;background:#FBEAEC;color:#C4122F;border-radius:20px;padding:6px 13px;font-size:12px;font-weight:700;cursor:pointer;width:fit-content;" style-hover="background:#f6dade;">
+                <div style="width:0;height:0;border-top:6px solid transparent;border-bottom:6px solid transparent;border-left:9px solid #C4122F;"></div>Play audio
+              </div>
+            </div>
+          </div>
+          </sc-if>
+        </div>
+
+        <!-- canvas -->
+        <div style="flex:1;display:flex;flex-direction:column;min-height:0;">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 20px 2px;">
+            <div style="font-size:12px;color:#8A8178;">{{ boxHint }}</div>
+            <div style="display:flex;gap:8px;">
+              <div onClick="{{ onUndo }}" style="cursor:pointer;background:#fff;border:1px solid #E5DDD0;border-radius:10px;padding:8px 13px;font-size:12px;font-weight:700;color:#5c554d;" style-hover="background:#f0ede6;">↶ Undo</div>
+              <div onClick="{{ onClear }}" style="cursor:pointer;background:#fff;border:1px solid #E5DDD0;border-radius:10px;padding:8px 13px;font-size:12px;font-weight:700;color:#5c554d;" style-hover="background:#f0ede6;">Clear</div>
+            </div>
+          </div>
+          <div ref="{{ setWritingArea }}" style="flex:1;position:relative;margin:4px 20px 0;min-height:0;">
+            <canvas ref="{{ setGuide }}" style="position:absolute;inset:0;"></canvas>
+            <canvas ref="{{ setInk }}" style="position:absolute;inset:0;touch-action:none;cursor:crosshair;"></canvas>
+          </div>
+        </div>
+
+        <!-- footer -->
+        <div style="flex-shrink:0;padding:12px 20px 26px;">
+          <sc-if value="{{ notRevealed }}" hint-placeholder-val="{{ true }}">
+            <div onClick="{{ onReveal }}" style="background:#1C1A18;color:#F6F3EE;text-align:center;padding:16px;border-radius:14px;font-size:17px;font-weight:700;cursor:pointer;" style-hover="background:#332f2b;">Show answer</div>
+          </sc-if>
+          <sc-if value="{{ revealed }}" hint-placeholder-val="{{ false }}">
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:9px;animation:kFade .25s ease;">
+              <div onClick="{{ gAgain }}" style="cursor:pointer;background:#C4122F;color:#fff;border-radius:13px;padding:11px 4px;text-align:center;" style-hover="background:#a80f28;">
+                <div style="font-size:10px;opacity:.85;font-weight:600;">{{ iAgain }}</div>
+                <div style="font-size:14px;font-weight:700;margin-top:2px;">Again</div>
+              </div>
+              <div onClick="{{ gHard }}" style="cursor:pointer;background:#FBEAEC;color:#C4122F;border:1px solid #f1c9d0;border-radius:13px;padding:11px 4px;text-align:center;" style-hover="background:#f6dade;">
+                <div style="font-size:10px;opacity:.8;font-weight:600;">{{ iHard }}</div>
+                <div style="font-size:14px;font-weight:700;margin-top:2px;">Hard</div>
+              </div>
+              <div onClick="{{ gGood }}" style="cursor:pointer;background:#1C1A18;color:#fff;border-radius:13px;padding:11px 4px;text-align:center;" style-hover="background:#332f2b;">
+                <div style="font-size:10px;opacity:.75;font-weight:600;">{{ iGood }}</div>
+                <div style="font-size:14px;font-weight:700;margin-top:2px;">Good</div>
+              </div>
+              <div onClick="{{ gEasy }}" style="cursor:pointer;background:#fff;color:#1C1A18;border:1px solid #E5DDD0;border-radius:13px;padding:11px 4px;text-align:center;" style-hover="background:#f0ede6;">
+                <div style="font-size:10px;color:#8A8178;font-weight:600;">{{ iEasy }}</div>
+                <div style="font-size:14px;font-weight:700;margin-top:2px;">Easy</div>
+              </div>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- ===================== SUMMARY ===================== -->
+      <sc-if value="{{ isSummary }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#F6F3EE;animation:kFade .35s ease;padding:30px;">
+        <div style="width:88px;height:88px;border-radius:50%;background:#C4122F;display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Klee One';font-size:46px;font-weight:600;box-shadow:0 16px 36px rgba(196,18,47,.3);">済</div>
+        <div style="font-size:28px;font-weight:700;margin-top:20px;">お疲れさま！</div>
+        <div style="font-size:14px;color:#8A8178;margin-top:6px;text-align:center;">Session complete — {{ sumTotal }} cards<br>written in {{ sumMinutes }} min</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-top:28px;width:100%;">
+          <div style="background:#fff;border:1px solid #EAE3D8;border-radius:15px;padding:16px;text-align:center;">
+            <div style="font-size:26px;font-weight:700;color:#C4122F;">{{ sumAgain }}</div>
+            <div style="font-size:11px;color:#8A8178;margin-top:2px;letter-spacing:.06em;text-transform:uppercase;">Again</div>
+          </div>
+          <div style="background:#fff;border:1px solid #EAE3D8;border-radius:15px;padding:16px;text-align:center;">
+            <div style="font-size:26px;font-weight:700;">{{ sumHard }}</div>
+            <div style="font-size:11px;color:#8A8178;margin-top:2px;letter-spacing:.06em;text-transform:uppercase;">Hard</div>
+          </div>
+          <div style="background:#fff;border:1px solid #EAE3D8;border-radius:15px;padding:16px;text-align:center;">
+            <div style="font-size:26px;font-weight:700;">{{ sumGood }}</div>
+            <div style="font-size:11px;color:#8A8178;margin-top:2px;letter-spacing:.06em;text-transform:uppercase;">Good</div>
+          </div>
+          <div style="background:#1C1A18;border-radius:15px;padding:16px;text-align:center;">
+            <div style="font-size:26px;font-weight:700;color:#F6F3EE;">{{ sumEasy }}</div>
+            <div style="font-size:11px;color:#B7AFA4;margin-top:2px;letter-spacing:.06em;text-transform:uppercase;">Easy</div>
+          </div>
+        </div>
+        <div style="margin-top:20px;font-size:14px;color:#5c554d;">🔥 {{ today.streak }} day streak</div>
+        <div style="display:flex;flex-direction:column;gap:10px;margin-top:26px;width:100%;">
+          <div onClick="{{ onStudyMore }}" style="cursor:pointer;background:#C4122F;color:#fff;padding:15px;border-radius:14px;font-size:16px;font-weight:700;text-align:center;box-shadow:0 10px 24px rgba(196,18,47,.28);" style-hover="background:#a80f28;">Study another script</div>
+          <div onClick="{{ onHome }}" style="cursor:pointer;background:#fff;border:1px solid #E5DDD0;color:#1C1A18;padding:15px;border-radius:14px;font-size:16px;font-weight:700;text-align:center;" style-hover="background:#f0ede6;">Back home</div>
+        </div>
+      </div>
+      </sc-if>
+
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
+class Component extends DCLogic {
+  constructor(props){
+    super(props);
+    this.decks = this.buildDecks();
+    this.srs = {};
+    this.decks.forEach(d => d.cards.forEach((c,i) => { this.srs[c.id] = this.seed(i); }));
+    this.strokes = [];
+    this.reqCount = {};
+    this.boxLayout = null;
+    this.fontReady = false;
+    this.MODES = [
+      {key:'trace', label:'Trace', jp:'書', desc:'Write over a faded guide'},
+      {key:'listen', label:'Listen & write', jp:'聞', desc:'Hear it, then write what you heard'},
+      {key:'translate', label:'Translate & write', jp:'訳', desc:'See the English, write the Japanese'},
+      {key:'recall', label:'Recall', jp:'記', desc:'From the reading, write from memory'},
+      {key:'mixed', label:'Mixed', jp:'混', desc:'Rotate through all four modes'},
+    ];
+    this.state = {
+      screen:'home', setupDeck:null, setupMode:'mixed',
+      deckId:null, mode:'mixed', queue:[], total:0, graded:0,
+      currentCardId:null, currentMode:'trace', revealed:false,
+      stats:{again:0,hard:0,good:0,easy:0}, startTime:0,
+      today:{written:34, minutes:12, streak:6},
+    };
+  }
+
+  buildDecks(){
+    const kana = (d, rows) => rows.map((r,i) => ({id:d+i, target:r[0], reading:r[0], english:r[1]}));
+    const hira = kana('h', [
+      ['あ','a'],['い','i'],['う','u'],['え','e'],['お','o'],
+      ['か','ka'],['き','ki'],['く','ku'],['け','ke'],['こ','ko'],
+      ['さ','sa'],['し','shi'],['す','su'],['せ','se'],['そ','so'],
+      ['た','ta'],['ち','chi'],['つ','tsu'],['て','te'],['と','to'],
+      ['な','na'],['に','ni'],['ぬ','nu'],['ね','ne'],['の','no'],
+      ['は','ha'],['ひ','hi'],['ふ','fu'],['へ','he'],['ほ','ho'],
+      ['ま','ma'],['み','mi'],['む','mu'],['め','me'],['も','mo'],
+      ['や','ya'],['ゆ','yu'],['よ','yo'],
+      ['ら','ra'],['り','ri'],['る','ru'],['れ','re'],['ろ','ro'],
+      ['わ','wa'],['を','wo'],['ん','n'],
+    ]);
+    const kata = kana('k', [
+      ['ア','a'],['イ','i'],['ウ','u'],['エ','e'],['オ','o'],
+      ['カ','ka'],['キ','ki'],['ク','ku'],['ケ','ke'],['コ','ko'],
+      ['サ','sa'],['シ','shi'],['ス','su'],['セ','se'],['ソ','so'],
+      ['タ','ta'],['チ','chi'],['ツ','tsu'],['テ','te'],['ト','to'],
+      ['ナ','na'],['ニ','ni'],['ヌ','nu'],['ネ','ne'],['ノ','no'],
+      ['ハ','ha'],['ヒ','hi'],['フ','fu'],['ヘ','he'],['ホ','ho'],
+      ['マ','ma'],['ミ','mi'],['ム','mu'],['メ','me'],['モ','mo'],
+      ['ヤ','ya'],['ユ','yu'],['ヨ','yo'],
+      ['ラ','ra'],['リ','ri'],['ル','ru'],['レ','re'],['ロ','ro'],
+      ['ワ','wa'],['ヲ','wo'],['ン','n'],
+    ]);
+    const kanji = [
+      ['一','いち','one'],['二','に','two'],['三','さん','three'],['四','よん','four'],['五','ご','five'],
+      ['六','ろく','six'],['七','なな','seven'],['八','はち','eight'],['九','きゅう','nine'],['十','じゅう','ten'],
+      ['日','ひ','day / sun'],['月','つき','moon / month'],['火','ひ','fire'],['水','みず','water'],['木','き','tree'],
+      ['金','きん','gold / money'],['土','つち','earth'],['山','やま','mountain'],['川','かわ','river'],['田','た','rice field'],
+      ['人','ひと','person'],['大','おお','big'],['小','ちい','small'],['中','なか','middle'],['上','うえ','up'],
+      ['下','した','down'],['学','がく','study'],['校','こう','school'],['生','せい','life'],['本','ほん','book'],
+      ['先','せん','ahead'],['犬','いぬ','dog'],['車','くるま','car'],['雨','あめ','rain'],['天','てん','sky / heaven'],
+    ].map((r,i) => ({id:'j'+i, target:r[0], reading:r[1], english:r[2]}));
+    return [
+      {id:'h', jp:'ひらがな', en:'Hiragana', sub:'46 characters · the basic syllabary', cards:hira},
+      {id:'k', jp:'カタカナ', en:'Katakana', sub:'46 characters · for foreign words', cards:kata},
+      {id:'j', jp:'漢字', en:'Kanji', sub:'35 essential N5 characters', cards:kanji},
+    ];
+  }
+
+  seed(i){
+    const m = i % 4;
+    if (m===0) return {status:'new', interval:0, ease:2.5, reps:0};
+    if (m===1) return {status:'learning', interval:0, ease:2.5, reps:1};
+    if (m===2) return {status:'review', interval:3 + (i%5), ease:2.5, reps:4};
+    return {status:'review', interval:1 + (i%3), ease:2.4, reps:3};
+  }
+
+  deckById(id){ return this.decks.find(d => d.id === id); }
+  currentCard(){
+    const d = this.deckById(this.state.deckId);
+    if (!d) return null;
+    return d.cards.find(c => c.id === this.state.currentCardId) || null;
+  }
+  resolveMode(i, mode){
+    mode = mode || this.state.mode;
+    if (mode !== 'mixed') return mode;
+    return ['trace','listen','translate','recall'][i % 4];
+  }
+  fmt(days){
+    if (days < 1) return Math.max(1, Math.round(days*1440)) + 'm';
+    if (days < 30) return Math.round(days) + 'd';
+    if (days < 365) return Math.round(days/30) + 'mo';
+    return (days/365).toFixed(1) + 'y';
+  }
+  intervals(id){
+    const s = this.srs[id]; if (!s) return {again:'1m',hard:'6m',good:'1d',easy:'4d'};
+    if (s.status === 'review') return {
+      again:'10m', hard:this.fmt(Math.max(1, s.interval*1.2)),
+      good:this.fmt(s.interval*s.ease), easy:this.fmt(s.interval*s.ease*1.3),
+    };
+    return {again:'1m', hard:'6m', good:'1d', easy:'4d'};
+  }
+
+  // ---- navigation ----
+  startSetup(id){ this.setState({setupDeck:id, setupMode:'mixed'}); }
+  closeSetup(){ this.setState({setupDeck:null}); }
+  pickMode(m){ this.setState({setupMode:m}); }
+  startSession(){
+    const deckId = this.state.setupDeck, mode = this.state.setupMode;
+    const deck = this.deckById(deckId);
+    const learn=[], rev=[], nw=[];
+    deck.cards.forEach(c => {
+      const s = this.srs[c.id];
+      if (s.status==='learning') learn.push(c.id);
+      else if (s.status==='review') rev.push(c.id);
+      else nw.push(c.id);
+    });
+    const queue = [...learn, ...rev, ...nw.slice(0,15)];
+    this.strokes = []; this.reqCount = {};
+    this.setState({
+      screen:'writing', setupDeck:null, deckId, mode, queue,
+      total:queue.length, graded:0, currentCardId:queue[0],
+      currentMode:this.resolveMode(0, mode), revealed:false,
+      stats:{again:0,hard:0,good:0,easy:0}, startTime:Date.now(),
+    });
+  }
+  reveal(){ this.setState({revealed:true}); }
+  applyGrade(id, q){
+    const s = this.srs[id]; let requeue = false;
+    if (q==='again'){ s.status='learning'; s.interval=0; requeue=true; }
+    else if (q==='hard'){ if (s.status==='review') s.interval=Math.max(1,s.interval*1.2); else requeue=true; }
+    else if (q==='good'){ if (s.status!=='review'){ s.status='review'; s.interval=1; } else s.interval=s.interval*s.ease; }
+    else if (q==='easy'){ if (s.status!=='review'){ s.status='review'; s.interval=4; } else s.interval=s.interval*s.ease*1.3; }
+    s.reps = (s.reps||0)+1;
+    return requeue;
+  }
+  grade(q){
+    const id = this.state.currentCardId;
+    const requeue = this.applyGrade(id, q);
+    const stats = {...this.state.stats}; stats[q]++;
+    let queue = this.state.queue.slice(1);
+    this.reqCount[id] = this.reqCount[id] || 0;
+    if (requeue && this.reqCount[id] < 2){ this.reqCount[id]++; queue.push(id); }
+    const graded = this.state.graded + 1;
+    if (queue.length === 0){ this.setState({screen:'summary', stats, graded, queue}); return; }
+    this.strokes = [];
+    this.setState({
+      queue, stats, graded, currentCardId:queue[0],
+      currentMode:this.resolveMode(graded), revealed:false,
+    });
+  }
+  goHome(){ if (window.speechSynthesis) speechSynthesis.cancel(); this.setState({screen:'home'}); }
+  studyMore(){ this.setState({screen:'home'}); }
+
+  playAudio(){
+    const c = this.currentCard(); if (!c) return;
+    if (!window.speechSynthesis) return;
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(c.reading || c.target);
+    u.lang = 'ja-JP'; u.rate = 0.85;
+    speechSynthesis.speak(u);
+  }
+
+  // ---- canvas ----
+  strokeW(){ return Math.max(5, (this.boxLayout ? this.boxLayout.boxSize : 120) * 0.03); }
+  pt(e){ const r = this.inkCanvas.getBoundingClientRect(); return {x:e.clientX-r.left, y:e.clientY-r.top}; }
+  attachInk(node){
+    if (!node || node._bound) return;
+    node._bound = true;
+    node.addEventListener('pointerdown', e => {
+      if (this.state.revealed) return;
+      node.setPointerCapture(e.pointerId);
+      this.drawing = true;
+      this.cur = {width:this.strokeW(), points:[this.pt(e)]};
+      this.strokes.push(this.cur);
+    });
+    node.addEventListener('pointermove', e => {
+      if (!this.drawing) return;
+      const p = this.pt(e); this.cur.points.push(p); this.drawSeg();
+    });
+    const end = () => { if (this.drawing){ this.drawing=false; this.forceUpdate(); } };
+    node.addEventListener('pointerup', end);
+    node.addEventListener('pointercancel', end);
+    node.addEventListener('pointerleave', end);
+  }
+  setGuide = (n) => { this.guideCanvas = n; if (n) requestAnimationFrame(() => this.renderCanvas()); };
+  setInk = (n) => { this.inkCanvas = n; this.attachInk(n); };
+  setWritingArea = (n) => { this.writingArea = n; };
+
+  drawSeg(){
+    const c = this.inkCanvas; if (!c) return;
+    const ctx = c.getContext('2d');
+    const p = this.cur.points; const n = p.length; if (n < 2) return;
+    ctx.strokeStyle = '#1C1A18'; ctx.lineWidth = this.cur.width;
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.beginPath(); ctx.moveTo(p[n-2].x, p[n-2].y); ctx.lineTo(p[n-1].x, p[n-1].y); ctx.stroke();
+  }
+  redrawInk(){
+    const c = this.inkCanvas; if (!c || !this.boxLayout) return;
+    const ctx = c.getContext('2d');
+    ctx.clearRect(0,0,c.width,c.height);
+    ctx.lineCap='round'; ctx.lineJoin='round'; ctx.strokeStyle='#1C1A18';
+    this.strokes.forEach(s => {
+      const p = s.points; if (p.length < 2){
+        if (p.length===1){ ctx.fillStyle='#1C1A18'; ctx.beginPath(); ctx.arc(p[0].x,p[0].y,s.width/2,0,7); ctx.fill(); }
+        return;
+      }
+      ctx.lineWidth = s.width; ctx.beginPath(); ctx.moveTo(p[0].x,p[0].y);
+      for (let i=1;i<p.length;i++) ctx.lineTo(p[i].x,p[i].y);
+      ctx.stroke();
+    });
+  }
+  computeBoxes(W,H,n){
+    const gap = Math.min(18, W*0.02);
+    let box = Math.min((W - gap*(n-1))/n, H, 240);
+    box = Math.max(box, 56);
+    const rowW = box*n + gap*(n-1);
+    const x0 = (W-rowW)/2, y0 = (H-box)/2;
+    const boxes = [];
+    for (let i=0;i<n;i++) boxes.push({x:x0+i*(box+gap), y:y0, size:box});
+    return {boxes, boxSize:box};
+  }
+  drawGuide(W,H){
+    const c = this.guideCanvas; if (!c) return;
+    const g = c.getContext('2d'); g.clearRect(0,0,W,H);
+    const card = this.currentCard(); if (!card) return;
+    const chars = Array.from(card.target);
+    const reveal = this.state.revealed;
+    const trace = this.state.currentMode === 'trace' && !reveal;
+    this.boxLayout.boxes.forEach((b,i) => {
+      g.strokeStyle = '#E1D8CA'; g.lineWidth = 2; g.strokeRect(b.x, b.y, b.size, b.size);
+      g.save(); g.strokeStyle = '#ECE4D8'; g.lineWidth = 1.5; g.setLineDash([6,7]);
+      g.beginPath();
+      g.moveTo(b.x+b.size/2, b.y); g.lineTo(b.x+b.size/2, b.y+b.size);
+      g.moveTo(b.x, b.y+b.size/2); g.lineTo(b.x+b.size, b.y+b.size/2);
+      g.stroke(); g.restore();
+      const ch = chars[i];
+      if (ch && (trace || reveal)){
+        g.save(); g.textAlign='center'; g.textBaseline='middle';
+        g.font = (b.size*0.72) + "px 'Klee One','Zen Kaku Gothic New',serif";
+        g.fillStyle = reveal ? 'rgba(196,18,47,0.20)' : 'rgba(60,54,48,0.15)';
+        g.fillText(ch, b.x+b.size/2, b.y+b.size/2+b.size*0.02);
+        g.restore();
+      }
+    });
+  }
+  renderCanvas(){
+    const g = this.guideCanvas, ink = this.inkCanvas, wrap = this.writingArea;
+    if (!g || !ink || !wrap) return;
+    const cssW = wrap.clientWidth, cssH = wrap.clientHeight;
+    if (!cssW || !cssH) return;
+    const dpr = window.devicePixelRatio || 1;
+    [g, ink].forEach(cv => {
+      cv.width = cssW*dpr; cv.height = cssH*dpr;
+      cv.style.width = cssW+'px'; cv.style.height = cssH+'px';
+      cv.getContext('2d').setTransform(dpr,0,0,dpr,0,0);
+    });
+    const card = this.currentCard();
+    const n = card ? Math.max(1, Array.from(card.target).length) : 1;
+    this.boxLayout = this.computeBoxes(cssW, cssH, n);
+    this.drawGuide(cssW, cssH);
+    this.redrawInk();
+  }
+  undo(){ this.strokes.pop(); this.redrawInk(); this.forceUpdate(); }
+  clear(){ this.strokes = []; this.redrawInk(); this.forceUpdate(); }
+
+  componentDidMount(){
+    if (document.fonts && document.fonts.load){
+      document.fonts.load("120px 'Klee One'").then(() => { this.fontReady = true; this.renderCanvas(); }).catch(()=>{});
+    }
+    this._resize = () => this.renderCanvas();
+    window.addEventListener('resize', this._resize);
+  }
+  componentWillUnmount(){ window.removeEventListener('resize', this._resize); if (window.speechSynthesis) speechSynthesis.cancel(); }
+  componentDidUpdate(pp, ps){
+    if (this.state.screen === 'writing'){
+      const cardChanged = ps.currentCardId !== this.state.currentCardId;
+      const entered = ps.screen !== 'writing';
+      if (cardChanged) this.strokes = [];
+      if (entered || cardChanged || ps.revealed !== this.state.revealed){
+        requestAnimationFrame(() => this.renderCanvas());
+      }
+      if ((entered || cardChanged) && this.state.currentMode === 'listen' && !this.state.revealed){
+        setTimeout(() => this.playAudio(), 420);
+      }
+    }
+  }
+
+  renderVals(){
+    const st = this.state;
+    // HOME
+    const decksView = this.decks.map(d => {
+      let nw=0, ln=0, rv=0;
+      d.cards.forEach(c => { const s=this.srs[c.id]; if(s.status==='new')nw++; else if(s.status==='learning')ln++; else rv++; });
+      const reviewed = d.cards.filter(c => (this.srs[c.id].reps||0) >= 2).length;
+      return {
+        jp:d.jp, rep:Array.from(d.jp)[0], en:d.en, sub:d.sub, newC:nw, learnC:ln, revC:rv, dueTotal:nw+ln+rv,
+        pct: Math.round(reviewed / d.cards.length * 100),
+        start: () => this.startSetup(d.id),
+      };
+    });
+    const totalDue = decksView.reduce((a,d) => a + d.dueTotal, 0);
+
+    // SETUP
+    const sd = this.deckById(st.setupDeck);
+    let sdv = {jp:'', en:'', dueTotal:0};
+    if (sd){
+      let nw=0, ln=0, rv=0;
+      sd.cards.forEach(c => { const s=this.srs[c.id]; if(s.status==='new')nw++; else if(s.status==='learning')ln++; else rv++; });
+      sdv = {jp:sd.jp, en:sd.en, dueTotal: Math.min(nw,15)+ln+rv};
+    }
+    const modesView = this.MODES.map(m => {
+      const active = st.setupMode === m.key;
+      return {
+        label:m.label, jp:m.jp, desc:m.desc, key:m.key,
+        pick: () => this.pickMode(m.key),
+        style: 'display:flex;align-items:center;gap:14px;padding:11px 13px;border-radius:14px;cursor:pointer;transition:all .15s;border:1.5px solid '+(active?'#C4122F':'#EAE3D8')+';background:'+(active?'#FBEAEC':'#fff')+';',
+        iconStyle: active ? 'background:#C4122F;color:#fff;' : 'background:#F0EDE6;color:#8A8178;',
+        dotStyle: 'width:20px;height:20px;border-radius:50%;flex-shrink:0;border:2px solid '+(active?'#C4122F':'#D8D0C3')+';background:'+(active?'radial-gradient(circle,#C4122F 42%,transparent 46%)':'transparent')+';',
+      };
+    });
+
+    // WRITING
+    const deck = this.deckById(st.deckId);
+    const card = this.currentCard();
+    const modeMeta = this.MODES.find(m => m.key === st.currentMode) || this.MODES[0];
+    let rNew=0, rLearn=0, rReview=0;
+    st.queue.forEach(id => { const s=this.srs[id]; if(s.status==='new')rNew++; else if(s.status==='learning')rLearn++; else rReview++; });
+    const remaining = st.queue.length;
+    const iv = card ? this.intervals(card.id) : {};
+    const boxHints = {trace:'Trace the character in its box', listen:'Write the character you heard', translate:'Write the Japanese here', recall:'Write the word from memory'};
+
+    // SUMMARY
+    const sumMinutes = Math.max(1, Math.round((Date.now() - (st.startTime||Date.now()))/60000));
+
+    return {
+      isHome: st.screen==='home',
+      isWriting: st.screen==='writing',
+      isSummary: st.screen==='summary',
+      setupOpen: !!st.setupDeck,
+      today: st.today,
+      decksView, totalDue, deckCount: this.decks.length,
+      setupDeckView: sdv, modesView,
+      onCloseSetup: () => this.closeSetup(),
+      onStart: () => this.startSession(),
+      deckName: deck ? deck.en : '',
+      modeLabel: modeMeta.label, modeJp: modeMeta.jp,
+      progressPct: st.total ? Math.round(st.graded/(st.graded+remaining)*100) : 0,
+      progressText: st.graded + ' done · ' + remaining + ' left',
+      rNew, rLearn, rReview,
+      isTrace: st.currentMode==='trace',
+      isListen: st.currentMode==='listen',
+      isTranslate: st.currentMode==='translate',
+      isRecall: st.currentMode==='recall',
+      revealed: st.revealed, notRevealed: !st.revealed,
+      target: card ? card.target : '',
+      reading: card ? card.reading : '',
+      english: card ? card.english : '',
+      example: card ? (card.example||'') : '',
+      hasExample: !!(card && card.example),
+      boxHint: boxHints[st.currentMode] || '',
+      iAgain: iv.again, iHard: iv.hard, iGood: iv.good, iEasy: iv.easy,
+      onClose: () => this.goHome(),
+      onReveal: () => this.reveal(),
+      onPlay: () => this.playAudio(),
+      onUndo: () => this.undo(),
+      onClear: () => this.clear(),
+      gAgain: () => this.grade('again'),
+      gHard: () => this.grade('hard'),
+      gGood: () => this.grade('good'),
+      gEasy: () => this.grade('easy'),
+      setGuide: this.setGuide, setInk: this.setInk, setWritingArea: this.setWritingArea,
+      sumTotal: st.stats.again+st.stats.hard+st.stats.good+st.stats.easy,
+      sumMinutes,
+      sumAgain: st.stats.again, sumHard: st.stats.hard, sumGood: st.stats.good, sumEasy: st.stats.easy,
+      onHome: () => this.goHome(),
+      onStudyMore: () => this.studyMore(),
+    };
+  }
+}
+</script>
+</body>
+</html>

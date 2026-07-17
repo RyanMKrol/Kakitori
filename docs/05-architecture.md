@@ -166,5 +166,6 @@ zero notes).
   (spike in milestone 1, see roadmap).
 - **`\x1f` field parsing / HTML in fields** — anki-builder output is clean today, but strip
   HTML defensively; a malformed deck must fail import, not corrupt state.
-- **Long phrases on iPhone** — 10+ boxes on a phone screen needs the wrapping design from
-  docs/06; treat iPhone as secondary until iPad flow is right.
+- **Long phrases on iPhone** — the iPhone prototype shows a single guide box; the kana deck
+  is phrase-level (10+ characters). The ≤4-boxes-per-row wrapping in docs/06 §2.3 is
+  designed but unproven on a phone canvas — validate during M1/M5.

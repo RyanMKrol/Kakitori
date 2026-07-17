@@ -43,7 +43,9 @@ A modal sheet over Home:
 
 ### 1.3 Practice session (full screen)
 
-Two-pane layout (side by side on iPad/landscape, stacked prompt-above-canvas on iPhone/portrait):
+Two-pane layout (side by side on iPad/landscape; on iPhone/portrait the prompt becomes a
+compact band above the canvas with the action pinned full-width at the bottom — see
+[06-ui-design.md](06-ui-design.md) §2.3):
 
 - **Top bar**: close (✕), deck name, mode label, progress bar with "X done · Y left",
   remaining-count chips (`new` / `learn` / `due`).
@@ -166,4 +168,3 @@ interval ≥ 21 days (Anki convention). Simple, honest, no weighting.
 - No automated stroke recognition or scoring.
 - No custom/user-created decks.
 - No notifications (revisit with widgets later).
-- No iPhone-specific compact session layout beyond the stacked arrangement in §1.3.

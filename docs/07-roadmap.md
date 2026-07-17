@@ -35,7 +35,8 @@ milestone ends with something runnable.
 - ✅ Done when: all four modes work against the kana deck.
 
 ### M5 — Polish & ship-readiness
-- iPhone layouts, dark mode, Dynamic Type & VoiceOver pass, Reduce Motion.
+- iPhone layouts per the iPhone prototype (prompt band, pinned actions, ≤4-box wrapping),
+  dark mode, Dynamic Type & VoiceOver pass, Reduce Motion.
 - Settings (new/day, review cap, autoplay, romaji toggle).
 - Empty states, import errors, app icon.
 - Axiom audit pass (accessibility, swiftui-performance, memory) before TestFlight.

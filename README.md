@@ -24,8 +24,8 @@ produced by the companion [anki-builder](../anki-builder) pipeline.
 
 ## Reference
 
-`reference/` contains the original HTML prototype ("Kaki") and screenshots — the visual and
-behavioural reference for v1.
+`reference/` contains the original HTML prototypes ("Kaki") — iPad and iPhone layouts — and
+screenshots. These are the visual and behavioural reference for v1.
 
 ## Content
 
