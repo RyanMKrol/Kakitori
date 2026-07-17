@@ -453,7 +453,7 @@
     {
       "id": "T019",
       "title": "Media copy: manifest-renamed files into Application Support layout",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [
         "T016",
         "T018"
