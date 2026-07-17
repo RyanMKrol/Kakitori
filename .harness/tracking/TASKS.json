@@ -152,7 +152,7 @@
     {
       "id": "T007",
       "title": "SwiftData model: DailyStats + streak computation",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [
         "T003",
         "T004"
