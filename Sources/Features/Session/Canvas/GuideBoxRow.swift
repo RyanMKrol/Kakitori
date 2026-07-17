@@ -3,10 +3,12 @@ import SwiftUI
 struct GuideBoxRow: View {
     let units: [SegmentedUnit]
     let maxBoxesPerRow: Int
+    let traceGlyphsVisible: Bool
 
-    init(units: [SegmentedUnit], maxBoxesPerRow: Int = 6) {
+    init(units: [SegmentedUnit], maxBoxesPerRow: Int = 6, traceGlyphsVisible: Bool = false) {
         self.units = units
         self.maxBoxesPerRow = maxBoxesPerRow
+        self.traceGlyphsVisible = traceGlyphsVisible
     }
 
     var body: some View {
@@ -30,8 +32,8 @@ struct GuideBoxRow: View {
                                 let (globalIndex, unit) = row[unitIndex]
 
                                 switch unit {
-                                case .box:
-                                    GuideBox()
+                                case let .box(glyph):
+                                    GuideBox(traceGlyph: traceGlyphsVisible ? glyph : nil)
                                         .frame(height: boxSize)
                                         .accessibilityIdentifier("guide-box-\(globalIndex)")
 

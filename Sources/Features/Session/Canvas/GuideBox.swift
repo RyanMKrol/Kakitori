@@ -23,6 +23,12 @@ private struct DashedCrossPath: Shape {
 }
 
 struct GuideBox: View {
+    let traceGlyph: String?
+
+    init(traceGlyph: String? = nil) {
+        self.traceGlyph = traceGlyph
+    }
+
     var body: some View {
         ZStack {
             Rectangle()
@@ -33,6 +39,17 @@ struct GuideBox: View {
 
             DashedCrossPath()
                 .stroke(KakitoriTheme.boxLine, style: StrokeStyle(lineWidth: 0.5, dash: [4, 3]))
+
+            if let glyph = traceGlyph {
+                GeometryReader { geometry in
+                    let fontSize = geometry.size.width * 0.72
+                    Text(glyph)
+                        .font(.custom("Hiragino Mincho ProN", size: fontSize))
+                        .foregroundStyle(KakitoriTheme.ink.opacity(0.12))
+                        .lineLimit(1)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                }
+            }
         }
         .aspectRatio(1, contentMode: .fit)
     }
