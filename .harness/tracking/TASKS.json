@@ -290,7 +290,7 @@
     {
       "id": "T012",
       "title": "WritingCanvas: PKCanvasView wrapper with undo/clear",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [
         "T056"
       ],
