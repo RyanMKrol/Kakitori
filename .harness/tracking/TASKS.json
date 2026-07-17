@@ -537,7 +537,7 @@
     {
       "id": "T022",
       "title": "Scheduler protocol, Grade enum, ScheduleSnapshot, SRS constants",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [
         "T006"
       ],
