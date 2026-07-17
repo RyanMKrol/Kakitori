@@ -33,10 +33,12 @@ final class Section {
     var name: String
     var orderIndex: Int
     var deck: Deck?
+    @Relationship(deleteRule: .cascade, inverse: \Note.section) var notes: [Note] = []
 
-    init(id: UUID = UUID(), name: String, orderIndex: Int) {
+    init(id: UUID = UUID(), name: String, orderIndex: Int, notes: [Note] = []) {
         self.id = id
         self.name = name
         self.orderIndex = orderIndex
+        self.notes = notes
     }
 }
