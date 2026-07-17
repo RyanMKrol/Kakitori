@@ -44,7 +44,7 @@
     {
       "id": "T003",
       "title": "AppClock injected time source + 4 AM adjusted-day helper",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [
         "T001"
       ],
