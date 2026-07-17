@@ -21,6 +21,7 @@ final class Note {
     var units: [String]
     var isDeleted: Bool
     var section: Section?
+    var schedule: CardSchedule?
 
     init(
         id: UUID = UUID(),
@@ -33,7 +34,8 @@ final class Note {
         script: Script,
         units: [String] = [],
         isDeleted: Bool = false,
-        section: Section? = nil
+        section: Section? = nil,
+        schedule: CardSchedule? = nil
     ) {
         self.id = id
         self.target = target
@@ -46,5 +48,6 @@ final class Note {
         self.units = units
         self.isDeleted = isDeleted
         self.section = section
+        self.schedule = schedule
     }
 }
