@@ -181,7 +181,7 @@
     {
       "id": "T008",
       "title": "App entry: ModelContainer wiring + Home shell",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [
         "T004",
         "T005",
