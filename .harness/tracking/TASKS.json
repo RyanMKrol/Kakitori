@@ -98,7 +98,7 @@
     {
       "id": "T005",
       "title": "SwiftData model: Note + Script classification",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [
         "T004"
       ],
