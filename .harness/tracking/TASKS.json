@@ -1444,7 +1444,7 @@
     {
       "id": "T056",
       "title": "KakitoriTheme design tokens (palette, type, shape) + gitignore TestResults.xcresult",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [
         "T001"
       ],
