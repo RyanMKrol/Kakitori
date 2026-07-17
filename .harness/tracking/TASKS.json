@@ -689,7 +689,7 @@
     {
       "id": "T028",
       "title": "StatsRecorder: grades + study time into DailyStats",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [
         "T003",
         "T007"
