@@ -8,5 +8,10 @@
     "failed": true,
     "reason": "review-failed: superseded by T057 — widened scope to rename Note.isDeleted -> isSoftDeleted (off the read-only NSManagedObject.isDeleted collision the original scope forbade fixing); T039 rewired onto T057.",
     "at": "2026-07-17T19:53:06Z"
+  },
+  "T023": {
+    "failed": true,
+    "reason": "review-failed: superseded by T058 — identical scheduler spec plus .gitignore/targeted-staging guardrails against the same xcresult scope-creep leak; T024 rewired onto T058.",
+    "at": "2026-07-17T19:53:08Z"
   }
 }
