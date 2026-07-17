@@ -19,7 +19,7 @@
     {
       "id": "T002",
       "title": "KakitoriTheme design tokens (palette, type, shape)",
-      "status": "pending",
+      "status": "blocked",
       "dependsOn": [
         "T001"
       ],
