@@ -1,0 +1,28 @@
+# SwiftLint config — deliberately lenient to start (CI runs `swiftlint --strict`, which
+# promotes warnings to errors, so anything enabled here must be clean). Tighten over time.
+# `included` is also what keeps the linter OFF the vendored .harness/ tree and the
+# harness-authored root prose — keep that exclusion intact.
+included:
+  - Sources
+  - Tests
+
+disabled_rules:
+  - todo                    # TODOs are fine in an actively-built codebase
+  - trailing_comma          # SwiftFormat owns comma style
+
+line_length:
+  warning: 140
+  error: 200
+  ignores_comments: true
+  ignores_urls: true
+
+identifier_name:
+  min_length: 1             # allow i, x in SRS interval math
+
+type_body_length:
+  warning: 400
+  error: 600
+
+file_length:
+  warning: 600
+  error: 1000
