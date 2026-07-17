@@ -5,6 +5,12 @@ import SwiftUI
 struct KakitoriApp: App {
     let container: ModelContainer = Self.makeModelContainer()
 
+    init() {
+        #if DEBUG
+            DemoSeed.seedIfNeeded(context: container.mainContext, clock: .system)
+        #endif
+    }
+
     var body: some Scene {
         WindowGroup {
             NavigationStack {
