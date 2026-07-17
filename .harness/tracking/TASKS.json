@@ -664,7 +664,7 @@
     {
       "id": "T027",
       "title": "SessionQueue: sub-day re-entry + session end rule",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [
         "T026"
       ],
