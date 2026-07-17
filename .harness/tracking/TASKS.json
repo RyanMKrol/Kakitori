@@ -564,7 +564,7 @@
     {
       "id": "T023",
       "title": "SM2Scheduler: learning + relearning transitions",
-      "status": "pending",
+      "status": "blocked",
       "dependsOn": [
         "T022"
       ],
