@@ -113,4 +113,39 @@ struct SessionQueue {
 
         return keyed.map(\.entry)
     }
+
+    /// The card to show next, or nil when the session is finished.
+    /// Returns the first entry in queue order whose `dueAt` is nil (new) or <= now.
+    /// If no entry is currently due but entries remain, returns the earliest-due entry (early serve).
+    /// Returns nil only when empty.
+    func next(now: Date) -> QueueEntry? {
+        guard !entries.isEmpty else { return nil }
+
+        if let firstDue = entries.first(where: { entry in
+            entry.snapshot.dueAt == nil || entry.snapshot.dueAt ?? now <= now
+        }) {
+            return firstDue
+        }
+
+        return entries.min { lhs, rhs in
+            (lhs.snapshot.dueAt ?? now) < (rhs.snapshot.dueAt ?? now)
+        }
+    }
+
+    /// Record the post-grade snapshot for a card and update the live queue.
+    /// Removes the entry with `id` (no-op if not found).
+    /// If the new state is `.learning` or `.relearning`, appends a new entry so the card re-enters the queue.
+    /// If the new state is `.review`, the card leaves the session for good.
+    mutating func markGraded(_ id: UUID, newSnapshot: ScheduleSnapshot, now _: Date) {
+        entries.removeAll { $0.id == id }
+
+        if newSnapshot.state == .learning || newSnapshot.state == .relearning {
+            entries.append(QueueEntry(id: id, snapshot: newSnapshot))
+        }
+    }
+
+    /// True when the queue is empty (no entries remain).
+    var isFinished: Bool {
+        entries.isEmpty
+    }
 }
