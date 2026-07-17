@@ -1,1 +1,7 @@
-{}
+{
+  "T002": {
+    "failed": true,
+    "reason": "review-failed: superseded by T056 — same spec plus .gitignore of TestResults.xcresult and targeted staging, so the scope-creep artifact leak that blocked it can't recur; 6 dependents rewired onto T056.",
+    "at": "2026-07-17T19:53:04Z"
+  }
+}
