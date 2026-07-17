@@ -183,11 +183,11 @@
       "title": "App entry: ModelContainer wiring + Home shell",
       "status": "pending",
       "dependsOn": [
-        "T002",
         "T004",
         "T005",
         "T006",
-        "T007"
+        "T007",
+        "T056"
       ],
       "gate": null,
       "tags": [
@@ -266,8 +266,8 @@
       "title": "Guide box row component (genkō yōshi boxes)",
       "status": "pending",
       "dependsOn": [
-        "T002",
-        "T010"
+        "T010",
+        "T056"
       ],
       "gate": null,
       "tags": [
@@ -292,7 +292,7 @@
       "title": "WritingCanvas: PKCanvasView wrapper with undo/clear",
       "status": "pending",
       "dependsOn": [
-        "T002"
+        "T056"
       ],
       "gate": null,
       "tags": [
@@ -591,7 +591,7 @@
       "title": "SM2Scheduler: review transitions, clamps, seeded fuzz",
       "status": "pending",
       "dependsOn": [
-        "T023"
+        "T058"
       ],
       "gate": null,
       "tags": [
@@ -746,8 +746,8 @@
       "title": "Session screen scaffold: top bar, progress, queue chips (iPad)",
       "status": "pending",
       "dependsOn": [
-        "T002",
-        "T029"
+        "T029",
+        "T056"
       ],
       "gate": null,
       "tags": [
@@ -856,9 +856,9 @@
       "title": "Session summary screen (お疲れさま！)",
       "status": "pending",
       "dependsOn": [
-        "T002",
         "T028",
-        "T029"
+        "T029",
+        "T056"
       ],
       "gate": null,
       "tags": [
@@ -995,8 +995,8 @@
       "title": "Import UI: Files picker, progress, error alerts",
       "status": "pending",
       "dependsOn": [
-        "T021",
-        "T036"
+        "T036",
+        "T057"
       ],
       "gate": null,
       "tags": [
@@ -1295,8 +1295,8 @@
       "title": "Dark mode palette",
       "status": "pending",
       "dependsOn": [
-        "T002",
-        "T038"
+        "T038",
+        "T056"
       ],
       "gate": null,
       "tags": [
@@ -1439,6 +1439,86 @@
         "layer": "views",
         "workType": "feature",
         "risk": []
+      }
+    },
+    {
+      "id": "T056",
+      "title": "KakitoriTheme design tokens (palette, type, shape) + gitignore TestResults.xcresult",
+      "status": "pending",
+      "dependsOn": [
+        "T001"
+      ],
+      "gate": null,
+      "tags": [
+        "ui"
+      ],
+      "scope": [
+        "Sources/Support/",
+        "Tests/",
+        ".gitignore"
+      ],
+      "design": null,
+      "verify": [],
+      "expectsTest": false,
+      "spec": ".harness/tasks/T056.md",
+      "facets": {
+        "layer": "views",
+        "workType": "component",
+        "risk": []
+      }
+    },
+    {
+      "id": "T057",
+      "title": "ApkgImporter: re-import idempotence + soft delete (rename soft-delete flag off the NSManagedObject collision)",
+      "status": "pending",
+      "dependsOn": [],
+      "gate": null,
+      "tags": [
+        "importer"
+      ],
+      "scope": [
+        "Sources/Importer/",
+        "Sources/Models/Note.swift",
+        "Tests/"
+      ],
+      "design": null,
+      "verify": [],
+      "expectsTest": true,
+      "spec": ".harness/tasks/T057.md",
+      "facets": {
+        "layer": "importer",
+        "workType": "feature",
+        "risk": [
+          "touches-schema"
+        ]
+      }
+    },
+    {
+      "id": "T058",
+      "title": "SM2Scheduler: learning + relearning transitions",
+      "status": "pending",
+      "dependsOn": [
+        "T022"
+      ],
+      "gate": null,
+      "tags": [
+        "scheduler"
+      ],
+      "scope": [
+        "Sources/Scheduler/",
+        "Tests/",
+        ".gitignore"
+      ],
+      "design": null,
+      "verify": [],
+      "expectsTest": true,
+      "spec": ".harness/tasks/T058.md",
+      "facets": {
+        "layer": "scheduler",
+        "workType": "feature",
+        "risk": [
+          "touches-core"
+        ]
       }
     }
   ]
