@@ -19,7 +19,7 @@
     {
       "id": "T002",
       "title": "KakitoriTheme design tokens (palette, type, shape)",
-      "status": "blocked",
+      "status": "failed",
       "dependsOn": [
         "T001"
       ],
@@ -509,7 +509,7 @@
     {
       "id": "T021",
       "title": "ApkgImporter: re-import idempotence + soft delete",
-      "status": "blocked",
+      "status": "failed",
       "dependsOn": [
         "T019",
         "T020"
@@ -564,7 +564,7 @@
     {
       "id": "T023",
       "title": "SM2Scheduler: learning + relearning transitions",
-      "status": "blocked",
+      "status": "failed",
       "dependsOn": [
         "T022"
       ],
