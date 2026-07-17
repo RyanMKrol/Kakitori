@@ -315,7 +315,7 @@
     {
       "id": "T013",
       "title": "Trace guide layer: faded glyphs under the canvas",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [
         "T011",
         "T012"
