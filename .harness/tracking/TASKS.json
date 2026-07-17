@@ -377,7 +377,7 @@
     {
       "id": "T016",
       "title": "ZipArchive: minimal read-only .apkg (zip) extractor",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [
         "T015"
       ],
