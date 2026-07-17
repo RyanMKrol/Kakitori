@@ -428,7 +428,7 @@
     {
       "id": "T018",
       "title": "Note field mapping: name-based fields, HTML strip, sound refs",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [
         "T017"
       ],
