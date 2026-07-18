@@ -1,10 +1,14 @@
 import SwiftData
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct HomeView: View {
     @Query private var decks: [Deck]
+    @Environment(\.modelContext) private var modelContext
     let now: Date = AppClock.system.now()
     @State private var navigationPath = NavigationPath()
+    @State private var showFileImporter = false
+    @State private var coordinator = ImportCoordinator.shared
 
     var body: some View {
         NavigationStack(path: $navigationPath) {
@@ -25,12 +29,35 @@ struct HomeView: View {
                     }
                 }
                 .padding()
+
+                if case let .running(progress) = coordinator.state {
+                    ProgressOverlay(progress: progress)
+                }
             }
             .navigationDestination(for: String.self) { destination in
                 if destination == "settings" {
                     SettingsView()
                 }
             }
+            .fileImporter(
+                isPresented: $showFileImporter,
+                allowedContentTypes: buildAllowedContentTypes(),
+                onCompletion: handleFileSelection
+            )
+            .alert(
+                "Import failed",
+                isPresented: .constant(coordinator.state.isFailure),
+                actions: {
+                    Button("OK") {
+                        coordinator.state = .idle
+                    }
+                },
+                message: {
+                    if case let .failed(message) = coordinator.state {
+                        Text(message)
+                    }
+                }
+            )
         }
     }
 
@@ -56,6 +83,14 @@ struct HomeView: View {
 
             Spacer()
 
+            Button(action: { showFileImporter = true }, label: {
+                Image(systemName: "plus")
+                    .font(.title3)
+                    .foregroundStyle(KakitoriTheme.ink)
+                    .frame(width: 44, height: 44)
+            })
+            .accessibilityIdentifier("import-button")
+
             Button(action: { navigationPath.append("settings") }, label: {
                 Image(systemName: "gearshape")
                     .font(.title3)
@@ -76,7 +111,7 @@ struct HomeView: View {
             Text("Import a deck to start writing")
                 .font(.body)
                 .foregroundStyle(KakitoriTheme.ink)
-            Button(action: {}, label: {
+            Button(action: { showFileImporter = true }, label: {
                 Text("Import deck")
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundStyle(KakitoriTheme.paper)
@@ -102,5 +137,55 @@ struct HomeView: View {
             }
         }
         .accessibilityIdentifier("home-deck-list")
+    }
+
+    private func buildAllowedContentTypes() -> [UTType] {
+        var types: [UTType] = []
+        if let apkgType = UTType(filenameExtension: "apkg") {
+            types.append(apkgType)
+        }
+        types.append(.zip)
+        types.append(.data)
+        return types
+    }
+
+    private func handleFileSelection(result: Result<URL, any Error>) {
+        switch result {
+        case let .success(url):
+            Task {
+                let mediaBaseURL = FileManager.default.urls(
+                    for: .applicationSupportDirectory,
+                    in: .userDomainMask
+                )[0].appendingPathComponent("Kakitori/Media")
+
+                let container = modelContext.container
+                await coordinator.begin(url: url, modelContainer: container, mediaBaseURL: mediaBaseURL)
+            }
+        case .failure:
+            break
+        }
+    }
+}
+
+struct ProgressOverlay: View {
+    let progress: Double
+
+    var body: some View {
+        ZStack {
+            Color.black.opacity(0.3)
+                .ignoresSafeArea()
+
+            VStack(spacing: 16) {
+                ProgressView(value: progress)
+                    .tint(KakitoriTheme.accent)
+                Text("\(Int(progress * 100))%")
+                    .font(.subheadline)
+                    .foregroundStyle(KakitoriTheme.ink)
+            }
+            .padding(24)
+            .background(KakitoriTheme.paper)
+            .cornerRadius(12)
+            .frame(maxWidth: 200)
+        }
     }
 }
