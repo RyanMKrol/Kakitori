@@ -147,11 +147,7 @@ struct SessionView: View {
     }
 
     private var canvasPane: some View {
-        VStack {
-            Text("Canvas")
-                .foregroundStyle(KakitoriTheme.ink.opacity(0.3))
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        CanvasPaneView(viewModel: viewModel)
     }
 
     private var actionRow: some View {

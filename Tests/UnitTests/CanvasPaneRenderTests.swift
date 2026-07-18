@@ -1,0 +1,114 @@
+#if DEBUG
+    @testable import Kakitori
+    import SwiftData
+    import SwiftUI
+    import XCTest
+
+    @MainActor final class CanvasPaneRenderTests: XCTestCase {
+        private let tokyo = TimeZone(identifier: "Asia/Tokyo")!
+
+        private func makeDate(year: Int, month: Int, day: Int, hour: Int, minute: Int) -> Date {
+            var calendar = Calendar(identifier: .gregorian)
+            calendar.timeZone = tokyo
+            let components = DateComponents(
+                year: year, month: month, day: day, hour: hour, minute: minute
+            )
+            return calendar.date(from: components)!
+        }
+
+        private func makeContainer() throws -> ModelContainer {
+            let schema = Schema([
+                Deck.self,
+                Section.self,
+                Note.self,
+                CardSchedule.self,
+                DailyStats.self,
+            ])
+            return try ModelContainer(
+                for: schema,
+                configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+            )
+        }
+
+        private func makeReviewNote(target: String, deck: Deck, context: ModelContext) {
+            let note = Note(target: target, script: .hiragana)
+            let schedule = CardSchedule(
+                state: .review,
+                stepIndex: 0,
+                easeFactor: 2.5,
+                intervalDays: 10,
+                dueAt: Date.distantPast,
+                lapses: 0
+            )
+            note.schedule = schedule
+            deck.sections[0].notes.append(note)
+            context.insert(note)
+            context.insert(schedule)
+        }
+
+        func testCanvasPaneRendersGuideBoxesAndPills() throws {
+            let container = try makeContainer()
+            let context = ModelContext(container)
+            let fixedTime = makeDate(year: 2026, month: 7, day: 18, hour: 12, minute: 0)
+            let clock = AppClock.fixed(fixedTime, timeZone: tokyo)
+
+            let deck = Deck(name: "Hiragana Basics", sourceDeckName: "hiragana", importedAt: fixedTime)
+            let section = Section(name: "Section 1", orderIndex: 0)
+            deck.sections = [section]
+            context.insert(deck)
+            context.insert(section)
+
+            makeReviewNote(target: "ありがとう", deck: deck, context: context)
+
+            let viewModel = SessionViewModel(
+                deck: deck,
+                mode: .trace,
+                modelContext: context,
+                clock: clock,
+                seed: 12345
+            )
+
+            let canvasPane = CanvasPaneView(viewModel: viewModel)
+                .frame(width: 1194, height: 834)
+
+            // `ImageRenderer` cannot flatten `WritingCanvas`'s `PKCanvasView` representable — it
+            // substitutes an opaque "unsupported" glyph that would obscure the guide boxes. A
+            // `UIHostingController` rendered via `drawHierarchy` composites it correctly (as proven by
+            // `WritingCanvasPreviewSnapshotTests`), so this render check uses that path instead.
+            let hostingController = UIHostingController(rootView: canvasPane)
+            hostingController.view.frame = CGRect(x: 0, y: 0, width: 1194, height: 834)
+
+            let window = UIWindow(frame: hostingController.view.frame)
+            window.rootViewController = hostingController
+            window.isHidden = false
+            hostingController.view.layoutIfNeeded()
+            RunLoop.current.run(until: Date().addingTimeInterval(0.1))
+
+            let imageRenderer = UIGraphicsImageRenderer(bounds: hostingController.view.bounds)
+            let uiImage = imageRenderer.image { _ in
+                hostingController.view.drawHierarchy(in: hostingController.view.bounds, afterScreenUpdates: true)
+            }
+
+            let repoRoot = URL(fileURLWithPath: #filePath)
+                .deletingLastPathComponent()
+                .deletingLastPathComponent()
+                .deletingLastPathComponent()
+                .path
+
+            let screenshotsDir = repoRoot + "/screenshots"
+            try FileManager.default.createDirectory(
+                atPath: screenshotsDir,
+                withIntermediateDirectories: true,
+                attributes: nil
+            )
+
+            let pngPath = screenshotsDir + "/T032-canvas.png"
+            guard let pngData = uiImage.pngData() else {
+                XCTFail("Failed to encode UIImage as PNG")
+                return
+            }
+
+            try pngData.write(to: URL(fileURLWithPath: pngPath))
+        }
+    }
+#endif
