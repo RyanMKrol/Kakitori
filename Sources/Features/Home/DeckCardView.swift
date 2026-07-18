@@ -41,26 +41,32 @@ struct DeckCardView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                 }
 
-                HStack(spacing: 8) {
-                    chipView(
-                        count: newCount,
-                        label: "new",
-                        background: KakitoriTheme.chipNewBackground,
-                        foreground: KakitoriTheme.chipNewForeground
-                    )
-                    chipView(
-                        count: learningCount,
-                        label: "learning",
-                        background: KakitoriTheme.chipLearnBackground,
-                        foreground: KakitoriTheme.chipLearnForeground
-                    )
-                    chipView(
-                        count: dueCount,
-                        label: "due",
-                        background: KakitoriTheme.chipDueBackground,
-                        foreground: KakitoriTheme.chipDueForeground
-                    )
-                    Spacer()
+                if isAllCaughtUp {
+                    Text("All caught up")
+                        .font(.caption)
+                        .foregroundStyle(KakitoriTheme.ink.opacity(0.6))
+                } else {
+                    HStack(spacing: 8) {
+                        chipView(
+                            count: newCount,
+                            label: "new",
+                            background: KakitoriTheme.chipNewBackground,
+                            foreground: KakitoriTheme.chipNewForeground
+                        )
+                        chipView(
+                            count: learningCount,
+                            label: "learning",
+                            background: KakitoriTheme.chipLearnBackground,
+                            foreground: KakitoriTheme.chipLearnForeground
+                        )
+                        chipView(
+                            count: dueCount,
+                            label: "due",
+                            background: KakitoriTheme.chipDueBackground,
+                            foreground: KakitoriTheme.chipDueForeground
+                        )
+                        Spacer()
+                    }
                 }
 
                 HStack {
@@ -112,6 +118,10 @@ struct DeckCardView: View {
         })
 
         return Int(Double(mature) / Double(nonDeletedNotes.count) * 100)
+    }
+
+    var isAllCaughtUp: Bool {
+        newCount + learningCount + dueCount == 0
     }
 
     private var newCount: Int {

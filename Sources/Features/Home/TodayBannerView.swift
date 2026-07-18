@@ -6,13 +6,15 @@ struct TodayBannerView: View {
     let now: Date
 
     var body: some View {
-        if let (totalDue, scriptCount) = calculateDueCards() {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("TODAY'S PRACTICE")
-                    .font(KakitoriTheme.smallCapsLabel(size: 11))
-                    .foregroundStyle(KakitoriTheme.paper.opacity(0.6))
-                    .tracking(0.5)
+        let (totalDue, scriptCount) = calculateDueCards()
 
+        VStack(alignment: .leading, spacing: 8) {
+            Text("TODAY'S PRACTICE")
+                .font(KakitoriTheme.smallCapsLabel(size: 11))
+                .foregroundStyle(KakitoriTheme.paper.opacity(0.6))
+                .tracking(0.5)
+
+            if totalDue > 0 {
                 HStack(spacing: 2) {
                     Text("\(totalDue) characters to write")
                         .font(.system(size: 16, weight: .semibold))
@@ -21,15 +23,19 @@ struct TodayBannerView: View {
                         .font(.system(size: 16))
                         .foregroundStyle(KakitoriTheme.paper.opacity(0.8))
                 }
+            } else {
+                Text("All caught up. Nothing due right now.")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(KakitoriTheme.paper)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(16)
-            .background(KakitoriTheme.ink)
-            .clipShape(RoundedRectangle(cornerRadius: 20))
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(16)
+        .background(KakitoriTheme.ink)
+        .clipShape(RoundedRectangle(cornerRadius: 20))
     }
 
-    private func calculateDueCards() -> (Int, Int)? {
+    static func calculateDueCards(decks: [Deck], now: Date) -> (Int, Int) {
         var totalDue = 0
         var scriptsWithDue = Set<Script>()
 
@@ -49,6 +55,10 @@ struct TodayBannerView: View {
             }
         }
 
-        return totalDue > 0 ? (totalDue, scriptsWithDue.count) : nil
+        return (totalDue, scriptsWithDue.count)
+    }
+
+    private func calculateDueCards() -> (Int, Int) {
+        Self.calculateDueCards(decks: decks, now: now)
     }
 }

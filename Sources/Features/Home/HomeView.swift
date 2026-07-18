@@ -58,6 +58,7 @@ struct HomeView: View {
                     }
                 }
             )
+            .accessibilityIdentifier("import-error-alert")
         }
     }
 
@@ -84,11 +85,17 @@ struct HomeView: View {
             Spacer()
 
             Button(action: { showFileImporter = true }, label: {
-                Image(systemName: "plus")
-                    .font(.title3)
-                    .foregroundStyle(KakitoriTheme.ink)
-                    .frame(width: 44, height: 44)
+                if isImporting {
+                    ProgressView()
+                        .frame(width: 44, height: 44)
+                } else {
+                    Image(systemName: "plus")
+                        .font(.title3)
+                        .foregroundStyle(KakitoriTheme.ink)
+                        .frame(width: 44, height: 44)
+                }
             })
+            .disabled(isImporting)
             .accessibilityIdentifier("import-button")
 
             Button(action: { navigationPath.append("settings") }, label: {
@@ -112,14 +119,21 @@ struct HomeView: View {
                 .font(.body)
                 .foregroundStyle(KakitoriTheme.ink)
             Button(action: { showFileImporter = true }, label: {
-                Text("Import deck")
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundStyle(KakitoriTheme.paper)
-                    .frame(maxWidth: .infinity)
-                    .padding(12)
-                    .background(KakitoriTheme.accent)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                HStack(spacing: 8) {
+                    if isImporting {
+                        ProgressView()
+                            .tint(KakitoriTheme.paper)
+                    }
+                    Text("Import deck")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(KakitoriTheme.paper)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(12)
+                .background(KakitoriTheme.accent)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
             })
+            .disabled(isImporting)
             .accessibilityIdentifier("import-button-empty")
             Spacer()
         }
@@ -137,6 +151,13 @@ struct HomeView: View {
             }
         }
         .accessibilityIdentifier("home-deck-list")
+    }
+
+    private var isImporting: Bool {
+        if case .running = coordinator.state {
+            return true
+        }
+        return false
     }
 
     private func buildAllowedContentTypes() -> [UTType] {

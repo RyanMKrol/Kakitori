@@ -48,14 +48,18 @@ final class ImportCoordinator {
         }
     }
 
-    private func errorMessage(for error: ImporterError) -> String {
+    nonisolated static func errorMessage(for error: ImporterError) -> String {
         switch error {
         case .badZip:
-            "This file is not a valid .apkg archive."
+            "This file could not be read as an Anki deck."
         case .noAnkiBuilderModel:
-            "No AnkiBuilder note type with a Target field was found in this deck."
+            "This deck is missing the Target field Kakitori needs."
         case .zeroNotes:
-            "The deck contains no notes."
+            "This deck has no cards to import."
         }
+    }
+
+    private func errorMessage(for error: ImporterError) -> String {
+        Self.errorMessage(for: error)
     }
 }
