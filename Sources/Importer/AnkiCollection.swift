@@ -55,7 +55,7 @@ struct AnkiCollection {
             throw AnkiCollectionError.zeroNotes
         }
 
-        guard models.contains(where: { $0.fieldNames.contains("Target") }) else {
+        guard models.contains(where: { NoteFieldMapper.hasMappableTarget($0.fieldNames) }) else {
             throw AnkiCollectionError.noAnkiBuilderModel
         }
 

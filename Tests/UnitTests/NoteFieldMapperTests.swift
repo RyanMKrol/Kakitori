@@ -2,6 +2,39 @@
 import XCTest
 
 final class NoteFieldMapperTests: XCTestCase {
+    /// The Tofugu "Klee One" kana notetype uses non-anki-builder field names; the alias table maps
+    /// Kana -> target, Romaji -> pronunciation, Mnemonic Text -> hint, Audio -> audio. English is absent.
+    func testKleeOneKanaAliasMapping() throws {
+        let model = AnkiModel(
+            id: 7,
+            name: "Basic (type in the answer)+ · Klee One",
+            fieldNames: ["Kana", "Romaji", "Mnemonic Text", "Mnemonic Image", "Audio"]
+        )
+        XCTAssertTrue(NoteFieldMapper.hasMappableTarget(model.fieldNames))
+
+        let note = AnkiNote(
+            id: 200,
+            guid: "klee-a",
+            modelID: 7,
+            fields: ["あ", "a", "Find the capital <u>A</u> in あ.", "<img src=\"あ.png\">", "[sound:あ-abc.mp3]"],
+            tags: "",
+            deckID: 5
+        )
+
+        let mapped = try NoteFieldMapper.map(note, using: model)
+
+        XCTAssertEqual(mapped.target, "あ")
+        XCTAssertEqual(mapped.pronunciation, "a")
+        XCTAssertEqual(mapped.hint, "Find the capital A in あ.")
+        XCTAssertNil(mapped.english)
+        XCTAssertNil(mapped.image) // <img> tag strips to empty -> nil
+        XCTAssertEqual(mapped.audioFilename, "あ-abc.mp3")
+    }
+
+    func testHasMappableTargetRejectsUnknownNotetype() {
+        XCTAssertFalse(NoteFieldMapper.hasMappableTarget(["Front", "Back"]))
+    }
+
     func testCanonicalOrderMapping() throws {
         let model = AnkiModel(
             id: 1,

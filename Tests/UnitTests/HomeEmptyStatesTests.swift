@@ -8,15 +8,15 @@ final class HomeEmptyStatesTests: XCTestCase {
 
     func testImportErrorMessages() {
         XCTAssertEqual(
-            ImportCoordinator.errorMessage(for: .badZip),
+            ImporterError.badZip.userMessage,
             "This file could not be read as an Anki deck."
         )
         XCTAssertEqual(
-            ImportCoordinator.errorMessage(for: .noAnkiBuilderModel),
-            "This deck is missing the Target field Kakitori needs."
+            ImporterError.noAnkiBuilderModel.userMessage,
+            "This deck has no field Kakitori can use as a writing target."
         )
         XCTAssertEqual(
-            ImportCoordinator.errorMessage(for: .zeroNotes),
+            ImporterError.zeroNotes.userMessage,
             "This deck has no cards to import."
         )
     }

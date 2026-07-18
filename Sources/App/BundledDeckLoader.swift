@@ -1,0 +1,105 @@
+import Foundation
+import SwiftData
+
+/// Loads the hand-bundled `.apkg` decks (BundledDecks/*.apkg, shipped as app resources) into the
+/// store on launch. This is how content gets in for now — the in-app package importer is deferred, so
+/// the decks are baked into the app and always present with no onboarding.
+///
+/// Idempotent and cheap on steady state: gated by a bundle-version flag so the one-time import + media
+/// copy runs only when the shipped deck set changes. Reuses the full `ApkgImporter` pipeline (parse →
+/// upsert → media copy), whose re-import logic is itself idempotent as a second line of defence.
+enum BundledDeckLoader {
+    /// Bump when the bundled `.apkg` set changes so existing installs re-import on their next launch.
+    static let bundleVersion = 1
+    private static let versionKey = "loadedBundledDecksVersion"
+
+    /// Resource base-names (without extension) of the shipped decks, in display order.
+    static let deckResourceNames = ["Tofugu-Hiragana", "Tofugu-Katakana"]
+
+    /// Where imported deck audio/media is copied (matches the rest of the app).
+    static func mediaBaseURL() -> URL {
+        FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent("Kakitori/Media")
+    }
+
+    static func bundledDeckURLs(in bundle: Bundle = .main) -> [URL] {
+        deckResourceNames.compactMap { name in
+            // Tolerate either a flattened resource or a "BundledDecks" folder reference.
+            bundle.url(forResource: name, withExtension: "apkg")
+                ?? bundle.url(forResource: name, withExtension: "apkg", subdirectory: "BundledDecks")
+        }
+    }
+
+    /// Whether the current bundle version has already been imported (nothing to do).
+    static func isUpToDate(defaults: UserDefaults = .standard) -> Bool {
+        defaults.integer(forKey: versionKey) == bundleVersion
+    }
+
+    /// Import every bundled deck into `container`. Idempotent per deck. Returns the first error
+    /// encountered (nil on success); records the loaded version only when every deck succeeded.
+    @discardableResult
+    static func load(
+        container: ModelContainer,
+        defaults: UserDefaults = .standard,
+        bundle: Bundle = .main
+    ) async -> ImporterError? {
+        let urls = bundledDeckURLs(in: bundle)
+        guard !urls.isEmpty else { return nil }
+
+        let importer = ApkgImporter(container: container, mediaBaseURL: mediaBaseURL())
+        var firstError: ImporterError?
+        for url in urls {
+            do {
+                try await importer.importDeck(from: url)
+            } catch let error as ImporterError {
+                firstError = firstError ?? error
+            } catch {
+                firstError = firstError ?? .badZip
+            }
+        }
+
+        if firstError == nil {
+            defaults.set(bundleVersion, forKey: versionKey)
+        }
+        return firstError
+    }
+}
+
+/// Observable launch-time state for the bundled-deck load, so the Home screen can show a "preparing"
+/// state on first launch and an error if it fails, instead of the old import-onboarding empty state.
+@MainActor
+@Observable
+final class DeckLoadModel {
+    enum Phase: Equatable {
+        case idle
+        case loading
+        case failed(String)
+    }
+
+    private(set) var phase: Phase = .idle
+    private var didRun = false
+
+    /// Run once per app launch. No-op (stays `.idle`) if the bundled decks are already loaded.
+    func runIfNeeded(container: ModelContainer) async {
+        guard !didRun else { return }
+        didRun = true
+
+        guard !BundledDeckLoader.isUpToDate() else {
+            phase = .idle
+            return
+        }
+
+        phase = .loading
+        if let error = await BundledDeckLoader.load(container: container) {
+            phase = .failed(error.userMessage)
+        } else {
+            phase = .idle
+        }
+    }
+
+    /// Allow a manual retry after a failure.
+    func retry(container: ModelContainer) async {
+        didRun = false
+        await runIfNeeded(container: container)
+    }
+}

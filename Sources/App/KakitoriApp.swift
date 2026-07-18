@@ -5,33 +5,19 @@ import SwiftUI
 struct KakitoriApp: App {
     let container: ModelContainer = Self.makeModelContainer()
 
-    init() {
-        #if DEBUG
-            DemoSeed.seedIfNeeded(context: container.mainContext, clock: .system)
-        #endif
-    }
+    @State private var deckLoad = DeckLoadModel()
 
     var body: some Scene {
         WindowGroup {
             NavigationStack {
                 HomeView()
             }
-            .onOpenURL { url in
-                handleOpenURL(url)
+            .environment(deckLoad)
+            .task {
+                await deckLoad.runIfNeeded(container: container)
             }
         }
         .modelContainer(container)
-    }
-
-    private func handleOpenURL(_ url: URL) {
-        Task {
-            let mediaBaseURL = FileManager.default.urls(
-                for: .applicationSupportDirectory,
-                in: .userDomainMask
-            )[0].appendingPathComponent("Kakitori/Media")
-
-            await ImportCoordinator.shared.begin(url: url, modelContainer: container, mediaBaseURL: mediaBaseURL)
-        }
     }
 
     private static func makeModelContainer() -> ModelContainer {

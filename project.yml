@@ -17,7 +17,12 @@ targets:
   Kakitori:
     type: application
     platform: iOS
-    sources: [Sources]
+    sources:
+      - Sources
+      # Hand-bundled decks loaded on launch (see BundledDeckLoader). The in-app package importer is
+      # deferred; these ship inside the app so the content is always present with no onboarding.
+      - path: BundledDecks
+        buildPhase: resources
     resources:
       - path: Sources/Support/PrivacyInfo.xcprivacy
         buildPhase: resources
