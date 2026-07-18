@@ -715,7 +715,7 @@
     {
       "id": "T029",
       "title": "SessionViewModel: session state machine",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [
         "T025",
         "T027",
