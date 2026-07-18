@@ -19,9 +19,16 @@ final class Note {
     var audioFilename: String?
     var script: Script
     var units: [String]
-    var isDeleted: Bool
+    var isSoftDeleted: Bool
     var section: Section?
     var schedule: CardSchedule?
+    /// Direct owning-deck link so re-import can find sectionless notes too, not just via `section`.
+    var deck: Deck?
+
+    /// Read-only alias kept for out-of-scope call sites; the writable flag is `isSoftDeleted` (see above).
+    var isDeleted: Bool {
+        isSoftDeleted
+    }
 
     init(
         id: UUID = UUID(),
@@ -33,9 +40,10 @@ final class Note {
         audioFilename: String? = nil,
         script: Script,
         units: [String] = [],
-        isDeleted: Bool = false,
+        isSoftDeleted: Bool = false,
         section: Section? = nil,
-        schedule: CardSchedule? = nil
+        schedule: CardSchedule? = nil,
+        deck: Deck? = nil
     ) {
         self.id = id
         self.target = target
@@ -46,8 +54,9 @@ final class Note {
         self.audioFilename = audioFilename
         self.script = script
         self.units = units
-        self.isDeleted = isDeleted
+        self.isSoftDeleted = isSoftDeleted
         self.section = section
         self.schedule = schedule
+        self.deck = deck
     }
 }

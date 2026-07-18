@@ -23,6 +23,7 @@ struct ImportedNote {
 struct ParsedDeck {
     let deckName: String
     let notes: [ImportedNote]
+    let extractionDirectory: URL
 }
 
 actor ApkgImporter {
@@ -36,31 +37,49 @@ actor ApkgImporter {
 
     func importDeck(from url: URL) async throws {
         let parsed = try parse(url: url)
-        _ = try apply(parsed)
+        defer { try? FileManager.default.removeItem(at: parsed.extractionDirectory) }
+
+        let deckID = try apply(parsed)
+
+        let manifestURL = parsed.extractionDirectory.appendingPathComponent("media")
+        try MediaStore(baseURL: mediaBaseURL).copyMedia(
+            manifestURL: manifestURL,
+            payloadDirectory: parsed.extractionDirectory,
+            deckID: deckID
+        )
     }
 
     func parse(url: URL) throws -> ParsedDeck {
         let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
-        defer { try? FileManager.default.removeItem(at: tempDir) }
 
-        try extract(url, to: tempDir)
-        let collection = try openCollection(at: tempDir.appendingPathComponent("collection.anki2"))
+        do {
+            try extract(url, to: tempDir)
+            let collection = try openCollection(at: tempDir.appendingPathComponent("collection.anki2"))
 
-        guard let targetModel = collection.models.first(where: { $0.fieldNames.contains("Target") }) else {
-            throw ImporterError.noAnkiBuilderModel
-        }
-
-        let topDeckFullName = topDeckFullName(in: collection)
-        let deckName = topDeckFullName.components(separatedBy: "::").first ?? topDeckFullName
-        let deckLookup = Dictionary(uniqueKeysWithValues: collection.decks.map { ($0.id, $0.name) })
-
-        let importedNotes = collection.notes
-            .filter { $0.modelID == targetModel.id }
-            .compactMap { note in
-                importedNote(from: note, model: targetModel, deckLookup: deckLookup, topDeckFullName: topDeckFullName)
+            guard let targetModel = collection.models.first(where: { $0.fieldNames.contains("Target") }) else {
+                throw ImporterError.noAnkiBuilderModel
             }
 
-        return ParsedDeck(deckName: deckName, notes: importedNotes)
+            let topDeckFullName = topDeckFullName(in: collection)
+            let deckName = topDeckFullName.components(separatedBy: "::").first ?? topDeckFullName
+            let deckLookup = Dictionary(uniqueKeysWithValues: collection.decks.map { ($0.id, $0.name) })
+
+            let importedNotes = collection.notes
+                .filter { $0.modelID == targetModel.id }
+                .compactMap { note in
+                    importedNote(
+                        from: note,
+                        model: targetModel,
+                        deckLookup: deckLookup,
+                        topDeckFullName: topDeckFullName
+                    )
+                }
+
+            return ParsedDeck(deckName: deckName, notes: importedNotes, extractionDirectory: tempDir)
+        } catch {
+            try? FileManager.default.removeItem(at: tempDir)
+            throw error
+        }
     }
 
     private func extract(_ url: URL, to tempDir: URL) throws {
@@ -140,6 +159,17 @@ actor ApkgImporter {
     }
 
     func apply(_ parsed: ParsedDeck) throws -> UUID {
+        let deckName = parsed.deckName
+        let existingDeckDescriptor = FetchDescriptor<Deck>(
+            predicate: #Predicate { $0.sourceDeckName == deckName }
+        )
+        if let existingDeck = try context.fetch(existingDeckDescriptor).first {
+            return try reimport(parsed, into: existingDeck)
+        }
+        return try firstImport(parsed)
+    }
+
+    private func firstImport(_ parsed: ParsedDeck) throws -> UUID {
         let deck = Deck(
             name: parsed.deckName,
             sourceDeckName: parsed.deckName,
@@ -148,14 +178,8 @@ actor ApkgImporter {
         context.insert(deck)
 
         var sections: [String: Section] = [:]
-        var orderIndex = 0
         for imported in parsed.notes {
-            guard let sectionName = imported.sectionName, sections[sectionName] == nil else { continue }
-            let section = Section(name: sectionName, orderIndex: orderIndex)
-            section.deck = deck
-            deck.sections.append(section)
-            sections[sectionName] = section
-            orderIndex += 1
+            _ = section(named: imported.sectionName, in: deck, sections: &sections)
         }
 
         for imported in parsed.notes {
@@ -169,10 +193,11 @@ actor ApkgImporter {
                 audioFilename: imported.audioFilename,
                 script: imported.script,
                 units: imported.units,
-                isDeleted: false
+                isSoftDeleted: false,
+                deck: deck
             )
 
-            if let sectionName = imported.sectionName, let section = sections[sectionName] {
+            if let section = section(named: imported.sectionName, in: deck, sections: &sections) {
                 note.section = section
                 section.notes.append(note)
             }
@@ -187,6 +212,114 @@ actor ApkgImporter {
 
         try context.save()
         return deck.id
+    }
+
+    private func reimport(_ parsed: ParsedDeck, into deck: Deck) throws -> UUID {
+        deck.importedAt = Date()
+
+        var sections = Dictionary(uniqueKeysWithValues: deck.sections.map { ($0.name, $0) })
+        let deckID = deck.id
+        let existingNotesDescriptor = FetchDescriptor<Note>(
+            predicate: #Predicate { $0.deck?.id == deckID }
+        )
+        let existingNotesByID = try Dictionary(
+            uniqueKeysWithValues: context.fetch(existingNotesDescriptor).map { ($0.id, $0) }
+        )
+
+        var incomingIDs = Set<UUID>()
+
+        for imported in parsed.notes {
+            let noteID = NoteIdentity.uuid(forAnkiGUID: imported.ankiGUID)
+            incomingIDs.insert(noteID)
+
+            if let note = existingNotesByID[noteID] {
+                update(note, with: imported, in: deck, sections: &sections)
+            } else {
+                insertNote(id: noteID, imported: imported, in: deck, sections: &sections)
+            }
+        }
+
+        for (id, note) in existingNotesByID where !incomingIDs.contains(id) {
+            note.isSoftDeleted = true
+        }
+
+        try context.save()
+        return deck.id
+    }
+
+    private func update(
+        _ note: Note,
+        with imported: ImportedNote,
+        in deck: Deck,
+        sections: inout [String: Section]
+    ) {
+        note.target = imported.target
+        note.pronunciation = imported.pronunciation
+        note.english = imported.english
+        note.category = imported.category
+        note.hint = imported.hint
+        note.audioFilename = imported.audioFilename
+        note.units = imported.units
+        note.script = imported.script
+        note.isSoftDeleted = false
+
+        let newSection = section(named: imported.sectionName, in: deck, sections: &sections)
+        if note.section !== newSection {
+            note.section?.notes.removeAll { $0.id == note.id }
+            note.section = newSection
+            newSection?.notes.append(note)
+        }
+    }
+
+    private func insertNote(
+        id: UUID,
+        imported: ImportedNote,
+        in deck: Deck,
+        sections: inout [String: Section]
+    ) {
+        let note = Note(
+            id: id,
+            target: imported.target,
+            pronunciation: imported.pronunciation,
+            english: imported.english,
+            category: imported.category,
+            hint: imported.hint,
+            audioFilename: imported.audioFilename,
+            script: imported.script,
+            units: imported.units,
+            isSoftDeleted: false,
+            deck: deck
+        )
+
+        if let newSection = section(named: imported.sectionName, in: deck, sections: &sections) {
+            note.section = newSection
+            newSection.notes.append(note)
+        }
+
+        context.insert(note)
+
+        let schedule = CardSchedule(state: .new)
+        schedule.note = note
+        note.schedule = schedule
+        context.insert(schedule)
+    }
+
+    private func section(
+        named sectionName: String?,
+        in deck: Deck,
+        sections: inout [String: Section]
+    ) -> Section? {
+        guard let sectionName else { return nil }
+
+        if let existing = sections[sectionName] {
+            return existing
+        }
+
+        let section = Section(name: sectionName, orderIndex: sections.count)
+        section.deck = deck
+        deck.sections.append(section)
+        sections[sectionName] = section
+        return section
     }
 
     private func sectionName(forNoteDeck noteDeckFullName: String?, topDeckFullName: String) -> String? {
