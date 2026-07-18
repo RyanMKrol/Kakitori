@@ -614,7 +614,7 @@
     {
       "id": "T025",
       "title": "SM2Scheduler: grade previews match applied results",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [
         "T024"
       ],
