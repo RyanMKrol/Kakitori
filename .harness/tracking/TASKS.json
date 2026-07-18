@@ -882,7 +882,7 @@
     {
       "id": "T035",
       "title": "Home stats row: streak, written today, minutes studied",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [
         "T008",
         "T028"
