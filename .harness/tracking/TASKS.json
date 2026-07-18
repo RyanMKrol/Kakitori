@@ -1520,6 +1520,329 @@
           "touches-core"
         ]
       }
+    },
+    {
+      "id": "T059",
+      "title": "Fix empty session (daily cap reached): finish immediately, never dead buttons",
+      "status": "pending",
+      "dependsOn": [],
+      "gate": null,
+      "tags": [
+        "bug",
+        "session",
+        "daily-cap"
+      ],
+      "scope": [
+        "Sources/Features/Session/**",
+        "Sources/Scheduler/**",
+        "Tests/**"
+      ],
+      "design": null,
+      "verify": [],
+      "expectsTest": true,
+      "spec": ".harness/tasks/T059.md",
+      "visualVerify": true,
+      "facets": {
+        "layer": "scheduler",
+        "workType": "bugfix",
+        "risk": [
+          "touches-core"
+        ]
+      }
+    },
+    {
+      "id": "T060",
+      "title": "Shared daily-allowance helper: banner + deck chips reflect today's allotment, not full backlog",
+      "status": "pending",
+      "dependsOn": [],
+      "gate": null,
+      "tags": [
+        "home",
+        "daily-cap",
+        "counts"
+      ],
+      "scope": [
+        "Sources/Scheduler/**",
+        "Sources/Features/Home/**",
+        "Sources/Support/**",
+        "Tests/**"
+      ],
+      "design": null,
+      "verify": [],
+      "expectsTest": true,
+      "spec": ".harness/tasks/T060.md",
+      "visualVerify": true,
+      "facets": {
+        "layer": "scheduler",
+        "workType": "feature",
+        "risk": [
+          "cross-cutting"
+        ]
+      }
+    },
+    {
+      "id": "T061",
+      "title": "Deck card: 'completed today' progress indicator (X of Y against today's allotment)",
+      "status": "pending",
+      "dependsOn": [
+        "T060"
+      ],
+      "gate": null,
+      "tags": [
+        "home",
+        "progress-metric"
+      ],
+      "scope": [
+        "Sources/Features/Home/**",
+        "Sources/Scheduler/**",
+        "Tests/**"
+      ],
+      "design": null,
+      "verify": [],
+      "expectsTest": true,
+      "spec": ".harness/tasks/T061.md",
+      "visualVerify": false,
+      "facets": {
+        "layer": "views",
+        "workType": "component",
+        "risk": []
+      }
+    },
+    {
+      "id": "T062",
+      "title": "Give bundled decks friendly names + JP titles at import (Hiragana/Katakana, ひらがな/カタカナ)",
+      "status": "pending",
+      "dependsOn": [],
+      "gate": null,
+      "tags": [
+        "importer",
+        "bundled-decks",
+        "deck-naming"
+      ],
+      "scope": [
+        "Sources/Importer/**",
+        "Sources/Content/**",
+        "Tests/UnitTests/ApkgImporterTests.swift",
+        "Tests/UnitTests/ApkgReimportTests.swift",
+        "Tests/UnitTests/BundledDeckImportTests.swift"
+      ],
+      "design": null,
+      "verify": [
+        "xcodebuild test -project Kakitori.xcodeproj -scheme Kakitori"
+      ],
+      "expectsTest": true,
+      "spec": ".harness/tasks/T062.md",
+      "facets": {
+        "layer": "importer",
+        "workType": "feature",
+        "risk": [
+          "touches-core"
+        ]
+      }
+    },
+    {
+      "id": "T063",
+      "title": "Deck card: never render the deck name twice / a Latin string in the JP serif slot",
+      "status": "pending",
+      "dependsOn": [],
+      "gate": null,
+      "tags": [
+        "views",
+        "home",
+        "deck-card"
+      ],
+      "scope": [
+        "Sources/Features/Home/DeckCardView.swift"
+      ],
+      "design": null,
+      "verify": [
+        "./build_run.sh Kakitori-Sim",
+        "./build_run.sh Kakitori-Sim-Phone"
+      ],
+      "expectsTest": false,
+      "spec": ".harness/tasks/T063.md",
+      "facets": {
+        "layer": "views",
+        "workType": "style",
+        "risk": []
+      }
+    },
+    {
+      "id": "T064",
+      "title": "Fix Mixed practice-mode subtitle: not 'four modes'",
+      "status": "pending",
+      "dependsOn": [],
+      "gate": null,
+      "tags": [
+        "copy",
+        "deck-setup",
+        "practice-mode"
+      ],
+      "scope": [
+        "Sources/Features/DeckSetup/**"
+      ],
+      "design": null,
+      "verify": [],
+      "expectsTest": false,
+      "spec": ".harness/tasks/T064.md",
+      "facets": {
+        "layer": "views",
+        "workType": "style",
+        "risk": []
+      }
+    },
+    {
+      "id": "T065",
+      "title": "Curate showcase deck characters per bundled deck + the character↔mode-row mapping (owner's creative pick)",
+      "status": "pending",
+      "dependsOn": [],
+      "gate": "needs-human",
+      "tags": [
+        "curation",
+        "bundled-decks",
+        "mode-glyphs",
+        "decision",
+        "needs-human"
+      ],
+      "scope": [
+        "Sources/App/**"
+      ],
+      "design": null,
+      "verify": [],
+      "expectsTest": false,
+      "spec": ".harness/tasks/T065.md"
+    },
+    {
+      "id": "T066",
+      "title": "Render curated deck characters as the DeckSetupSheet mode-row glyphs (auto-pick fallback for uncurated decks)",
+      "status": "pending",
+      "dependsOn": [
+        "T065"
+      ],
+      "gate": null,
+      "tags": [
+        "views",
+        "deck-setup",
+        "mode-glyphs"
+      ],
+      "scope": [
+        "Sources/Features/DeckSetup/**",
+        "Sources/Features/Home/HomeView.swift",
+        "Sources/App/BundledDeckLoader.swift"
+      ],
+      "design": null,
+      "verify": [
+        "./build_run.sh Kakitori-Sim",
+        "./build_run.sh Kakitori-Sim-Phone"
+      ],
+      "expectsTest": false,
+      "spec": ".harness/tasks/T066.md",
+      "facets": {
+        "layer": "views",
+        "workType": "component",
+        "risk": []
+      }
+    },
+    {
+      "id": "T067",
+      "title": "Clean up the 'Show answer' reveal — no background flash, no layout jump",
+      "status": "pending",
+      "dependsOn": [],
+      "gate": null,
+      "tags": [
+        "session",
+        "ui",
+        "animation",
+        "polish"
+      ],
+      "scope": [
+        "Sources/Features/Session/**",
+        "Sources/Support/Theme.swift"
+      ],
+      "design": null,
+      "verify": [],
+      "expectsTest": false,
+      "spec": ".harness/tasks/T067.md",
+      "facets": {
+        "layer": "views",
+        "workType": "bugfix",
+        "risk": []
+      }
+    },
+    {
+      "id": "T068",
+      "title": "Settings: replace daily-limit Steppers with clamped numeric inputs",
+      "status": "pending",
+      "dependsOn": [],
+      "gate": null,
+      "tags": [
+        "settings",
+        "ui",
+        "ux"
+      ],
+      "scope": [
+        "Sources/Features/Settings/**"
+      ],
+      "design": null,
+      "verify": [],
+      "expectsTest": false,
+      "spec": ".harness/tasks/T068.md",
+      "facets": {
+        "layer": "views",
+        "workType": "component",
+        "risk": []
+      }
+    },
+    {
+      "id": "T069",
+      "title": "DeckSetupSheet: fix clipped sheet on iPhone (.medium detent too short, Start writing CTA cut off)",
+      "status": "pending",
+      "dependsOn": [],
+      "gate": null,
+      "tags": [
+        "ui",
+        "iphone",
+        "compact",
+        "bugfix"
+      ],
+      "scope": [
+        "Sources/Features/Home/**",
+        "Sources/Features/DeckSetup/**"
+      ],
+      "design": null,
+      "verify": [],
+      "expectsTest": false,
+      "spec": ".harness/tasks/T069.md",
+      "facets": {
+        "layer": "views",
+        "workType": "bugfix",
+        "risk": []
+      }
+    },
+    {
+      "id": "T070",
+      "title": "DeckSetupSheet: fix 'N cards due' subtitle wording over a new-card count",
+      "status": "pending",
+      "dependsOn": [],
+      "gate": null,
+      "tags": [
+        "ui",
+        "copy",
+        "bugfix"
+      ],
+      "scope": [
+        "Sources/Features/Home/**",
+        "Sources/Features/DeckSetup/**"
+      ],
+      "design": null,
+      "verify": [],
+      "expectsTest": false,
+      "spec": ".harness/tasks/T070.md",
+      "facets": {
+        "layer": "views",
+        "workType": "bugfix",
+        "risk": []
+      }
     }
   ]
 }
