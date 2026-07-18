@@ -1262,7 +1262,7 @@
     {
       "id": "T049",
       "title": "iPhone compact Home, deck setup, and summary layouts",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [
         "T034",
         "T035",
