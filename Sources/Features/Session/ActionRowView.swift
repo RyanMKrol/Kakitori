@@ -4,6 +4,8 @@ import SwiftUI
 struct ActionRowView: View {
     let viewModel: SessionViewModel
 
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
     var body: some View {
         if viewModel.phase == .revealed {
             gradeRow
@@ -17,10 +19,10 @@ struct ActionRowView: View {
     private var showAnswerButton: some View {
         Button(action: { viewModel.showAnswer() }, label: {
             Text("Show answer")
-                .font(.system(size: 16, weight: .semibold))
+                .kakitoriFont(size: 16, weight: .semibold)
                 .foregroundStyle(KakitoriTheme.paper)
                 .frame(maxWidth: .infinity)
-                .frame(height: 56)
+                .frame(minHeight: 56)
                 .background(KakitoriTheme.ink)
                 .cornerRadius(14)
         })
@@ -29,11 +31,24 @@ struct ActionRowView: View {
     }
 
     private var gradeRow: some View {
-        HStack(spacing: 8) {
-            gradeButton(grade: .again, label: "Again")
-            gradeButton(grade: .hard, label: "Hard")
-            gradeButton(grade: .good, label: "Good")
-            gradeButton(grade: .easy, label: "Easy")
+        Group {
+            // Full-height stacked rows once Dynamic Type reaches an accessibility size —
+            // four buttons side by side no longer fit their label + interval preview text.
+            if dynamicTypeSize.isAccessibilitySize {
+                VStack(spacing: 8) {
+                    gradeButton(grade: .again, label: "Again")
+                    gradeButton(grade: .hard, label: "Hard")
+                    gradeButton(grade: .good, label: "Good")
+                    gradeButton(grade: .easy, label: "Easy")
+                }
+            } else {
+                HStack(spacing: 8) {
+                    gradeButton(grade: .again, label: "Again")
+                    gradeButton(grade: .hard, label: "Hard")
+                    gradeButton(grade: .good, label: "Good")
+                    gradeButton(grade: .easy, label: "Easy")
+                }
+            }
         }
         .padding(16)
     }
@@ -46,14 +61,14 @@ struct ActionRowView: View {
         return Button(action: { viewModel.grade(grade) }, label: {
             VStack(spacing: 4) {
                 Text(label)
-                    .font(.system(size: 14, weight: .semibold))
+                    .kakitoriFont(size: 14, weight: .semibold)
                 if let preview {
                     Text(preview.label)
-                        .font(.system(size: 11, weight: .regular))
+                        .kakitoriFont(size: 11)
                 }
             }
             .frame(maxWidth: .infinity)
-            .frame(height: 56)
+            .frame(minHeight: 56)
             .foregroundStyle(isEasy ? KakitoriTheme.paper : KakitoriTheme.ink)
             .background(
                 isAgain ? KakitoriTheme.accent :
@@ -67,6 +82,7 @@ struct ActionRowView: View {
             .cornerRadius(8)
         })
         .accessibilityIdentifier("grade-\(grade.rawValue)")
+        .accessibilityLabel(preview.map { "\(label) — due in \($0.label)" } ?? label)
     }
 }
 

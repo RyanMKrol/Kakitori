@@ -43,12 +43,43 @@ public enum KakitoriTheme {
 
     // MARK: - Typography
 
+    /// Content glyphs (answer targets, trace guides): scales with Dynamic Type, matching
+    /// prompt/answer metadata text (reading, English, hint).
     public static func japaneseDisplayFont(size: CGFloat, bold: Bool = false) -> Font {
         let fontName = bold ? "HiraMinProN-W6" : "HiraMinProN-W3"
         return Font.custom(fontName, size: size)
     }
 
-    public static func smallCapsLabel(size: CGFloat = 12) -> Font {
-        .system(size: size, weight: .semibold)
+    /// Answer glyphs and guide-box glyphs: fixed size regardless of Dynamic Type — they're
+    /// the content being written, not chrome.
+    public static func japaneseDisplayFontFixed(size: CGFloat, bold: Bool = false) -> Font {
+        let fontName = bold ? "HiraMinProN-W6" : "HiraMinProN-W3"
+        return Font.custom(fontName, fixedSize: size)
+    }
+}
+
+/// Scales a literal point size with Dynamic Type, relative to `.body`, while preserving the
+/// design's exact point size at the default content size category.
+private struct ScaledFontModifier: ViewModifier {
+    @ScaledMetric private var size: CGFloat
+    let weight: Font.Weight
+    let design: Font.Design
+
+    init(size: CGFloat, weight: Font.Weight, design: Font.Design) {
+        _size = ScaledMetric(wrappedValue: size)
+        self.weight = weight
+        self.design = design
+    }
+
+    func body(content: Content) -> some View {
+        content.font(.system(size: size, weight: weight, design: design))
+    }
+}
+
+extension View {
+    /// Chrome text: scales with Dynamic Type. Use for all UI text that isn't the answer
+    /// glyphs, trace-guide glyphs, or guide-box content.
+    func kakitoriFont(size: CGFloat, weight: Font.Weight = .regular, design: Font.Design = .default) -> some View {
+        modifier(ScaledFontModifier(size: size, weight: weight, design: design))
     }
 }

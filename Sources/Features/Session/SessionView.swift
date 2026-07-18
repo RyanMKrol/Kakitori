@@ -48,16 +48,17 @@ struct SessionView: View {
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(viewModel.deckName)
-                    .font(.system(size: 12, weight: .bold))
+                    .kakitoriFont(size: 12, weight: .bold)
                     .lineLimit(1)
 
                 HStack(spacing: 4) {
                     Text(viewModel.mode.glyph)
-                        .font(.system(size: 11))
+                        .kakitoriFont(size: 11)
+                        .accessibilityHidden(true)
                     Text("·")
-                        .font(.system(size: 11))
+                        .kakitoriFont(size: 11)
                     Text(viewModel.mode.label)
-                        .font(.system(size: 11))
+                        .kakitoriFont(size: 11)
                 }
                 .foregroundStyle(KakitoriTheme.ink.opacity(0.6))
             }
@@ -67,7 +68,7 @@ struct SessionView: View {
             VStack(spacing: 4) {
                 progressBar
                 Text("\(done) done · \(left) left")
-                    .font(.system(size: 10, weight: .semibold))
+                    .kakitoriFont(size: 10, weight: .semibold)
                     .foregroundStyle(KakitoriTheme.ink)
             }
             .frame(maxWidth: 120)
@@ -112,7 +113,7 @@ struct SessionView: View {
 
     private var chipNew: some View {
         Text("\(viewModel.newCount) new")
-            .font(.system(size: 11, weight: .semibold))
+            .kakitoriFont(size: 11, weight: .semibold)
             .foregroundStyle(KakitoriTheme.chipNewForeground)
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
@@ -122,7 +123,7 @@ struct SessionView: View {
 
     private var chipLearn: some View {
         Text("\(viewModel.learnCount) learn")
-            .font(.system(size: 11, weight: .semibold))
+            .kakitoriFont(size: 11, weight: .semibold)
             .foregroundStyle(KakitoriTheme.chipLearnForeground)
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
@@ -132,7 +133,7 @@ struct SessionView: View {
 
     private var chipDue: some View {
         Text("\(viewModel.dueCount) due")
-            .font(.system(size: 11, weight: .semibold))
+            .kakitoriFont(size: 11, weight: .semibold)
             .foregroundStyle(KakitoriTheme.chipDueForeground)
             .padding(.horizontal, 8)
             .padding(.vertical, 4)

@@ -161,8 +161,9 @@ struct HomeView: View {
                     .fill(KakitoriTheme.accent)
                     .frame(width: 44, height: 44)
                 Text("書")
-                    .font(KakitoriTheme.japaneseDisplayFont(size: 28))
+                    .font(KakitoriTheme.japaneseDisplayFontFixed(size: 28))
                     .foregroundStyle(KakitoriTheme.paper)
+                    .accessibilityHidden(true)
             }
 
             VStack(alignment: .leading, spacing: 2) {
@@ -205,8 +206,9 @@ struct HomeView: View {
         VStack(spacing: 16) {
             Spacer()
             Text("書")
-                .font(KakitoriTheme.japaneseDisplayFont(size: 64))
+                .font(KakitoriTheme.japaneseDisplayFontFixed(size: 64))
                 .foregroundStyle(KakitoriTheme.inkFaint)
+                .accessibilityHidden(true)
             Text("Import a deck to start writing")
                 .font(.body)
                 .foregroundStyle(KakitoriTheme.ink)
@@ -217,7 +219,7 @@ struct HomeView: View {
                             .tint(KakitoriTheme.paper)
                     }
                     Text("Import deck")
-                        .font(.system(size: 16, weight: .semibold))
+                        .kakitoriFont(size: 16, weight: .semibold)
                         .foregroundStyle(KakitoriTheme.paper)
                 }
                 .frame(maxWidth: .infinity)

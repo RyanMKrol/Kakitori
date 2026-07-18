@@ -15,6 +15,9 @@ struct CanvasPaneView: View {
                 WritingCanvas(controller: controller)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .accessibilityAction(named: "Show answer") {
+                viewModel.showAnswer()
+            }
         }
         .padding(16)
         .onChange(of: viewModel.currentNote?.id) {
@@ -45,7 +48,7 @@ struct CanvasPaneView: View {
     private var topRow: some View {
         HStack(alignment: .top) {
             Text(hint)
-                .font(.system(size: 13, weight: .regular))
+                .kakitoriFont(size: 13)
                 .foregroundStyle(KakitoriTheme.ink.opacity(0.5))
                 .accessibilityIdentifier("canvas-hint")
 
@@ -66,7 +69,7 @@ struct CanvasPaneView: View {
     private func pillButton(title: String, identifier: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Text(title)
-                .font(.system(size: 13, weight: .semibold))
+                .kakitoriFont(size: 13, weight: .semibold)
                 .foregroundStyle(KakitoriTheme.ink)
                 .padding(.horizontal, 14)
                 .padding(.vertical, 6)
@@ -76,6 +79,8 @@ struct CanvasPaneView: View {
                         .stroke(KakitoriTheme.boxLine, lineWidth: 1)
                 )
                 .clipShape(Capsule())
+                .frame(minWidth: 44, minHeight: 44)
+                .contentShape(Rectangle())
         }
         .accessibilityIdentifier(identifier)
     }

@@ -10,22 +10,22 @@ struct TodayBannerView: View {
 
         VStack(alignment: .leading, spacing: 8) {
             Text("TODAY'S PRACTICE")
-                .font(KakitoriTheme.smallCapsLabel(size: 11))
+                .kakitoriFont(size: 11, weight: .semibold)
                 .foregroundStyle(KakitoriTheme.paper.opacity(0.6))
                 .tracking(0.5)
 
             if totalDue > 0 {
                 HStack(spacing: 2) {
                     Text("\(totalDue) characters to write")
-                        .font(.system(size: 16, weight: .semibold))
+                        .kakitoriFont(size: 16, weight: .semibold)
                         .foregroundStyle(KakitoriTheme.paper)
                     Text(" across \(scriptCount) scripts")
-                        .font(.system(size: 16))
+                        .kakitoriFont(size: 16)
                         .foregroundStyle(KakitoriTheme.paper.opacity(0.8))
                 }
             } else {
                 Text("All caught up. Nothing due right now.")
-                    .font(.system(size: 16, weight: .semibold))
+                    .kakitoriFont(size: 16, weight: .semibold)
                     .foregroundStyle(KakitoriTheme.paper)
             }
         }

@@ -121,7 +121,7 @@ struct DeckSetupSheet: View {
 
     private var modeCaption: some View {
         Text("PRACTICE MODE")
-            .font(KakitoriTheme.smallCapsLabel(size: 12))
+            .kakitoriFont(size: 12, weight: .semibold)
             .foregroundStyle(KakitoriTheme.ink.opacity(0.6))
             .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -147,6 +147,7 @@ struct DeckSetupSheet: View {
                                 .fill(KakitoriTheme.paper.opacity(0.5))
                         )
                         .foregroundStyle(KakitoriTheme.ink)
+                        .accessibilityHidden(true)
 
                     VStack(alignment: .leading, spacing: 4) {
                         Text(mode.label)
@@ -192,7 +193,7 @@ struct DeckSetupSheet: View {
             },
             label: {
                 Text("Start writing")
-                    .font(.system(size: 16, weight: .semibold))
+                    .kakitoriFont(size: 16, weight: .semibold)
                     .foregroundStyle(KakitoriTheme.paper)
                     .frame(maxWidth: .infinity)
                     .padding(16)

@@ -52,21 +52,22 @@ struct SummaryView: View {
             .frame(width: 100, height: 100)
             .overlay(
                 Text("済")
-                    .font(KakitoriTheme.japaneseDisplayFont(size: 60))
+                    .font(KakitoriTheme.japaneseDisplayFontFixed(size: 60))
                     .foregroundStyle(KakitoriTheme.paper)
+                    .accessibilityHidden(true)
             )
             .scaleEffect(discScale)
     }
 
     private var headlineView: some View {
         Text("お疲れさま！")
-            .font(.system(size: 34, weight: .bold, design: .default))
+            .kakitoriFont(size: 34, weight: .bold)
             .foregroundStyle(KakitoriTheme.ink)
     }
 
     private var summaryText: some View {
         Text("Session complete — \(cardsWritten) cards written in \(minutes) min")
-            .font(.system(size: 16, weight: .regular, design: .default))
+            .kakitoriFont(size: 16)
             .foregroundStyle(KakitoriTheme.ink)
             .multilineTextAlignment(.center)
     }
@@ -87,7 +88,7 @@ struct SummaryView: View {
 
     private var streakLine: some View {
         Text(isCompact ? "🔥 \(streakDays) day streak" : "🔥 \(streakDays) day streak · keep it going tomorrow")
-            .font(.system(size: 16, weight: .regular, design: .default))
+            .kakitoriFont(size: 16)
             .foregroundStyle(KakitoriTheme.ink)
             .multilineTextAlignment(.center)
     }
@@ -98,7 +99,7 @@ struct SummaryView: View {
                 Text(isCompact ? "Study another script" : "Back to decks")
                     .frame(maxWidth: .infinity)
                     .frame(height: 48)
-                    .font(.system(size: 16, weight: .semibold, design: .default))
+                    .kakitoriFont(size: 16, weight: .semibold)
                     .foregroundStyle(KakitoriTheme.paper)
                     .background(KakitoriTheme.accent)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
@@ -109,7 +110,7 @@ struct SummaryView: View {
                 Text(isCompact ? "Back home" : "Study another deck")
                     .frame(maxWidth: .infinity)
                     .frame(height: 48)
-                    .font(.system(size: 16, weight: .semibold, design: .default))
+                    .kakitoriFont(size: 16, weight: .semibold)
                     .foregroundStyle(KakitoriTheme.ink)
                     .background(KakitoriTheme.surface)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
@@ -131,11 +132,11 @@ private struct GradeCard: View {
     var body: some View {
         VStack(spacing: 8) {
             Text(String(count))
-                .font(.system(size: 28, weight: .semibold, design: .default))
+                .kakitoriFont(size: 28, weight: .semibold)
                 .foregroundStyle(isAccent ? KakitoriTheme.accent : KakitoriTheme.ink)
 
             Text(label)
-                .font(KakitoriTheme.smallCapsLabel(size: 11))
+                .kakitoriFont(size: 11, weight: .semibold)
                 .foregroundStyle(KakitoriTheme.ink.opacity(0.6))
                 .tracking(0.5)
         }
@@ -147,5 +148,7 @@ private struct GradeCard: View {
             RoundedRectangle(cornerRadius: 12)
                 .stroke(KakitoriTheme.boxLine, lineWidth: 1)
         )
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("\(count) \(label)")
     }
 }

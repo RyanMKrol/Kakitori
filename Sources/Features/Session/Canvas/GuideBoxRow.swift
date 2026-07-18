@@ -39,7 +39,10 @@ struct GuideBoxRow: View {
 
                                 case let .inline(text):
                                     Text(text)
-                                        .font(KakitoriTheme.japaneseDisplayFont(size: Swift.max(12, boxSize * 0.6)))
+                                        .font(KakitoriTheme.japaneseDisplayFontFixed(size: Swift.max(
+                                            12,
+                                            boxSize * 0.6
+                                        )))
                                         .foregroundStyle(KakitoriTheme.ink)
                                         .lineLimit(1)
                                         .frame(height: boxSize, alignment: .center)

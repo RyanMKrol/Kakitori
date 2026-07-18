@@ -25,6 +25,7 @@ struct DeckCardView: View {
                         Text(representativeGlyph)
                             .font(KakitoriTheme.japaneseDisplayFont(size: 26))
                             .foregroundStyle(KakitoriTheme.paper)
+                            .accessibilityHidden(true)
                     }
                     .frame(width: 52, height: 52)
 
@@ -34,7 +35,7 @@ struct DeckCardView: View {
                             .foregroundStyle(KakitoriTheme.ink)
                             .lineLimit(1)
                         Text(deck.name)
-                            .font(.system(size: 14, weight: .semibold))
+                            .kakitoriFont(size: 14, weight: .semibold)
                             .foregroundStyle(KakitoriTheme.ink)
                             .lineLimit(1)
                         Text("\(cardCount) cards")
@@ -46,7 +47,7 @@ struct DeckCardView: View {
 
                     VStack(spacing: 0) {
                         Text("\(proficiencyPercentage)%")
-                            .font(.system(size: 13, weight: .bold))
+                            .kakitoriFont(size: 13, weight: .bold)
                             .foregroundStyle(KakitoriTheme.accent)
                     }
                     .frame(width: 40, height: 40)
@@ -117,7 +118,7 @@ struct DeckCardView: View {
                             .lineLimit(1)
 
                         Text(deck.name)
-                            .font(.system(size: 15, weight: .semibold))
+                            .kakitoriFont(size: 15, weight: .semibold)
                             .foregroundStyle(KakitoriTheme.ink)
                             .lineLimit(1)
 
@@ -130,7 +131,7 @@ struct DeckCardView: View {
 
                     VStack(alignment: .center, spacing: 4) {
                         Text("\(proficiencyPercentage)%")
-                            .font(.system(size: 16, weight: .semibold))
+                            .kakitoriFont(size: 16, weight: .semibold)
                             .foregroundStyle(KakitoriTheme.paper)
                         Text("Mastery")
                             .font(.caption2)
@@ -173,7 +174,7 @@ struct DeckCardView: View {
                 HStack {
                     Spacer()
                     Text("Study →")
-                        .font(.system(size: 15, weight: .semibold))
+                        .kakitoriFont(size: 15, weight: .semibold)
                         .foregroundStyle(KakitoriTheme.accent)
                 }
             }

@@ -74,15 +74,15 @@ private struct StatCard: View {
             HStack(spacing: 4) {
                 if let prefix {
                     Text(prefix)
-                        .font(.system(size: isCompact ? 16 : 20))
+                        .kakitoriFont(size: isCompact ? 16 : 20)
                 }
                 Text(value)
-                    .font(.system(size: isCompact ? 20 : 28, weight: .semibold, design: .default))
+                    .kakitoriFont(size: isCompact ? 20 : 28, weight: .semibold)
                     .foregroundStyle(accentColor ? KakitoriTheme.accent : KakitoriTheme.ink)
             }
 
             Text(caption)
-                .font(KakitoriTheme.smallCapsLabel(size: 11))
+                .kakitoriFont(size: 11, weight: .semibold)
                 .foregroundStyle(KakitoriTheme.ink.opacity(0.6))
                 .tracking(0.5)
         }
@@ -95,5 +95,7 @@ private struct StatCard: View {
             RoundedRectangle(cornerRadius: isCompact ? 16 : 18)
                 .stroke(KakitoriTheme.boxLine, lineWidth: 1)
         )
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("\(value) \(caption)")
     }
 }
