@@ -1,11 +1,17 @@
 import Foundation
 
 struct SM2Scheduler {
+    let fuzzEnabled: Bool
+
+    init(fuzzEnabled: Bool = true) {
+        self.fuzzEnabled = fuzzEnabled
+    }
+
     func apply(
         _ grade: Grade,
         to card: ScheduleSnapshot,
         now: Date,
-        rng _: inout some RandomNumberGenerator
+        rng: inout some RandomNumberGenerator
     ) -> ScheduleSnapshot {
         switch card.state {
         case .new:
@@ -22,7 +28,7 @@ struct SM2Scheduler {
         case .relearning:
             applyRelearning(grade, to: card, now: now)
         case .review:
-            card
+            applyReview(grade, to: card, now: now, rng: &rng)
         }
     }
 
@@ -112,5 +118,101 @@ struct SM2Scheduler {
 
     private func relapsedIntervalDays(for card: ScheduleSnapshot) -> Double {
         max(1, (card.intervalDays * SRSConstants.lapseIntervalMultiplier).rounded())
+    }
+
+    private func applyReview(
+        _ grade: Grade,
+        to card: ScheduleSnapshot,
+        now: Date,
+        rng: inout some RandomNumberGenerator
+    ) -> ScheduleSnapshot {
+        switch grade {
+        case .again:
+            let newEF = max(SRSConstants.minimumEase, card.easeFactor + SRSConstants.againEaseDelta)
+            return ScheduleSnapshot(
+                state: .relearning,
+                stepIndex: 0,
+                easeFactor: newEF,
+                intervalDays: card.intervalDays,
+                dueAt: now.addingTimeInterval(SRSConstants.relearningStepSeconds),
+                lapses: card.lapses + 1
+            )
+        case .hard:
+            return applyReviewHard(card, now: now, rng: &rng)
+        case .good:
+            return applyReviewGood(card, now: now, rng: &rng)
+        case .easy:
+            return applyReviewEasy(card, now: now, rng: &rng)
+        }
+    }
+
+    private func applyReviewHard(
+        _ card: ScheduleSnapshot,
+        now: Date,
+        rng: inout some RandomNumberGenerator
+    ) -> ScheduleSnapshot {
+        let newEF = max(SRSConstants.minimumEase, card.easeFactor + SRSConstants.hardEaseDelta)
+        let newI = clampReviewInterval(card.intervalDays * SRSConstants.hardIntervalMultiplier)
+        return ScheduleSnapshot(
+            state: .review,
+            stepIndex: 0,
+            easeFactor: newEF,
+            intervalDays: newI,
+            dueAt: calculateDueAt(intervalDays: newI, now: now, rng: &rng),
+            lapses: card.lapses
+        )
+    }
+
+    private func applyReviewGood(
+        _ card: ScheduleSnapshot,
+        now: Date,
+        rng: inout some RandomNumberGenerator
+    ) -> ScheduleSnapshot {
+        let newI = clampReviewInterval(card.intervalDays * card.easeFactor)
+        return ScheduleSnapshot(
+            state: .review,
+            stepIndex: 0,
+            easeFactor: card.easeFactor,
+            intervalDays: newI,
+            dueAt: calculateDueAt(intervalDays: newI, now: now, rng: &rng),
+            lapses: card.lapses
+        )
+    }
+
+    private func applyReviewEasy(
+        _ card: ScheduleSnapshot,
+        now: Date,
+        rng: inout some RandomNumberGenerator
+    ) -> ScheduleSnapshot {
+        let newEF = card.easeFactor + SRSConstants.easyEaseDelta
+        let newI = clampReviewInterval(card.intervalDays * newEF * SRSConstants.easyBonus)
+        return ScheduleSnapshot(
+            state: .review,
+            stepIndex: 0,
+            easeFactor: newEF,
+            intervalDays: newI,
+            dueAt: calculateDueAt(intervalDays: newI, now: now, rng: &rng),
+            lapses: card.lapses
+        )
+    }
+
+    private func clampReviewInterval(_ interval: Double) -> Double {
+        min(SRSConstants.maximumIntervalDays, max(SRSConstants.minimumReviewIntervalDays, interval.rounded()))
+    }
+
+    private func calculateDueAt(
+        intervalDays: Double,
+        now: Date,
+        rng: inout some RandomNumberGenerator
+    ) -> Date {
+        let fuzz = shouldApplyFuzz(to: intervalDays)
+            ? Double.random(in: -SRSConstants.fuzzFraction ... SRSConstants.fuzzFraction, using: &rng)
+            : 0
+        let secondsOffset = intervalDays * SRSConstants.secondsPerDay * (1 + fuzz)
+        return now.addingTimeInterval(secondsOffset)
+    }
+
+    private func shouldApplyFuzz(to intervalDays: Double) -> Bool {
+        fuzzEnabled && intervalDays >= SRSConstants.fuzzMinimumIntervalDays
     }
 }
