@@ -1418,7 +1418,7 @@
     {
       "id": "T055",
       "title": "XCUITest smoke test: launch, seed, start a Trace session",
-      "status": "blocked",
+      "status": "done",
       "dependsOn": [
         "T009",
         "T038"
