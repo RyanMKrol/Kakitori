@@ -1180,7 +1180,7 @@
     {
       "id": "T046",
       "title": "Mixed mode rotation + new-cards-always-trace-first",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [
         "T038",
         "T045"
