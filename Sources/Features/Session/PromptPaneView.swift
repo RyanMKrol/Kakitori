@@ -26,6 +26,8 @@ struct PromptPaneView: View {
             listenModePrompt
         case .translate:
             translateModePrompt
+        case .recall:
+            recallModePrompt
         default:
             traceModePrompt
         }
@@ -105,6 +107,53 @@ struct PromptPaneView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
 
             Text("Write this in Japanese.")
+                .font(.system(size: 15, weight: .regular))
+                .foregroundStyle(KakitoriTheme.ink)
+                .lineLimit(2)
+                .multilineTextAlignment(.leading)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .padding(32)
+    }
+
+    private var recallModePrompt: some View {
+        let showRomaji = (UserDefaults.standard.object(forKey: "showRomaji") as? Bool) ?? true
+        let hasEnglish = viewModel.currentNote?.english != nil && !(viewModel.currentNote?.english?.isEmpty ?? true)
+        let shouldShowReading = showRomaji || !hasEnglish
+
+        return VStack(spacing: 12) {
+            Text("RECALL MODE")
+                .font(KakitoriTheme.smallCapsLabel(size: 12))
+                .tracking(0.15)
+                .foregroundStyle(KakitoriTheme.accent)
+
+            if shouldShowReading {
+                Text("Reading")
+                    .font(.system(size: 13, weight: .regular))
+                    .foregroundStyle(KakitoriTheme.ink.opacity(0.5))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                if let pronunciation = viewModel.currentNote?.pronunciation {
+                    Text(pronunciation)
+                        .font(KakitoriTheme.japaneseDisplayFont(size: 40))
+                        .foregroundStyle(KakitoriTheme.ink)
+                        .lineLimit(2)
+                        .multilineTextAlignment(.leading)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            }
+
+            if hasEnglish, let english = viewModel.currentNote?.english {
+                Text("\u{201C}\(english)\u{201D}")
+                    .font(.system(size: 15, weight: .regular))
+                    .foregroundStyle(KakitoriTheme.ink)
+                    .lineLimit(3)
+                    .multilineTextAlignment(.leading)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+
+            Text("Write the word from memory.")
                 .font(.system(size: 15, weight: .regular))
                 .foregroundStyle(KakitoriTheme.ink)
                 .lineLimit(2)
