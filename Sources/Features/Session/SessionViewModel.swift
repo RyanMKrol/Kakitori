@@ -88,6 +88,12 @@ final class SessionViewModel {
         entries.reserveCapacity(notes.count)
         for note in notes {
             guard let schedule = note.schedule else { continue }
+            guard ModeAvailability.cardQualifies(
+                mode,
+                hasAudio: note.audioFilename != nil,
+                ttsAvailable: audio.isAvailable,
+                english: note.english
+            ) else { continue }
             entries.append(QueueEntry(id: note.id, snapshot: Self.snapshot(from: schedule)))
             notesByID[note.id] = note
         }

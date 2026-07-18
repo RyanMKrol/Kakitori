@@ -54,8 +54,26 @@ struct DeckSetupSheet: View {
     let dueCount: Int
     let onStart: (PracticeMode) -> Void
     let onClose: () -> Void
+    let availableModes: [PracticeMode]
 
-    @State private var selectedMode: PracticeMode = .trace
+    @State private var selectedMode: PracticeMode?
+
+    init(
+        jpTitle: String,
+        enTitle: String,
+        dueCount: Int,
+        availableModes: [PracticeMode],
+        onStart: @escaping (PracticeMode) -> Void,
+        onClose: @escaping () -> Void
+    ) {
+        self.jpTitle = jpTitle
+        self.enTitle = enTitle
+        self.dueCount = dueCount
+        self.availableModes = availableModes
+        self.onStart = onStart
+        self.onClose = onClose
+        _selectedMode = State(initialValue: availableModes.first)
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -110,7 +128,7 @@ struct DeckSetupSheet: View {
 
     private var modeList: some View {
         VStack(spacing: 12) {
-            ForEach(PracticeMode.allCases, id: \.self) { mode in
+            ForEach(availableModes, id: \.self) { mode in
                 modeRow(mode)
             }
         }
@@ -168,7 +186,10 @@ struct DeckSetupSheet: View {
 
     private var startButton: some View {
         Button(
-            action: { onStart(selectedMode) },
+            action: {
+                guard let mode = selectedMode else { return }
+                onStart(mode)
+            },
             label: {
                 Text("Start writing")
                     .font(.system(size: 16, weight: .semibold))
@@ -188,6 +209,7 @@ struct DeckSetupSheet: View {
         jpTitle: "ひらがな",
         enTitle: "Hiragana",
         dueCount: 10,
+        availableModes: [.trace, .listen, .recall, .mixed],
         onStart: { _ in },
         onClose: {}
     )

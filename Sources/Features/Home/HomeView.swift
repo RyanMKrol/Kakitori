@@ -66,10 +66,13 @@ struct HomeView: View {
             .accessibilityIdentifier("import-error-alert")
             .sheet(isPresented: setupSheetBinding) {
                 if let setupDeck {
+                    let scripts = Set(setupDeck.sections.flatMap(\.notes).filter { !$0.isDeleted }.map(\.script))
+                    let availableModes = ModeAvailability.deckModes(scripts: scripts)
                     DeckSetupSheet(
                         jpTitle: setupDeck.jpTitle ?? setupDeck.name,
                         enTitle: setupDeck.name,
                         dueCount: dueCount(for: setupDeck),
+                        availableModes: availableModes,
                         onStart: { mode in startSession(deck: setupDeck, mode: mode) },
                         onClose: { self.setupDeck = nil }
                     )
