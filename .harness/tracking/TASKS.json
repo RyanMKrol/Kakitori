@@ -1021,7 +1021,7 @@
     {
       "id": "T040",
       "title": "Register .apkg document type (Open in Kakitori)",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [
         "T039"
       ],
