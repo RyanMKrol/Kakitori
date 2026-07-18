@@ -10,6 +10,7 @@ struct HomeView: View {
 
             VStack(spacing: 24) {
                 header
+                StatsRowView()
 
                 if decks.isEmpty {
                     emptyState
