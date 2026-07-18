@@ -5,31 +5,68 @@ struct SessionView: View {
     let viewModel: SessionViewModel
     let onClose: () -> Void
 
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+
+    private var isCompact: Bool {
+        horizontalSizeClass == .compact
+    }
+
     var body: some View {
         ZStack {
             KakitoriTheme.paper.ignoresSafeArea()
 
-            VStack(spacing: 0) {
-                topBar
-                    .frame(height: 60)
-                    .overlay(alignment: .bottom) {
-                        Divider().background(KakitoriTheme.boxLine)
-                    }
-
-                HStack(spacing: 0) {
-                    promptPane
-                        .frame(maxWidth: .infinity)
-
-                    VStack(spacing: 0) {
-                        canvasPane
-                            .frame(maxHeight: .infinity)
-
-                        actionRow
-                    }
-                    .frame(maxWidth: .infinity)
-                }
-                .frame(maxHeight: .infinity)
+            if isCompact {
+                compactLayout
+            } else {
+                regularLayout
             }
+        }
+    }
+
+    /// Regular (iPad / regular width): side-by-side prompt pane + canvas/action column.
+    private var regularLayout: some View {
+        VStack(spacing: 0) {
+            topBar
+                .frame(height: 60)
+                .overlay(alignment: .bottom) {
+                    Divider().background(KakitoriTheme.boxLine)
+                }
+
+            HStack(spacing: 0) {
+                promptPane
+                    .frame(maxWidth: .infinity)
+
+                VStack(spacing: 0) {
+                    canvasPane
+                        .frame(maxHeight: .infinity)
+
+                    actionRow
+                }
+                .frame(maxWidth: .infinity)
+            }
+            .frame(maxHeight: .infinity)
+        }
+    }
+
+    /// Compact (iPhone / portrait, docs/06 §2.3): prompt band above the canvas, actions pinned bottom.
+    private var compactLayout: some View {
+        VStack(spacing: 0) {
+            topBar
+                .frame(height: 60)
+                .overlay(alignment: .bottom) {
+                    Divider().background(KakitoriTheme.boxLine)
+                }
+
+            promptPane
+                .frame(height: 280)
+                .overlay(alignment: .bottom) {
+                    Divider().background(KakitoriTheme.boxLine)
+                }
+
+            canvasPane
+                .frame(maxHeight: .infinity)
+
+            actionRow
         }
     }
 
@@ -76,9 +113,24 @@ struct SessionView: View {
             Spacer()
 
             HStack(spacing: 8) {
-                chipNew
-                chipLearn
-                chipDue
+                chip(
+                    count: viewModel.newCount,
+                    label: "new",
+                    foreground: KakitoriTheme.chipNewForeground,
+                    background: KakitoriTheme.chipNewBackground
+                )
+                chip(
+                    count: viewModel.learnCount,
+                    label: "learn",
+                    foreground: KakitoriTheme.chipLearnForeground,
+                    background: KakitoriTheme.chipLearnBackground
+                )
+                chip(
+                    count: viewModel.dueCount,
+                    label: "due",
+                    foreground: KakitoriTheme.chipDueForeground,
+                    background: KakitoriTheme.chipDueBackground
+                )
             }
             .frame(maxWidth: 140)
         }
@@ -111,33 +163,14 @@ struct SessionView: View {
         .frame(height: 6)
     }
 
-    private var chipNew: some View {
-        Text("\(viewModel.newCount) new")
+    /// Compact drops the word labels and shows bare numbers (docs/06 §2.3); regular keeps "N new" etc.
+    private func chip(count: Int, label: String, foreground: Color, background: Color) -> some View {
+        Text(isCompact ? "\(count)" : "\(count) \(label)")
             .kakitoriFont(size: 11, weight: .semibold)
-            .foregroundStyle(KakitoriTheme.chipNewForeground)
+            .foregroundStyle(foreground)
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
-            .background(KakitoriTheme.chipNewBackground)
-            .cornerRadius(12)
-    }
-
-    private var chipLearn: some View {
-        Text("\(viewModel.learnCount) learn")
-            .kakitoriFont(size: 11, weight: .semibold)
-            .foregroundStyle(KakitoriTheme.chipLearnForeground)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
-            .background(KakitoriTheme.chipLearnBackground)
-            .cornerRadius(12)
-    }
-
-    private var chipDue: some View {
-        Text("\(viewModel.dueCount) due")
-            .kakitoriFont(size: 11, weight: .semibold)
-            .foregroundStyle(KakitoriTheme.chipDueForeground)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
-            .background(KakitoriTheme.chipDueBackground)
+            .background(background)
             .cornerRadius(12)
     }
 

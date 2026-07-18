@@ -6,12 +6,18 @@ struct CanvasPaneView: View {
 
     @State private var controller = WritingCanvasController()
 
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+
     var body: some View {
         VStack(spacing: 12) {
             topRow
 
             ZStack {
-                TraceGuideLayer(units: segmentedUnits, isVisible: viewModel.mode == .trace)
+                TraceGuideLayer(
+                    units: segmentedUnits,
+                    maxBoxesPerRow: horizontalSizeClass == .compact ? 4 : 6,
+                    isVisible: viewModel.mode == .trace
+                )
                 WritingCanvas(controller: controller)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
