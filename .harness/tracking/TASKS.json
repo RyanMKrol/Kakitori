@@ -1207,7 +1207,7 @@
     {
       "id": "T047",
       "title": "Settings screen: 4 settings + persistence + privacy manifest",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [
         "T026",
         "T036"
