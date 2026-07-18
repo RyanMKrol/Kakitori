@@ -993,7 +993,7 @@
     {
       "id": "T039",
       "title": "Import UI: Files picker, progress, error alerts",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [
         "T036",
         "T057"
