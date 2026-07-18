@@ -1,15 +1,13 @@
 import SwiftData
 import SwiftUI
-import UniformTypeIdentifiers
 
 struct HomeView: View {
     @Query private var decks: [Deck]
     @Environment(\.modelContext) private var modelContext
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(DeckLoadModel.self) private var deckLoad
     let now: Date = AppClock.system.now()
     @State private var navigationPath = NavigationPath()
-    @State private var showFileImporter = false
-    @State private var coordinator = ImportCoordinator.shared
     @State private var setupDeck: Deck?
     @State private var activeSession: SessionViewModel?
     @State private var activeSessionDeck: Deck?
@@ -24,46 +22,24 @@ struct HomeView: View {
                     header
                     StatsRowView()
 
-                    if decks.isEmpty {
-                        emptyState
-                    } else {
+                    if !decks.isEmpty {
                         VStack(spacing: 16) {
                             TodayBannerView(now: now)
                             deckList
                         }
+                    } else if case let .failed(message) = deckLoad.phase {
+                        loadFailedState(message)
+                    } else {
+                        loadingState
                     }
                 }
                 .padding()
-
-                if case let .running(progress) = coordinator.state {
-                    ProgressOverlay(progress: progress)
-                }
             }
             .navigationDestination(for: String.self) { destination in
                 if destination == "settings" {
                     SettingsView()
                 }
             }
-            .fileImporter(
-                isPresented: $showFileImporter,
-                allowedContentTypes: buildAllowedContentTypes(),
-                onCompletion: handleFileSelection
-            )
-            .alert(
-                "Import failed",
-                isPresented: .constant(coordinator.state.isFailure),
-                actions: {
-                    Button("OK") {
-                        coordinator.state = .idle
-                    }
-                },
-                message: {
-                    if case let .failed(message) = coordinator.state {
-                        Text(message)
-                    }
-                }
-            )
-            .accessibilityIdentifier("import-error-alert")
             .sheet(isPresented: setupSheetBinding) {
                 if let setupDeck {
                     let scripts = Set(setupDeck.sections.flatMap(\.notes).filter { !$0.isDeleted }.map(\.script))
@@ -177,20 +153,6 @@ struct HomeView: View {
 
             Spacer()
 
-            Button(action: { showFileImporter = true }, label: {
-                if isImporting {
-                    ProgressView()
-                        .frame(width: 44, height: 44)
-                } else {
-                    Image(systemName: "plus")
-                        .font(.title3)
-                        .foregroundStyle(KakitoriTheme.ink)
-                        .frame(width: 44, height: 44)
-                }
-            })
-            .disabled(isImporting)
-            .accessibilityIdentifier("import-button")
-
             Button(action: { navigationPath.append("settings") }, label: {
                 Image(systemName: "gearshape")
                     .font(.title3)
@@ -202,36 +164,51 @@ struct HomeView: View {
         .accessibilityIdentifier("home-header")
     }
 
-    private var emptyState: some View {
+    /// Shown on first launch while the bundled decks are being imported (one-time).
+    private var loadingState: some View {
         VStack(spacing: 16) {
             Spacer()
             Text("書")
                 .font(KakitoriTheme.japaneseDisplayFontFixed(size: 64))
                 .foregroundStyle(KakitoriTheme.inkFaint)
                 .accessibilityHidden(true)
-            Text("Import a deck to start writing")
+            ProgressView()
+                .tint(KakitoriTheme.accent)
+            Text("Preparing your decks…")
                 .font(.body)
                 .foregroundStyle(KakitoriTheme.ink)
-            Button(action: { showFileImporter = true }, label: {
-                HStack(spacing: 8) {
-                    if isImporting {
-                        ProgressView()
-                            .tint(KakitoriTheme.paper)
-                    }
-                    Text("Import deck")
-                        .kakitoriFont(size: 16, weight: .semibold)
-                        .foregroundStyle(KakitoriTheme.paper)
-                }
-                .frame(maxWidth: .infinity)
-                .padding(12)
-                .background(KakitoriTheme.accent)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-            })
-            .disabled(isImporting)
-            .accessibilityIdentifier("import-button-empty")
             Spacer()
         }
-        .accessibilityIdentifier("home-empty-state")
+        .accessibilityIdentifier("home-loading-state")
+    }
+
+    private func loadFailedState(_ message: String) -> some View {
+        VStack(spacing: 16) {
+            Spacer()
+            Text("書")
+                .font(KakitoriTheme.japaneseDisplayFontFixed(size: 64))
+                .foregroundStyle(KakitoriTheme.inkFaint)
+                .accessibilityHidden(true)
+            Text("Couldn't load your decks")
+                .font(.body.bold())
+                .foregroundStyle(KakitoriTheme.ink)
+            Text(message)
+                .font(.subheadline)
+                .foregroundStyle(KakitoriTheme.ink.opacity(0.6))
+                .multilineTextAlignment(.center)
+            Button(action: { Task { await deckLoad.retry(container: modelContext.container) } }, label: {
+                Text("Try again")
+                    .kakitoriFont(size: 16, weight: .semibold)
+                    .foregroundStyle(KakitoriTheme.paper)
+                    .frame(maxWidth: .infinity)
+                    .padding(12)
+                    .background(KakitoriTheme.accent)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+            })
+            .accessibilityIdentifier("deck-load-retry")
+            Spacer()
+        }
+        .accessibilityIdentifier("home-load-failed-state")
     }
 
     @ViewBuilder
@@ -254,63 +231,6 @@ struct HomeView: View {
                 }
             }
             .accessibilityIdentifier("home-deck-list")
-        }
-    }
-
-    private var isImporting: Bool {
-        if case .running = coordinator.state {
-            return true
-        }
-        return false
-    }
-
-    private func buildAllowedContentTypes() -> [UTType] {
-        var types: [UTType] = []
-        if let apkgType = UTType(filenameExtension: "apkg") {
-            types.append(apkgType)
-        }
-        types.append(.zip)
-        types.append(.data)
-        return types
-    }
-
-    private func handleFileSelection(result: Result<URL, any Error>) {
-        switch result {
-        case let .success(url):
-            Task {
-                let mediaBaseURL = FileManager.default.urls(
-                    for: .applicationSupportDirectory,
-                    in: .userDomainMask
-                )[0].appendingPathComponent("Kakitori/Media")
-
-                let container = modelContext.container
-                await coordinator.begin(url: url, modelContainer: container, mediaBaseURL: mediaBaseURL)
-            }
-        case .failure:
-            break
-        }
-    }
-}
-
-struct ProgressOverlay: View {
-    let progress: Double
-
-    var body: some View {
-        ZStack {
-            Color.black.opacity(0.3)
-                .ignoresSafeArea()
-
-            VStack(spacing: 16) {
-                ProgressView(value: progress)
-                    .tint(KakitoriTheme.accent)
-                Text("\(Int(progress * 100))%")
-                    .font(.subheadline)
-                    .foregroundStyle(KakitoriTheme.ink)
-            }
-            .padding(24)
-            .background(KakitoriTheme.paper)
-            .cornerRadius(12)
-            .frame(maxWidth: 200)
         }
     }
 }

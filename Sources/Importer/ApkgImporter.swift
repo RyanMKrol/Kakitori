@@ -5,6 +5,18 @@ enum ImporterError: Error, Equatable {
     case badZip
     case noAnkiBuilderModel
     case zeroNotes
+
+    /// User-facing description (surfaced if a bundled deck fails to load).
+    var userMessage: String {
+        switch self {
+        case .badZip:
+            "This file could not be read as an Anki deck."
+        case .noAnkiBuilderModel:
+            "This deck has no field Kakitori can use as a writing target."
+        case .zeroNotes:
+            "This deck has no cards to import."
+        }
+    }
 }
 
 struct ImportedNote {
@@ -54,9 +66,11 @@ actor ApkgImporter {
 
         do {
             try extract(url, to: tempDir)
-            let collection = try openCollection(at: tempDir.appendingPathComponent("collection.anki2"))
+            let collection = try openCollection(at: collectionURL(in: tempDir))
 
-            guard let targetModel = collection.models.first(where: { $0.fieldNames.contains("Target") }) else {
+            guard let targetModel = collection.models
+                .first(where: { NoteFieldMapper.hasMappableTarget($0.fieldNames) })
+            else {
                 throw ImporterError.noAnkiBuilderModel
             }
 
@@ -80,6 +94,16 @@ actor ApkgImporter {
             try? FileManager.default.removeItem(at: tempDir)
             throw error
         }
+    }
+
+    /// The collection database inside an extracted `.apkg`. Modern Anki exports carry the real data in
+    /// `collection.anki21` and ship `collection.anki2` only as a legacy stub, so prefer the former.
+    private func collectionURL(in dir: URL) -> URL {
+        let anki21 = dir.appendingPathComponent("collection.anki21")
+        if FileManager.default.fileExists(atPath: anki21.path) {
+            return anki21
+        }
+        return dir.appendingPathComponent("collection.anki2")
     }
 
     private func extract(_ url: URL, to tempDir: URL) throws {
@@ -120,7 +144,12 @@ actor ApkgImporter {
             }
             .max { (noteCountByDeck[$0.id] ?? 0) < (noteCountByDeck[$1.id] ?? 0) }
 
-        return topDeck?.name ?? "Imported Deck"
+        let fullName = topDeck?.name ?? "Imported Deck"
+        // The busiest deck is often a SUBDECK (e.g. "Tofugu Hiragana Anki Deck::1: Hiragana"). We import
+        // its top-level root as the deck; every subdeck beneath it becomes a section. Returning the root
+        // (not the busiest subdeck) is what lets `sectionName` assign a section to ALL notes — otherwise
+        // notes in the busiest subdeck get no section and vanish from section-based UI counts.
+        return fullName.components(separatedBy: "::").first ?? fullName
     }
 
     private func importedNote(

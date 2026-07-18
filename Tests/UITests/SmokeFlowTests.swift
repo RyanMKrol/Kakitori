@@ -5,16 +5,16 @@ import XCTest
 /// by `accessibilityIdentifier` (the UI is bilingual, so display copy is never queried).
 final class SmokeFlowTests: XCTestCase {
     @MainActor
-    func testSeededLaunchStartTraceSessionRevealGradeAdvances() {
+    func testLaunchStartTraceSessionRevealGradeAdvances() {
         let app = XCUIApplication()
-        app.launchArguments += ["-seedDemoData", "YES"]
         app.launch()
 
         // A deck row — query by identifier prefix (rows carry deck-row-<name>), not display name.
+        // The bundled decks import on first launch, so allow generous time for that one-time load.
         let deckRow = app.descendants(matching: .any)
             .matching(NSPredicate(format: "identifier BEGINSWITH 'deck-row-'"))
             .firstMatch
-        XCTAssertTrue(deckRow.waitForExistence(timeout: 15), "A seeded deck row should appear on Home.")
+        XCTAssertTrue(deckRow.waitForExistence(timeout: 60), "A bundled deck row should appear on Home once loaded.")
         deckRow.tap()
 
         // Deck setup sheet → Trace mode → Start writing.
