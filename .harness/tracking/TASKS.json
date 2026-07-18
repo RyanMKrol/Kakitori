@@ -909,7 +909,7 @@
     {
       "id": "T036",
       "title": "Home deck list: deck cards, mastery %, status chips, today banner",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [
         "T008"
       ],
