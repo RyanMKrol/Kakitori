@@ -826,7 +826,7 @@
     {
       "id": "T033",
       "title": "Action row: Show answer + four grade buttons with interval previews",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [
         "T025",
         "T029",
