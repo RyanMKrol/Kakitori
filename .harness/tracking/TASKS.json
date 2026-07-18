@@ -1470,7 +1470,7 @@
     {
       "id": "T057",
       "title": "ApkgImporter: re-import idempotence + soft delete (rename soft-delete flag off the NSManagedObject collision)",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [],
       "gate": null,
       "tags": [
