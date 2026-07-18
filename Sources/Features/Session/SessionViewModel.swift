@@ -27,6 +27,7 @@ final class SessionViewModel {
     private(set) var lastError: Error?
 
     let mode: PracticeMode
+    let deckName: String
 
     private let modelContext: ModelContext
     private let clock: AppClock
@@ -66,6 +67,7 @@ final class SessionViewModel {
         maxReviewsPerDay: Int = SRSConstants.defaultMaxReviewsPerDay
     ) {
         self.mode = mode
+        deckName = deck.name
         self.modelContext = modelContext
         self.clock = clock
         rng = SplitMix64(seed: seed)
