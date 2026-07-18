@@ -111,7 +111,7 @@ struct SummaryView: View {
                     .frame(height: 48)
                     .font(.system(size: 16, weight: .semibold, design: .default))
                     .foregroundStyle(KakitoriTheme.ink)
-                    .background(Color.white)
+                    .background(KakitoriTheme.surface)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                     .overlay(
                         RoundedRectangle(cornerRadius: 12)
@@ -141,7 +141,7 @@ private struct GradeCard: View {
         }
         .frame(maxWidth: .infinity)
         .frame(height: 80)
-        .background(Color.white)
+        .background(KakitoriTheme.surface)
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .overlay(
             RoundedRectangle(cornerRadius: 12)

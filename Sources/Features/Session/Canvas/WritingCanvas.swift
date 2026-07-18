@@ -30,7 +30,7 @@ struct WritingCanvas: UIViewRepresentable {
         canvasView.drawingPolicy = .anyInput
         canvasView.backgroundColor = .clear
         canvasView.isOpaque = false
-        canvasView.tool = PKInkingTool(.pen, color: .black, width: Self.penWidth)
+        canvasView.tool = PKInkingTool(.pen, color: KakitoriTheme.inkUIColor, width: Self.penWidth)
         canvasView.delegate = context.coordinator
         canvasView.accessibilityIdentifier = "writing-canvas"
 

@@ -89,7 +89,7 @@ private struct StatCard: View {
         .frame(maxWidth: .infinity)
         .frame(height: isCompact ? nil : 80)
         .padding(.vertical, isCompact ? 12 : 0)
-        .background(Color.white)
+        .background(KakitoriTheme.surface)
         .clipShape(RoundedRectangle(cornerRadius: isCompact ? 16 : 18))
         .overlay(
             RoundedRectangle(cornerRadius: isCompact ? 16 : 18)

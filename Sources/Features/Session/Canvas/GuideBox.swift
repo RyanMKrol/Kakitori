@@ -45,7 +45,7 @@ struct GuideBox: View {
                     let fontSize = geometry.size.width * 0.72
                     Text(glyph)
                         .font(.custom("Hiragino Mincho ProN", size: fontSize))
-                        .foregroundStyle(KakitoriTheme.ink.opacity(0.12))
+                        .foregroundStyle(KakitoriTheme.inkFaint)
                         .lineLimit(1)
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                 }
