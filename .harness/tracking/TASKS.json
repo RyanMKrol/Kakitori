@@ -1320,7 +1320,7 @@
     {
       "id": "T051",
       "title": "Dynamic Type + VoiceOver pass",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [
         "T038",
         "T049"
