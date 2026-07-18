@@ -12,6 +12,11 @@ struct SummaryView: View {
     let onStudyAnother: () -> Void
 
     @State private var discScale: CGFloat = 0.7
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+
+    private var isCompact: Bool {
+        horizontalSizeClass == .compact
+    }
 
     var body: some View {
         ZStack {
@@ -81,7 +86,7 @@ struct SummaryView: View {
     }
 
     private var streakLine: some View {
-        Text("🔥 \(streakDays) day streak · keep it going tomorrow")
+        Text(isCompact ? "🔥 \(streakDays) day streak" : "🔥 \(streakDays) day streak · keep it going tomorrow")
             .font(.system(size: 16, weight: .regular, design: .default))
             .foregroundStyle(KakitoriTheme.ink)
             .multilineTextAlignment(.center)
@@ -90,7 +95,7 @@ struct SummaryView: View {
     private var buttonsView: some View {
         VStack(spacing: 12) {
             Button(action: onBackToDecks) {
-                Text("Back to decks")
+                Text(isCompact ? "Study another script" : "Back to decks")
                     .frame(maxWidth: .infinity)
                     .frame(height: 48)
                     .font(.system(size: 16, weight: .semibold, design: .default))
@@ -101,7 +106,7 @@ struct SummaryView: View {
             .accessibilityIdentifier("back-to-decks")
 
             Button(action: onStudyAnother) {
-                Text("Study another deck")
+                Text(isCompact ? "Back home" : "Study another deck")
                     .frame(maxWidth: .infinity)
                     .frame(height: 48)
                     .font(.system(size: 16, weight: .semibold, design: .default))

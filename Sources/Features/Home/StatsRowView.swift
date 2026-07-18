@@ -3,28 +3,36 @@ import SwiftUI
 
 struct StatsRowView: View {
     @Query private var allStats: [DailyStats]
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+
+    private var isCompact: Bool {
+        horizontalSizeClass == .compact
+    }
 
     var body: some View {
         HStack(spacing: 12) {
             StatCard(
                 value: streakValue,
-                caption: "Day streak",
+                caption: isCompact ? "Streak" : "Day streak",
                 prefix: "🔥",
-                accentColor: true
+                accentColor: true,
+                isCompact: isCompact
             )
 
             StatCard(
                 value: writtenTodayValue,
-                caption: "Written today",
+                caption: isCompact ? "Written" : "Written today",
                 prefix: nil,
-                accentColor: false
+                accentColor: false,
+                isCompact: isCompact
             )
 
             StatCard(
                 value: minutesValue,
-                caption: "Minutes studied",
+                caption: isCompact ? "Studied" : "Minutes studied",
                 prefix: nil,
-                accentColor: false
+                accentColor: false,
+                isCompact: isCompact
             )
         }
         .padding(.horizontal)
@@ -59,16 +67,17 @@ private struct StatCard: View {
     let caption: String
     let prefix: String?
     let accentColor: Bool
+    let isCompact: Bool
 
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: isCompact ? 4 : 8) {
             HStack(spacing: 4) {
                 if let prefix {
                     Text(prefix)
-                        .font(.system(size: 20))
+                        .font(.system(size: isCompact ? 16 : 20))
                 }
                 Text(value)
-                    .font(.system(size: 28, weight: .semibold, design: .default))
+                    .font(.system(size: isCompact ? 20 : 28, weight: .semibold, design: .default))
                     .foregroundStyle(accentColor ? KakitoriTheme.accent : KakitoriTheme.ink)
             }
 
@@ -78,11 +87,12 @@ private struct StatCard: View {
                 .tracking(0.5)
         }
         .frame(maxWidth: .infinity)
-        .frame(height: 80)
+        .frame(height: isCompact ? nil : 80)
+        .padding(.vertical, isCompact ? 12 : 0)
         .background(Color.white)
-        .clipShape(RoundedRectangle(cornerRadius: 18))
+        .clipShape(RoundedRectangle(cornerRadius: isCompact ? 16 : 18))
         .overlay(
-            RoundedRectangle(cornerRadius: 18)
+            RoundedRectangle(cornerRadius: isCompact ? 16 : 18)
                 .stroke(KakitoriTheme.boxLine, lineWidth: 1)
         )
     }

@@ -232,17 +232,27 @@ struct HomeView: View {
         .accessibilityIdentifier("home-empty-state")
     }
 
+    @ViewBuilder
     private var deckList: some View {
-        let columns = [
-            GridItem(.flexible(), spacing: 16),
-            GridItem(.flexible(), spacing: 16),
-        ]
-        return LazyVGrid(columns: columns, spacing: 16) {
-            ForEach(decks) { deck in
-                DeckCardView(deck: deck, now: now, onStudy: { setupDeck = $0 })
+        if horizontalSizeClass == .compact {
+            VStack(spacing: 12) {
+                ForEach(decks) { deck in
+                    DeckCardView(deck: deck, now: now, onStudy: { setupDeck = $0 })
+                }
             }
+            .accessibilityIdentifier("home-deck-list")
+        } else {
+            let columns = [
+                GridItem(.flexible(), spacing: 16),
+                GridItem(.flexible(), spacing: 16),
+            ]
+            LazyVGrid(columns: columns, spacing: 16) {
+                ForEach(decks) { deck in
+                    DeckCardView(deck: deck, now: now, onStudy: { setupDeck = $0 })
+                }
+            }
+            .accessibilityIdentifier("home-deck-list")
         }
-        .accessibilityIdentifier("home-deck-list")
     }
 
     private var isImporting: Bool {

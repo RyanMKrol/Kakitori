@@ -5,7 +5,108 @@ struct DeckCardView: View {
     let now: Date
     let onStudy: (Deck) -> Void
 
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+
     var body: some View {
+        if horizontalSizeClass == .compact {
+            compactRow
+        } else {
+            regularCard
+        }
+    }
+
+    private var compactRow: some View {
+        Button(action: { onStudy(deck) }, label: {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(spacing: 14) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 15)
+                            .fill(KakitoriTheme.ink)
+                        Text(representativeGlyph)
+                            .font(KakitoriTheme.japaneseDisplayFont(size: 26))
+                            .foregroundStyle(KakitoriTheme.paper)
+                    }
+                    .frame(width: 52, height: 52)
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(deck.jpTitle ?? deck.name)
+                            .font(KakitoriTheme.japaneseDisplayFont(size: 17))
+                            .foregroundStyle(KakitoriTheme.ink)
+                            .lineLimit(1)
+                        Text(deck.name)
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(KakitoriTheme.ink)
+                            .lineLimit(1)
+                        Text("\(cardCount) cards")
+                            .font(.caption2)
+                            .foregroundStyle(KakitoriTheme.ink.opacity(0.6))
+                    }
+
+                    Spacer(minLength: 8)
+
+                    VStack(spacing: 0) {
+                        Text("\(proficiencyPercentage)%")
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundStyle(KakitoriTheme.accent)
+                    }
+                    .frame(width: 40, height: 40)
+                    .background(KakitoriTheme.accent.opacity(0.12))
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                }
+
+                if isAllCaughtUp {
+                    Text("All caught up")
+                        .font(.caption)
+                        .foregroundStyle(KakitoriTheme.ink.opacity(0.6))
+                } else {
+                    HStack(spacing: 8) {
+                        chipView(
+                            count: newCount,
+                            label: "new",
+                            background: KakitoriTheme.chipNewBackground,
+                            foreground: KakitoriTheme.chipNewForeground
+                        )
+                        chipView(
+                            count: learningCount,
+                            label: "learning",
+                            background: KakitoriTheme.chipLearnBackground,
+                            foreground: KakitoriTheme.chipLearnForeground
+                        )
+                        chipView(
+                            count: dueCount,
+                            label: "due",
+                            background: KakitoriTheme.chipDueBackground,
+                            foreground: KakitoriTheme.chipDueForeground
+                        )
+                        Spacer()
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(14)
+            .background(Color.white)
+            .clipShape(RoundedRectangle(cornerRadius: 18))
+            .overlay(
+                RoundedRectangle(cornerRadius: 18)
+                    .stroke(KakitoriTheme.boxLine, lineWidth: 1)
+            )
+            .contentShape(Rectangle())
+        })
+        .accessibilityIdentifier("deck-row-\(deck.sourceDeckName.lowercased())")
+    }
+
+    private var representativeGlyph: String {
+        let scripts = Set(deck.sections.flatMap(\.notes).filter { !$0.isDeleted }.map(\.script))
+        if scripts == [.hiragana] {
+            return "あ"
+        }
+        if scripts == [.katakana] {
+            return "ア"
+        }
+        return "語"
+    }
+
+    private var regularCard: some View {
         Button(action: { onStudy(deck) }, label: {
             VStack(alignment: .leading, spacing: 12) {
                 HStack(alignment: .top) {
