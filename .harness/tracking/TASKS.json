@@ -1072,7 +1072,7 @@
     {
       "id": "T042",
       "title": "Listen & Write mode (聞き取り)",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [
         "T038",
         "T041"
