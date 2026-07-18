@@ -25,6 +25,7 @@ final class SessionViewModel {
     private(set) var cardsWritten = 0
     private(set) var summary: SessionSummary?
     private(set) var lastError: Error?
+    private(set) var presentedMode: PracticeMode = .trace
 
     let mode: PracticeMode
     let deckName: String
@@ -43,6 +44,7 @@ final class SessionViewModel {
     private var currentEntry: QueueEntry?
     private let sessionStart: Date
     private var hasAutoplayed = false
+    private var modeResolver: ModeResolver
 
     var newCount: Int {
         queue.newCount
@@ -78,6 +80,10 @@ final class SessionViewModel {
         self.clock = clock
         self.audio = audio
         rng = SplitMix64(seed: seed)
+
+        let deckScripts = Set(deck.sections.flatMap(\.notes).compactMap { !$0.isDeleted ? $0.script : nil })
+        let availableModes = ModeAvailability.deckModes(scripts: deckScripts).filter { $0 != .mixed }
+        modeResolver = ModeResolver(sessionMode: mode, availableModes: availableModes)
 
         let now = clock.now()
         sessionStart = now
@@ -116,6 +122,7 @@ final class SessionViewModel {
         if let firstEntry = queue.next(now: now) {
             currentEntry = firstEntry
             currentNote = notesByID[firstEntry.id]
+            updatePresentedMode()
             autoplayOnCardEntry()
         }
     }
@@ -154,6 +161,7 @@ final class SessionViewModel {
         if let nextEntry = queue.next(now: now) {
             self.currentEntry = nextEntry
             currentNote = notesByID[nextEntry.id]
+            updatePresentedMode()
             phase = .prompt
             hasAutoplayed = false
             autoplayOnCardEntry()
@@ -227,8 +235,31 @@ final class SessionViewModel {
         return clock.calendar.date(byAdding: .day, value: 1, to: candidate) ?? candidate
     }
 
+    private func updatePresentedMode() {
+        guard let currentNote else {
+            presentedMode = .trace
+            return
+        }
+
+        let qualifies: (PracticeMode) -> Bool = { [weak self] mode in
+            ModeAvailability.cardQualifies(
+                mode,
+                hasAudio: currentNote.audioFilename != nil,
+                ttsAvailable: self?.audio.isAvailable ?? false,
+                english: currentNote.english
+            )
+        }
+
+        guard let currentEntry else {
+            presentedMode = .trace
+            return
+        }
+
+        presentedMode = modeResolver.nextMode(cardState: currentEntry.snapshot.state, qualifies: qualifies)
+    }
+
     private func autoplayOnCardEntry() {
-        guard !hasAutoplayed, mode == .listen, autoplayEnabled else { return }
+        guard !hasAutoplayed, presentedMode == .listen, autoplayEnabled else { return }
         hasAutoplayed = true
         replayAudio()
     }
