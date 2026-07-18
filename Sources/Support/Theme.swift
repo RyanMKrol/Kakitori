@@ -83,3 +83,29 @@ extension View {
         modifier(ScaledFontModifier(size: size, weight: weight, design: design))
     }
 }
+
+// MARK: - Motion Support
+
+public extension KakitoriTheme {
+    /// Card-to-card transition: crossfade + slight horizontal slide when motion is enabled,
+    /// plain opacity crossfade when Reduce Motion is on.
+    static func cardTransition(reduceMotion: Bool) -> AnyTransition {
+        if reduceMotion {
+            AnyTransition.opacity
+        } else {
+            AnyTransition.asymmetric(
+                insertion: AnyTransition.opacity.combined(with: .move(edge: .trailing)),
+                removal: AnyTransition.opacity.combined(with: .move(edge: .leading))
+            )
+        }
+    }
+
+    /// Emphasis transition: scale-in normally, plain crossfade under Reduce Motion.
+    static func emphasisTransition(reduceMotion: Bool) -> AnyTransition {
+        if reduceMotion {
+            AnyTransition.opacity
+        } else {
+            AnyTransition.scale.combined(with: .opacity)
+        }
+    }
+}

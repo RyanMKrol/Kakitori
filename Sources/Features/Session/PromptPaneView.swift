@@ -4,6 +4,8 @@ import SwiftUI
 struct PromptPaneView: View {
     let viewModel: SessionViewModel
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     var body: some View {
         ZStack {
             KakitoriTheme.paper

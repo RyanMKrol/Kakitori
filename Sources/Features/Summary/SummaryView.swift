@@ -12,7 +12,9 @@ struct SummaryView: View {
     let onStudyAnother: () -> Void
 
     @State private var discScale: CGFloat = 0.7
+    @State private var discOpacity: Double = 0
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var isCompact: Bool {
         horizontalSizeClass == .compact
@@ -40,8 +42,14 @@ struct SummaryView: View {
         }
         .accessibilityIdentifier("summary-done")
         .onAppear {
-            withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
-                discScale = 1.0
+            if reduceMotion {
+                withAnimation(.easeInOut(duration: 0.25)) {
+                    discOpacity = 1.0
+                }
+            } else {
+                withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+                    discScale = 1.0
+                }
             }
         }
     }
@@ -56,7 +64,8 @@ struct SummaryView: View {
                     .foregroundStyle(KakitoriTheme.paper)
                     .accessibilityHidden(true)
             )
-            .scaleEffect(discScale)
+            .scaleEffect(reduceMotion ? 1.0 : discScale)
+            .opacity(reduceMotion ? discOpacity : 1.0)
     }
 
     private var headlineView: some View {

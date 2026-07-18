@@ -5,14 +5,15 @@ struct ActionRowView: View {
     let viewModel: SessionViewModel
 
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         if viewModel.phase == .revealed {
             gradeRow
-                .transition(.scale.combined(with: .opacity))
+                .transition(KakitoriTheme.emphasisTransition(reduceMotion: reduceMotion))
         } else {
             showAnswerButton
-                .transition(.scale.combined(with: .opacity))
+                .transition(KakitoriTheme.emphasisTransition(reduceMotion: reduceMotion))
         }
     }
 
