@@ -216,3 +216,34 @@ struct SM2Scheduler {
         fuzzEnabled && intervalDays >= SRSConstants.fuzzMinimumIntervalDays
     }
 }
+
+extension SM2Scheduler: Scheduler {
+    func preview(for card: ScheduleSnapshot, now: Date) -> [Grade: SchedulePreview] {
+        var rng = SplitMix64(seed: 0)
+        let fuzzDisabledScheduler = SM2Scheduler(fuzzEnabled: false)
+
+        var result: [Grade: SchedulePreview] = [:]
+        for grade in Grade.allCases {
+            let applied = fuzzDisabledScheduler.apply(grade, to: card, now: now, rng: &rng)
+            let label = formatLabel(for: applied, now: now)
+            result[grade] = SchedulePreview(
+                dueAt: applied.dueAt ?? now,
+                intervalDays: applied.intervalDays,
+                label: label
+            )
+        }
+        return result
+    }
+
+    private func formatLabel(for result: ScheduleSnapshot, now: Date) -> String {
+        guard let dueAt = result.dueAt else { return "?" }
+        switch result.state {
+        case .learning, .relearning:
+            let seconds = dueAt.timeIntervalSince(now)
+            let minutes = Int(seconds / 60)
+            return minutes <= 1 ? "<1m" : "\(minutes)m"
+        case .review, .new:
+            return "\(Int(result.intervalDays))d"
+        }
+    }
+}
