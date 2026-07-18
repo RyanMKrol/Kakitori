@@ -589,7 +589,7 @@
     {
       "id": "T024",
       "title": "SM2Scheduler: review transitions, clamps, seeded fuzz",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [
         "T058"
       ],
