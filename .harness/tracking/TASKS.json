@@ -1375,7 +1375,7 @@
     {
       "id": "T053",
       "title": "Empty states + import error polish",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [
         "T036",
         "T039"
