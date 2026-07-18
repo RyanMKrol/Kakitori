@@ -143,11 +143,7 @@ struct SessionView: View {
     // MARK: - Panes
 
     private var promptPane: some View {
-        VStack {
-            Text("Prompt")
-                .foregroundStyle(KakitoriTheme.ink.opacity(0.3))
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        PromptPaneView(viewModel: viewModel)
     }
 
     private var canvasPane: some View {
