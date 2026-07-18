@@ -15,6 +15,9 @@ targets:
     type: application
     platform: iOS
     sources: [Sources]
+    resources:
+      - path: Sources/Support/PrivacyInfo.xcprivacy
+        buildPhase: resources
     settings:
       base:
         # Explicit — XcodeGen's derived id would be com.ryankrol.Kakitori (capital K);

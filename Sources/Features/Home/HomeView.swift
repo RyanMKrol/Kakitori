@@ -4,25 +4,33 @@ import SwiftUI
 struct HomeView: View {
     @Query private var decks: [Deck]
     let now: Date = AppClock.system.now()
+    @State private var navigationPath = NavigationPath()
 
     var body: some View {
-        ZStack {
-            KakitoriTheme.paper.ignoresSafeArea()
+        NavigationStack(path: $navigationPath) {
+            ZStack {
+                KakitoriTheme.paper.ignoresSafeArea()
 
-            VStack(spacing: 24) {
-                header
-                StatsRowView()
+                VStack(spacing: 24) {
+                    header
+                    StatsRowView()
 
-                if decks.isEmpty {
-                    emptyState
-                } else {
-                    VStack(spacing: 16) {
-                        TodayBannerView(now: now)
-                        deckList
+                    if decks.isEmpty {
+                        emptyState
+                    } else {
+                        VStack(spacing: 16) {
+                            TodayBannerView(now: now)
+                            deckList
+                        }
                     }
                 }
+                .padding()
             }
-            .padding()
+            .navigationDestination(for: String.self) { destination in
+                if destination == "settings" {
+                    SettingsView()
+                }
+            }
         }
     }
 
@@ -47,6 +55,14 @@ struct HomeView: View {
             }
 
             Spacer()
+
+            Button(action: { navigationPath.append("settings") }, label: {
+                Image(systemName: "gearshape")
+                    .font(.title3)
+                    .foregroundStyle(KakitoriTheme.ink)
+                    .frame(width: 44, height: 44)
+            })
+            .accessibilityIdentifier("settings-button")
         }
         .accessibilityIdentifier("home-header")
     }
