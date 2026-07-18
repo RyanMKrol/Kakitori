@@ -1151,7 +1151,7 @@
     {
       "id": "T045",
       "title": "Mode availability rules per deck and card",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [
         "T037",
         "T042",
