@@ -33,6 +33,8 @@ struct CanvasPaneView: View {
             "Trace each character in its box"
         case .listen:
             "Write the word you heard"
+        case .translate:
+            "Write the Japanese here"
         default:
             ""
         }

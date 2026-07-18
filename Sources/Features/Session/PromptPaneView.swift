@@ -24,6 +24,8 @@ struct PromptPaneView: View {
         switch viewModel.mode {
         case .listen:
             listenModePrompt
+        case .translate:
+            translateModePrompt
         default:
             traceModePrompt
         }
@@ -80,6 +82,36 @@ struct PromptPaneView: View {
                 .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(32)
+    }
+
+    private var translateModePrompt: some View {
+        VStack(spacing: 12) {
+            Text("TRANSLATE & WRITE")
+                .font(KakitoriTheme.smallCapsLabel(size: 12))
+                .tracking(0.15)
+                .foregroundStyle(KakitoriTheme.accent)
+
+            Text("English")
+                .font(.system(size: 13, weight: .regular))
+                .foregroundStyle(KakitoriTheme.ink.opacity(0.5))
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            Text(viewModel.currentNote?.english ?? "")
+                .font(.system(size: 34, weight: .bold))
+                .foregroundStyle(KakitoriTheme.ink)
+                .lineLimit(4)
+                .multilineTextAlignment(.leading)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            Text("Write this in Japanese.")
+                .font(.system(size: 15, weight: .regular))
+                .foregroundStyle(KakitoriTheme.ink)
+                .lineLimit(2)
+                .multilineTextAlignment(.leading)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .padding(32)
     }
 
