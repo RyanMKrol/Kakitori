@@ -1349,7 +1349,7 @@
     {
       "id": "T052",
       "title": "Reduce Motion support",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [
         "T038"
       ],
