@@ -27,3 +27,5 @@
 {"id":"T048","ts":"2026-07-18T09:00:15Z","kind":"scope-creep","rung":0,"attempt":1,"model":"claude-haiku-4-5","effort":"","facets":{"layer":"views","workType":"style","risk":[]},"detail":"Sources/Features/DeckSetup/DeckSetupSheet.swift"}
 {"id":"T049","ts":"2026-07-18T09:16:25Z","kind":"audit-fail","rung":0,"attempt":0,"model":"claude-haiku-4-5","effort":"","facets":{"layer":"views","workType":"style","risk":[]},"detail":""}
 {"id":"T049","ts":"2026-07-18T09:36:50Z","kind":"audit-fail","rung":0,"attempt":1,"model":"claude-haiku-4-5","effort":"","facets":{"layer":"views","workType":"style","risk":[]},"detail":""}
+{"id":"T050","ts":"2026-07-18T10:12:53Z","kind":"audit-fail","rung":0,"attempt":0,"model":"claude-haiku-4-5","effort":"","facets":{"layer":"views","workType":"style","risk":[]},"detail":""}
+{"id":"T050","ts":"2026-07-18T10:24:51Z","kind":"audit-fail","rung":0,"attempt":1,"model":"claude-haiku-4-5","effort":"","facets":{"layer":"views","workType":"style","risk":[]},"detail":""}

@@ -1293,7 +1293,7 @@
     {
       "id": "T050",
       "title": "Dark mode palette",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [
         "T038",
         "T056"
