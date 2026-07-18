@@ -106,6 +106,110 @@
             try renderAndSaveScreenshot(promptPane, filename: "T031-answer.png")
         }
 
+        func testListenModePromptBeforeReveal() throws {
+            let container = try makeContainer()
+            let context = ModelContext(container)
+            let fixedTime = makeDate(year: 2026, month: 7, day: 17, hour: 12, minute: 0)
+            let clock = AppClock.fixed(fixedTime, timeZone: tokyo)
+
+            let deck = Deck(name: "Hiragana Basics", sourceDeckName: "hiragana", importedAt: fixedTime)
+            let section = Section(name: "Section 1", orderIndex: 0)
+            deck.sections = [section]
+            context.insert(deck)
+            context.insert(section)
+
+            let note = Note(
+                target: "あ",
+                pronunciation: "あ",
+                english: nil,
+                hint: nil,
+                audioFilename: "a.mp3",
+                script: .hiragana,
+                units: ["あ"]
+            )
+            let schedule = CardSchedule(
+                state: .new,
+                stepIndex: 0,
+                easeFactor: 2.5,
+                intervalDays: 0,
+                dueAt: Date.distantPast,
+                lapses: 0
+            )
+            note.schedule = schedule
+            note.deck = deck
+            deck.sections[0].notes.append(note)
+            context.insert(note)
+            context.insert(schedule)
+
+            let viewModel = SessionViewModel(
+                deck: deck,
+                mode: .listen,
+                modelContext: context,
+                clock: clock,
+                seed: 12345,
+                audio: FakeAudioPlayer()
+            )
+
+            let promptPane = PromptPaneView(viewModel: viewModel)
+                .frame(width: 476, height: 834)
+                .background(KakitoriTheme.paper)
+
+            try renderAndSaveScreenshot(promptPane, filename: "T042-listen-prompt.png")
+        }
+
+        func testListenModeAnswerAfterReveal() throws {
+            let container = try makeContainer()
+            let context = ModelContext(container)
+            let fixedTime = makeDate(year: 2026, month: 7, day: 17, hour: 12, minute: 0)
+            let clock = AppClock.fixed(fixedTime, timeZone: tokyo)
+
+            let deck = Deck(name: "Hiragana Basics", sourceDeckName: "hiragana", importedAt: fixedTime)
+            let section = Section(name: "Section 1", orderIndex: 0)
+            deck.sections = [section]
+            context.insert(deck)
+            context.insert(section)
+
+            let note = Note(
+                target: "あ",
+                pronunciation: "あ",
+                english: "hiragana 'a'",
+                hint: "the first character",
+                audioFilename: "a.mp3",
+                script: .hiragana,
+                units: ["あ"]
+            )
+            let schedule = CardSchedule(
+                state: .new,
+                stepIndex: 0,
+                easeFactor: 2.5,
+                intervalDays: 0,
+                dueAt: Date.distantPast,
+                lapses: 0
+            )
+            note.schedule = schedule
+            note.deck = deck
+            deck.sections[0].notes.append(note)
+            context.insert(note)
+            context.insert(schedule)
+
+            let viewModel = SessionViewModel(
+                deck: deck,
+                mode: .listen,
+                modelContext: context,
+                clock: clock,
+                seed: 12345,
+                audio: FakeAudioPlayer()
+            )
+
+            viewModel.showAnswer()
+
+            let promptPane = PromptPaneView(viewModel: viewModel)
+                .frame(width: 476, height: 834)
+                .background(KakitoriTheme.paper)
+
+            try renderAndSaveScreenshot(promptPane, filename: "T042-listen-answer.png")
+        }
+
         private func renderAndSaveScreenshot(_ view: some View, filename: String) throws {
             let renderer = ImageRenderer(content: view)
             renderer.scale = 2

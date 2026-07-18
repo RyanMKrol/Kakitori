@@ -28,16 +28,21 @@ final class SessionViewModel {
 
     let mode: PracticeMode
     let deckName: String
+    var autoplayEnabled: Bool {
+        (UserDefaults.standard.object(forKey: "audioAutoplay") as? Bool) ?? true
+    }
 
     private let modelContext: ModelContext
     private let clock: AppClock
     private let scheduler = SM2Scheduler()
     private var rng: SplitMix64
+    private let audio: any AudioPlaying
 
     private var queue: SessionQueue
     private var notesByID: [UUID: Note]
     private var currentEntry: QueueEntry?
     private let sessionStart: Date
+    private var hasAutoplayed = false
 
     var newCount: Int {
         queue.newCount
@@ -63,6 +68,7 @@ final class SessionViewModel {
         modelContext: ModelContext,
         clock: AppClock,
         seed: UInt64,
+        audio: any AudioPlaying = AudioService(),
         newPerDay: Int = SRSConstants.defaultNewPerDay,
         maxReviewsPerDay: Int = SRSConstants.defaultMaxReviewsPerDay
     ) {
@@ -70,6 +76,7 @@ final class SessionViewModel {
         deckName = deck.name
         self.modelContext = modelContext
         self.clock = clock
+        self.audio = audio
         rng = SplitMix64(seed: seed)
 
         let now = clock.now()
@@ -103,12 +110,18 @@ final class SessionViewModel {
         if let firstEntry = queue.next(now: now) {
             currentEntry = firstEntry
             currentNote = notesByID[firstEntry.id]
+            autoplayOnCardEntry()
         }
     }
 
     func showAnswer() {
         guard phase == .prompt else { return }
         phase = .revealed
+    }
+
+    func replayAudio() {
+        guard let note = currentNote, let deckID = note.deck?.id else { return }
+        audio.play(target: note.target, audioFilename: note.audioFilename, deckID: deckID)
     }
 
     func grade(_ grade: Grade) {
@@ -136,6 +149,8 @@ final class SessionViewModel {
             self.currentEntry = nextEntry
             currentNote = notesByID[nextEntry.id]
             phase = .prompt
+            hasAutoplayed = false
+            autoplayOnCardEntry()
         } else {
             finish(now: now)
         }
@@ -204,5 +219,11 @@ final class SessionViewModel {
         guard let candidate = clock.calendar.date(from: components) else { return now }
         if candidate > now { return candidate }
         return clock.calendar.date(byAdding: .day, value: 1, to: candidate) ?? candidate
+    }
+
+    private func autoplayOnCardEntry() {
+        guard !hasAutoplayed, mode == .listen, autoplayEnabled else { return }
+        hasAutoplayed = true
+        replayAudio()
     }
 }

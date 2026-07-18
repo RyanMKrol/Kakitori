@@ -31,6 +31,8 @@ struct CanvasPaneView: View {
         switch viewModel.mode {
         case .trace:
             "Trace each character in its box"
+        case .listen:
+            "Write the word you heard"
         default:
             ""
         }

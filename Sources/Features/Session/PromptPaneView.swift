@@ -9,7 +9,7 @@ struct PromptPaneView: View {
             KakitoriTheme.paper
 
             if viewModel.phase == .prompt {
-                traceModePrompt
+                promptView
                     .transition(.opacity)
             } else {
                 answerBlock
@@ -17,6 +17,16 @@ struct PromptPaneView: View {
             }
         }
         .animation(.easeInOut(duration: 0.25), value: viewModel.phase)
+    }
+
+    @ViewBuilder
+    private var promptView: some View {
+        switch viewModel.mode {
+        case .listen:
+            listenModePrompt
+        default:
+            traceModePrompt
+        }
     }
 
     private var traceModePrompt: some View {
@@ -41,6 +51,33 @@ struct PromptPaneView: View {
                     .font(KakitoriTheme.japaneseDisplayFont(size: 18))
                     .foregroundStyle(KakitoriTheme.ink.opacity(0.6))
             }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(32)
+    }
+
+    private var listenModePrompt: some View {
+        VStack(spacing: 12) {
+            Text("LISTEN & WRITE")
+                .font(KakitoriTheme.smallCapsLabel(size: 12))
+                .tracking(0.15)
+                .foregroundStyle(KakitoriTheme.accent)
+
+            Button(
+                action: { viewModel.replayAudio() },
+                label: {
+                    Image(systemName: "play.circle.fill")
+                        .font(.system(size: 64))
+                        .foregroundStyle(KakitoriTheme.accent)
+                }
+            )
+            .accessibilityIdentifier("play-audio")
+
+            Text("Tap to hear it again, then write what you hear.")
+                .font(.system(size: 15, weight: .regular))
+                .foregroundStyle(KakitoriTheme.ink)
+                .lineLimit(3)
+                .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(32)
@@ -87,19 +124,22 @@ struct PromptPaneView: View {
             Spacer()
                 .frame(height: 8)
 
-            HStack(spacing: 8) {
-                Image(systemName: "speaker.wave.2")
-                Text("Play audio")
-            }
-            .font(.system(size: 15, weight: .semibold))
-            .foregroundStyle(KakitoriTheme.paper)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
-            .background(KakitoriTheme.accent)
-            .cornerRadius(20)
-            .onTapGesture {}
-            .allowsHitTesting(false)
-            // TODO: Wire to Sources/Audio/AudioService.swift
+            Button(
+                action: { viewModel.replayAudio() },
+                label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "speaker.wave.2")
+                        Text("Play audio")
+                    }
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(KakitoriTheme.paper)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                    .background(KakitoriTheme.accent)
+                    .cornerRadius(20)
+                }
+            )
+            .accessibilityIdentifier("play-audio-answer")
 
             Spacer()
         }
