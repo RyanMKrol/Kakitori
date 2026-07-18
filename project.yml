@@ -32,6 +32,21 @@ targets:
           - UIInterfaceOrientationPortrait
           - UIInterfaceOrientationLandscapeLeft
           - UIInterfaceOrientationLandscapeRight
+        UTImportedTypeDeclarations:
+          - UTTypeIdentifier: com.ryankrol.kakitori.apkg
+            UTTypeDescription: Anki Deck Package
+            UTTypeConformsTo:
+              - public.data
+              - public.zip-archive
+            UTTypeTagSpecification:
+              public.filename-extension:
+                - apkg
+        CFBundleDocumentTypes:
+          - CFBundleTypeName: Anki Deck Package
+            LSItemContentTypes:
+              - com.ryankrol.kakitori.apkg
+            CFBundleTypeRole: Viewer
+            LSHandlerRank: Alternate
   KakitoriTests:
     type: bundle.unit-test
     platform: iOS

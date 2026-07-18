@@ -16,8 +16,22 @@ struct KakitoriApp: App {
             NavigationStack {
                 HomeView()
             }
+            .onOpenURL { url in
+                handleOpenURL(url)
+            }
         }
         .modelContainer(container)
+    }
+
+    private func handleOpenURL(_ url: URL) {
+        Task {
+            let mediaBaseURL = FileManager.default.urls(
+                for: .applicationSupportDirectory,
+                in: .userDomainMask
+            )[0].appendingPathComponent("Kakitori/Media")
+
+            await ImportCoordinator.shared.begin(url: url, modelContainer: container, mediaBaseURL: mediaBaseURL)
+        }
     }
 
     private static func makeModelContainer() -> ModelContainer {
