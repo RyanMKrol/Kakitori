@@ -3,6 +3,7 @@ import SwiftUI
 
 struct HomeView: View {
     @Query private var decks: [Deck]
+    let now: Date = AppClock.system.now()
 
     var body: some View {
         ZStack {
@@ -15,7 +16,10 @@ struct HomeView: View {
                 if decks.isEmpty {
                     emptyState
                 } else {
-                    deckList
+                    VStack(spacing: 16) {
+                        TodayBannerView(now: now)
+                        deckList
+                    }
                 }
             }
             .padding()
@@ -56,20 +60,29 @@ struct HomeView: View {
             Text("Import a deck to start writing")
                 .font(.body)
                 .foregroundStyle(KakitoriTheme.ink)
+            Button(action: {}, label: {
+                Text("Import deck")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(KakitoriTheme.paper)
+                    .frame(maxWidth: .infinity)
+                    .padding(12)
+                    .background(KakitoriTheme.accent)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+            })
+            .accessibilityIdentifier("import-button-empty")
             Spacer()
         }
         .accessibilityIdentifier("home-empty-state")
     }
 
     private var deckList: some View {
-        List(decks) { deck in
-            VStack(alignment: .leading, spacing: 4) {
-                Text(deck.jpTitle ?? deck.name)
-                    .font(KakitoriTheme.japaneseDisplayFont(size: 24))
-                    .foregroundStyle(KakitoriTheme.ink)
-                Text(deck.name)
-                    .font(.caption)
-                    .foregroundStyle(KakitoriTheme.ink.opacity(0.6))
+        let columns = [
+            GridItem(.flexible(), spacing: 16),
+            GridItem(.flexible(), spacing: 16),
+        ]
+        return LazyVGrid(columns: columns, spacing: 16) {
+            ForEach(decks) { deck in
+                DeckCardView(deck: deck, now: now, onStudy: { _ in })
             }
         }
         .accessibilityIdentifier("home-deck-list")
