@@ -744,7 +744,7 @@
     {
       "id": "T030",
       "title": "Session screen scaffold: top bar, progress, queue chips (iPad)",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [
         "T029",
         "T056"
