@@ -1,0 +1,116 @@
+import Foundation
+
+struct SM2Scheduler {
+    func apply(
+        _ grade: Grade,
+        to card: ScheduleSnapshot,
+        now: Date,
+        rng _: inout some RandomNumberGenerator
+    ) -> ScheduleSnapshot {
+        switch card.state {
+        case .new:
+            applyLearning(grade, to: ScheduleSnapshot(
+                state: .learning,
+                stepIndex: 0,
+                easeFactor: card.easeFactor,
+                intervalDays: card.intervalDays,
+                dueAt: card.dueAt,
+                lapses: card.lapses
+            ), now: now)
+        case .learning:
+            applyLearning(grade, to: card, now: now)
+        case .relearning:
+            applyRelearning(grade, to: card, now: now)
+        case .review:
+            card
+        }
+    }
+
+    private func applyLearning(_ grade: Grade, to card: ScheduleSnapshot, now: Date) -> ScheduleSnapshot {
+        let steps = SRSConstants.learningStepsSeconds
+        let currentIndex = min(max(card.stepIndex, 0), steps.count - 1)
+
+        switch grade {
+        case .again:
+            return ScheduleSnapshot(
+                state: .learning,
+                stepIndex: 0,
+                easeFactor: card.easeFactor,
+                intervalDays: card.intervalDays,
+                dueAt: now.addingTimeInterval(steps[0]),
+                lapses: card.lapses
+            )
+        case .hard:
+            return ScheduleSnapshot(
+                state: .learning,
+                stepIndex: currentIndex,
+                easeFactor: card.easeFactor,
+                intervalDays: card.intervalDays,
+                dueAt: now.addingTimeInterval(steps[currentIndex]),
+                lapses: card.lapses
+            )
+        case .good:
+            return applyLearningGood(currentIndex: currentIndex, steps: steps, to: card, now: now)
+        case .easy:
+            return graduate(
+                card,
+                intervalDays: SRSConstants.easyGraduatingIntervalDays,
+                now: now
+            )
+        }
+    }
+
+    private func applyLearningGood(
+        currentIndex: Int,
+        steps: [TimeInterval],
+        to card: ScheduleSnapshot,
+        now: Date
+    ) -> ScheduleSnapshot {
+        if currentIndex == steps.count - 1 {
+            return graduate(card, intervalDays: SRSConstants.graduatingIntervalDays, now: now)
+        }
+        let newIndex = currentIndex + 1
+        return ScheduleSnapshot(
+            state: .learning,
+            stepIndex: newIndex,
+            easeFactor: card.easeFactor,
+            intervalDays: card.intervalDays,
+            dueAt: now.addingTimeInterval(steps[newIndex]),
+            lapses: card.lapses
+        )
+    }
+
+    private func graduate(_ card: ScheduleSnapshot, intervalDays: Double, now: Date) -> ScheduleSnapshot {
+        ScheduleSnapshot(
+            state: .review,
+            stepIndex: 0,
+            easeFactor: card.easeFactor,
+            intervalDays: intervalDays,
+            dueAt: now.addingTimeInterval(intervalDays * SRSConstants.secondsPerDay),
+            lapses: card.lapses
+        )
+    }
+
+    private func applyRelearning(_ grade: Grade, to card: ScheduleSnapshot, now: Date) -> ScheduleSnapshot {
+        switch grade {
+        case .again, .hard:
+            return ScheduleSnapshot(
+                state: .relearning,
+                stepIndex: 0,
+                easeFactor: card.easeFactor,
+                intervalDays: card.intervalDays,
+                dueAt: now.addingTimeInterval(SRSConstants.relearningStepSeconds),
+                lapses: card.lapses
+            )
+        case .good:
+            return graduate(card, intervalDays: relapsedIntervalDays(for: card), now: now)
+        case .easy:
+            let intervalDays = max(SRSConstants.easyGraduatingIntervalDays, relapsedIntervalDays(for: card))
+            return graduate(card, intervalDays: intervalDays, now: now)
+        }
+    }
+
+    private func relapsedIntervalDays(for card: ScheduleSnapshot) -> Double {
+        max(1, (card.intervalDays * SRSConstants.lapseIntervalMultiplier).rounded())
+    }
+}
