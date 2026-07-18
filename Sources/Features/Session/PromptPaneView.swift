@@ -5,6 +5,21 @@ struct PromptPaneView: View {
     let viewModel: SessionViewModel
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+
+    /// Compact renders the prompt as a condensed band above the canvas (docs/06 §2.3): one sub-line,
+    /// tighter padding, a smaller answer glyph — same copy, restyled.
+    private var isCompact: Bool {
+        horizontalSizeClass == .compact
+    }
+
+    private var promptPadding: CGFloat {
+        isCompact ? 20 : 32
+    }
+
+    private var subLineLimit: Int {
+        isCompact ? 1 : 3
+    }
 
     var body: some View {
         ZStack {
@@ -49,7 +64,7 @@ struct PromptPaneView: View {
             Text("Follow the light strokes in each box. Aim for balance and correct stroke order.")
                 .kakitoriFont(size: 15)
                 .foregroundStyle(KakitoriTheme.ink)
-                .lineLimit(3)
+                .lineLimit(subLineLimit)
                 .multilineTextAlignment(.center)
 
             if let reading = viewModel.currentNote?.pronunciation {
@@ -59,7 +74,7 @@ struct PromptPaneView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .padding(32)
+        .padding(promptPadding)
     }
 
     private var listenModePrompt: some View {
@@ -82,11 +97,11 @@ struct PromptPaneView: View {
             Text("Tap to hear it again, then write what you hear.")
                 .kakitoriFont(size: 15)
                 .foregroundStyle(KakitoriTheme.ink)
-                .lineLimit(3)
+                .lineLimit(subLineLimit)
                 .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .padding(32)
+        .padding(promptPadding)
     }
 
     private var translateModePrompt: some View {
@@ -111,12 +126,12 @@ struct PromptPaneView: View {
             Text("Write this in Japanese.")
                 .kakitoriFont(size: 15)
                 .foregroundStyle(KakitoriTheme.ink)
-                .lineLimit(2)
+                .lineLimit(isCompact ? 1 : 2)
                 .multilineTextAlignment(.leading)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .padding(32)
+        .padding(promptPadding)
     }
 
     private var recallModePrompt: some View {
@@ -140,7 +155,7 @@ struct PromptPaneView: View {
                     Text(pronunciation)
                         .font(KakitoriTheme.japaneseDisplayFont(size: 40))
                         .foregroundStyle(KakitoriTheme.ink)
-                        .lineLimit(2)
+                        .lineLimit(isCompact ? 1 : 2)
                         .multilineTextAlignment(.leading)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
@@ -150,7 +165,7 @@ struct PromptPaneView: View {
                 Text("\u{201C}\(english)\u{201D}")
                     .kakitoriFont(size: 15)
                     .foregroundStyle(KakitoriTheme.ink)
-                    .lineLimit(3)
+                    .lineLimit(subLineLimit)
                     .multilineTextAlignment(.leading)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
@@ -158,12 +173,12 @@ struct PromptPaneView: View {
             Text("Write the word from memory.")
                 .kakitoriFont(size: 15)
                 .foregroundStyle(KakitoriTheme.ink)
-                .lineLimit(2)
+                .lineLimit(isCompact ? 1 : 2)
                 .multilineTextAlignment(.leading)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .padding(32)
+        .padding(promptPadding)
     }
 
     private var answerBlock: some View {
@@ -174,7 +189,7 @@ struct PromptPaneView: View {
                 .foregroundStyle(KakitoriTheme.accent)
 
             let unitCount = viewModel.currentNote?.units.count ?? 1
-            let fontSize: CGFloat = unitCount <= 2 ? 96 : 64
+            let fontSize: CGFloat = isCompact ? 64 : (unitCount <= 2 ? 96 : 64)
 
             if let target = viewModel.currentNote?.target {
                 Text(target)
@@ -227,7 +242,7 @@ struct PromptPaneView: View {
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .padding(32)
+        .padding(promptPadding)
         .accessibilityIdentifier("answer-block")
     }
 }
