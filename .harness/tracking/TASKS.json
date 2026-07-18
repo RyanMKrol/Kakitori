@@ -771,7 +771,7 @@
     {
       "id": "T031",
       "title": "Prompt pane: mode prompt + answer reveal block",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [
         "T029",
         "T030"
