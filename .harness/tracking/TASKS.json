@@ -1099,7 +1099,7 @@
     {
       "id": "T043",
       "title": "Translate & Write mode (翻訳)",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [
         "T038"
       ],
