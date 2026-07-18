@@ -854,7 +854,7 @@
     {
       "id": "T034",
       "title": "Session summary screen (お疲れさま！)",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [
         "T028",
         "T029",
