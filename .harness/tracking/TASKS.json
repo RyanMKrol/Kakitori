@@ -1125,7 +1125,7 @@
     {
       "id": "T044",
       "title": "Recall mode (思い出し)",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [
         "T038"
       ],
