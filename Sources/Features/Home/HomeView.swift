@@ -5,10 +5,15 @@ import UniformTypeIdentifiers
 struct HomeView: View {
     @Query private var decks: [Deck]
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     let now: Date = AppClock.system.now()
     @State private var navigationPath = NavigationPath()
     @State private var showFileImporter = false
     @State private var coordinator = ImportCoordinator.shared
+    @State private var setupDeck: Deck?
+    @State private var activeSession: SessionViewModel?
+    @State private var activeSessionDeck: Deck?
+    @State private var deckPendingRestudy: Deck?
 
     var body: some View {
         NavigationStack(path: $navigationPath) {
@@ -59,7 +64,91 @@ struct HomeView: View {
                 }
             )
             .accessibilityIdentifier("import-error-alert")
+            .sheet(isPresented: setupSheetBinding) {
+                if let setupDeck {
+                    DeckSetupSheet(
+                        jpTitle: setupDeck.jpTitle ?? setupDeck.name,
+                        enTitle: setupDeck.name,
+                        dueCount: dueCount(for: setupDeck),
+                        onStart: { mode in startSession(deck: setupDeck, mode: mode) },
+                        onClose: { self.setupDeck = nil }
+                    )
+                    .presentationDetents(horizontalSizeClass == .compact ? [.medium] : [.large])
+                }
+            }
+            .fullScreenCover(
+                isPresented: sessionCoverBinding,
+                onDismiss: {
+                    if let deckPendingRestudy {
+                        setupDeck = deckPendingRestudy
+                        self.deckPendingRestudy = nil
+                    }
+                },
+                content: { sessionCoverContent }
+            )
         }
+    }
+
+    private var setupSheetBinding: Binding<Bool> {
+        Binding(get: { setupDeck != nil }, set: { if !$0 { setupDeck = nil } })
+    }
+
+    private var sessionCoverBinding: Binding<Bool> {
+        Binding(get: { activeSession != nil }, set: { if !$0 { activeSession = nil } })
+    }
+
+    @ViewBuilder
+    private var sessionCoverContent: some View {
+        if let activeSession {
+            if activeSession.phase == .finished, let summary = activeSession.summary {
+                SummaryView(
+                    cardsWritten: summary.cardsWritten,
+                    minutes: summary.seconds / 60,
+                    againCount: summary.gradeCounts[.again] ?? 0,
+                    hardCount: summary.gradeCounts[.hard] ?? 0,
+                    goodCount: summary.gradeCounts[.good] ?? 0,
+                    easyCount: summary.gradeCounts[.easy] ?? 0,
+                    streakDays: currentStreak,
+                    onBackToDecks: {
+                        self.activeSession = nil
+                        activeSessionDeck = nil
+                    },
+                    onStudyAnother: {
+                        deckPendingRestudy = activeSessionDeck
+                        self.activeSession = nil
+                        activeSessionDeck = nil
+                    }
+                )
+            } else {
+                SessionView(viewModel: activeSession, onClose: {
+                    activeSession.close()
+                    self.activeSession = nil
+                    activeSessionDeck = nil
+                })
+            }
+        }
+    }
+
+    private var currentStreak: Int {
+        let allStats = (try? modelContext.fetch(FetchDescriptor<DailyStats>())) ?? []
+        let activeDays = Set(allStats.map(\.day))
+        return DailyStats.currentStreak(activeDays: activeDays, now: AppClock.system.now(), clock: .system)
+    }
+
+    private func dueCount(for deck: Deck) -> Int {
+        TodayBannerView.calculateDueCards(decks: [deck], now: now).0
+    }
+
+    private func startSession(deck: Deck, mode: PracticeMode) {
+        setupDeck = nil
+        activeSessionDeck = deck
+        activeSession = SessionViewModel(
+            deck: deck,
+            mode: mode,
+            modelContext: modelContext,
+            clock: .system,
+            seed: UInt64.random(in: UInt64.min ... UInt64.max)
+        )
     }
 
     private var header: some View {
@@ -147,7 +236,7 @@ struct HomeView: View {
         ]
         return LazyVGrid(columns: columns, spacing: 16) {
             ForEach(decks) { deck in
-                DeckCardView(deck: deck, now: now, onStudy: { _ in })
+                DeckCardView(deck: deck, now: now, onStudy: { setupDeck = $0 })
             }
         }
         .accessibilityIdentifier("home-deck-list")
