@@ -9,7 +9,10 @@ settings:
     SWIFT_VERSION: "6.0"
     SWIFT_STRICT_CONCURRENCY: complete
     TARGETED_DEVICE_FAMILY: "1,2"          # universal: iPhone + iPad
-    CODE_SIGNING_ALLOWED: "NO"
+    # Simulator + CI stay unsigned (the DoD/CI xcodebuild commands also pass CODE_SIGNING_ALLOWED=NO
+    # explicitly). Scoped to the simulator SDK so DEVICE builds (iphoneos) CAN sign — running on a
+    # real iPhone requires a signature. Device signing is configured on the Kakitori target below.
+    "CODE_SIGNING_ALLOWED[sdk=iphonesimulator*]": "NO"
 targets:
   Kakitori:
     type: application
@@ -23,6 +26,12 @@ targets:
         # Explicit — XcodeGen's derived id would be com.ryankrol.Kakitori (capital K);
         # build_run.sh, the harness overlays, and sibling-repo convention use lowercase.
         PRODUCT_BUNDLE_IDENTIFIER: com.ryankrol.kakitori
+        # Device runs (real iPhone) need a signature — automatic signing with the personal team.
+        # Ignored for simulator/CI builds (unsigned via CODE_SIGNING_ALLOWED[sdk=iphonesimulator*]=NO).
+        # Team ID is not secret (it ships in every signed binary); lives here so `xcodegen generate`
+        # doesn't wipe it. Let Xcode manage the profile (Automatic + -allowProvisioningUpdates).
+        DEVELOPMENT_TEAM: M8WLH4PZ74
+        CODE_SIGN_STYLE: Automatic
     info:
       path: Sources/Info.plist
       properties:
