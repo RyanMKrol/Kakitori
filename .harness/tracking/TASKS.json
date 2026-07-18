@@ -798,7 +798,7 @@
     {
       "id": "T032",
       "title": "Canvas pane: guide boxes + canvas + hint + undo/clear pills",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [
         "T013",
         "T029",

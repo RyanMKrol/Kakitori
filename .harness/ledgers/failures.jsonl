@@ -19,3 +19,5 @@
 {"id":"T053","ts":"2026-07-18T02:16:44Z","kind":"audit-fail","rung":0,"attempt":1,"model":"claude-haiku-4-5","effort":"","facets":{"layer":"views","workType":"style","risk":[]},"detail":""}
 {"id":"T029","ts":"2026-07-18T03:35:34Z","kind":"ci-red","rung":0,"attempt":0,"model":"claude-sonnet-5","effort":"medium","facets":{"layer":"views","workType":"feature","risk":["touches-core"]},"detail":"CI checks failed on the branch"}
 {"id":"T030","ts":"2026-07-18T04:06:43Z","kind":"audit-fail","rung":0,"attempt":0,"model":"claude-haiku-4-5","effort":"","facets":{"layer":"views","workType":"component","risk":[]},"detail":""}
+{"id":"T032","ts":"2026-07-18T05:05:59Z","kind":"audit-fail","rung":0,"attempt":0,"model":"claude-haiku-4-5","effort":"","facets":{"layer":"canvas","workType":"component","risk":[]},"detail":""}
+{"id":"T032","ts":"2026-07-18T05:23:50Z","kind":"audit-fail","rung":0,"attempt":1,"model":"claude-haiku-4-5","effort":"","facets":{"layer":"canvas","workType":"component","risk":[]},"detail":""}
