@@ -961,7 +961,7 @@
     {
       "id": "T038",
       "title": "Trace session end-to-end: Home → setup → session → summary",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [
         "T031",
         "T032",
