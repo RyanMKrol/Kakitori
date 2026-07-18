@@ -151,12 +151,7 @@ struct SessionView: View {
     }
 
     private var actionRow: some View {
-        VStack {
-            Text("Actions")
-                .foregroundStyle(KakitoriTheme.ink.opacity(0.3))
-        }
-        .frame(height: 60)
-        .frame(maxWidth: .infinity)
+        ActionRowView(viewModel: viewModel)
     }
 }
 
