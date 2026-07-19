@@ -1609,38 +1609,6 @@
       }
     },
     {
-      "id": "T062",
-      "title": "Give bundled decks friendly names + JP titles at import (Hiragana/Katakana, ひらがな/カタカナ)",
-      "status": "pending",
-      "dependsOn": [],
-      "gate": null,
-      "tags": [
-        "importer",
-        "bundled-decks",
-        "deck-naming"
-      ],
-      "scope": [
-        "Sources/Importer/**",
-        "Sources/Content/**",
-        "Tests/UnitTests/ApkgImporterTests.swift",
-        "Tests/UnitTests/ApkgReimportTests.swift",
-        "Tests/UnitTests/BundledDeckImportTests.swift"
-      ],
-      "design": null,
-      "verify": [
-        "xcodebuild test -project Kakitori.xcodeproj -scheme Kakitori"
-      ],
-      "expectsTest": true,
-      "spec": ".harness/tasks/T062.md",
-      "facets": {
-        "layer": "importer",
-        "workType": "feature",
-        "risk": [
-          "touches-core"
-        ]
-      }
-    },
-    {
       "id": "T063",
       "title": "Deck card: never render the deck name twice / a Latin string in the JP serif slot",
       "status": "pending",
