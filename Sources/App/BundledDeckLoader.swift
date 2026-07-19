@@ -10,11 +10,22 @@ import SwiftData
 /// upsert → media copy), whose re-import logic is itself idempotent as a second line of defence.
 enum BundledDeckLoader {
     /// Bump when the bundled `.apkg` set changes so existing installs re-import on their next launch.
-    static let bundleVersion = 1
+    static let bundleVersion = 2
     private static let versionKey = "loadedBundledDecksVersion"
 
-    /// Resource base-names (without extension) of the shipped decks, in display order.
-    static let deckResourceNames = ["Tofugu-Hiragana", "Tofugu-Katakana"]
+    /// Resource base-names (without extension) of the shipped decks, in display order. The single
+    /// first-party "Foundations" source is SPLIT on load into separate Hiragana / Katakana / Kanji
+    /// decks (see `sectionTitles` + ApkgImporter.importDeckSplitBySection) — it is used as a content
+    /// pool, never surfaced directly.
+    static let deckResourceNames = ["Foundations"]
+
+    /// Friendly display name + JP title for each section the Foundations source splits into, keyed by
+    /// the importer's section name (the `.apkg` subdeck under "Kakitori Foundations::…").
+    static let sectionTitles: [String: (name: String, jpTitle: String?)] = [
+        "Hiragana": ("Hiragana", "ひらがな"),
+        "Katakana": ("Katakana", "カタカナ"),
+        "Kanji": ("Kanji", "漢字"),
+    ]
 
     /// Where imported deck audio/media is copied (matches the rest of the app).
     static func mediaBaseURL() -> URL {
@@ -50,7 +61,8 @@ enum BundledDeckLoader {
         var firstError: ImporterError?
         for url in urls {
             do {
-                try await importer.importDeck(from: url)
+                // Split the source deck's sections into separate Hiragana/Katakana/Kanji decks.
+                try await importer.importDeckSplitBySection(from: url, titles: sectionTitles)
             } catch let error as ImporterError {
                 firstError = firstError ?? error
             } catch {

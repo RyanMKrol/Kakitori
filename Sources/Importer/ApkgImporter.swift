@@ -36,6 +36,38 @@ struct ParsedDeck {
     let deckName: String
     let notes: [ImportedNote]
     let extractionDirectory: URL
+    /// Idempotence key for re-import matching. Defaults to `deckName`; a split deck overrides it so
+    /// each split (e.g. "Kakitori Foundations::Hiragana") matches its own existing deck on re-import.
+    let sourceKey: String?
+    /// User-facing deck name. Defaults to `deckName`; overridden to a friendly name (e.g. "Hiragana").
+    let displayName: String?
+    /// Optional Japanese title shown on the deck card (e.g. ひらがな).
+    let jpTitle: String?
+
+    init(
+        deckName: String,
+        notes: [ImportedNote],
+        extractionDirectory: URL,
+        sourceKey: String? = nil,
+        displayName: String? = nil,
+        jpTitle: String? = nil
+    ) {
+        self.deckName = deckName
+        self.notes = notes
+        self.extractionDirectory = extractionDirectory
+        self.sourceKey = sourceKey
+        self.displayName = displayName
+        self.jpTitle = jpTitle
+    }
+
+    /// The resolved re-import key and display name.
+    var resolvedSourceName: String {
+        sourceKey ?? deckName
+    }
+
+    var resolvedDisplayName: String {
+        displayName ?? deckName
+    }
 }
 
 actor ApkgImporter {
@@ -59,6 +91,55 @@ actor ApkgImporter {
             payloadDirectory: parsed.extractionDirectory,
             deckID: deckID
         )
+    }
+
+    /// Import ONE source `.apkg` but split its top-level sections into SEPARATE decks — e.g. the
+    /// Foundations deck becomes independent Hiragana / Katakana / Kanji decks, each carrying only its
+    /// own notes and audio. The source deck is used purely as a content pool, not surfaced directly.
+    /// `titles` maps a section name (as produced by the importer, e.g. "Hiragana") to its friendly
+    /// display name + optional JP title; a section with no entry uses its own name and no JP title.
+    /// Idempotent per split deck (sourceDeckName = "<root>::<section>").
+    func importDeckSplitBySection(
+        from url: URL,
+        titles: [String: (name: String, jpTitle: String?)] = [:]
+    ) async throws {
+        let parsed = try parse(url: url)
+        defer { try? FileManager.default.removeItem(at: parsed.extractionDirectory) }
+
+        let manifestURL = parsed.extractionDirectory.appendingPathComponent("media")
+        let fullManifest = (try? MediaStore.readManifest(at: manifestURL)) ?? [:]
+        let mediaStore = MediaStore(baseURL: mediaBaseURL)
+
+        // Group notes by section, preserving first-seen section order.
+        var order: [String] = []
+        var groups: [String: [ImportedNote]] = [:]
+        for note in parsed.notes {
+            let key = note.sectionName ?? parsed.deckName
+            if groups[key] == nil { order.append(key) }
+            groups[key, default: []].append(note)
+        }
+
+        for key in order {
+            let notes = groups[key] ?? []
+            let split = ParsedDeck(
+                deckName: key,
+                notes: notes,
+                extractionDirectory: parsed.extractionDirectory,
+                sourceKey: "\(parsed.deckName)::\(key)",
+                displayName: titles[key]?.name ?? key,
+                jpTitle: titles[key]?.jpTitle ?? nil
+            )
+            let deckID = try apply(split)
+
+            // Copy only this split deck's audio: filter the manifest to files it references.
+            let wanted = Set(notes.compactMap(\.audioFilename))
+            let subManifest = fullManifest.filter { wanted.contains($0.value) }
+            try mediaStore.copyMedia(
+                manifest: subManifest,
+                payloadDirectory: parsed.extractionDirectory,
+                deckID: deckID
+            )
+        }
     }
 
     func parse(url: URL) throws -> ParsedDeck {
@@ -188,9 +269,9 @@ actor ApkgImporter {
     }
 
     func apply(_ parsed: ParsedDeck) throws -> UUID {
-        let deckName = parsed.deckName
+        let sourceName = parsed.resolvedSourceName
         let existingDeckDescriptor = FetchDescriptor<Deck>(
-            predicate: #Predicate { $0.sourceDeckName == deckName }
+            predicate: #Predicate { $0.sourceDeckName == sourceName }
         )
         if let existingDeck = try context.fetch(existingDeckDescriptor).first {
             return try reimport(parsed, into: existingDeck)
@@ -200,8 +281,9 @@ actor ApkgImporter {
 
     private func firstImport(_ parsed: ParsedDeck) throws -> UUID {
         let deck = Deck(
-            name: parsed.deckName,
-            sourceDeckName: parsed.deckName,
+            name: parsed.resolvedDisplayName,
+            jpTitle: parsed.jpTitle,
+            sourceDeckName: parsed.resolvedSourceName,
             importedAt: Date()
         )
         context.insert(deck)
@@ -245,6 +327,9 @@ actor ApkgImporter {
 
     private func reimport(_ parsed: ParsedDeck, into deck: Deck) throws -> UUID {
         deck.importedAt = Date()
+        // Refresh the friendly display name / JP title so existing installs pick up renames on re-import.
+        deck.name = parsed.resolvedDisplayName
+        deck.jpTitle = parsed.jpTitle
 
         var sections = Dictionary(uniqueKeysWithValues: deck.sections.map { ($0.name, $0) })
         let deckID = deck.id
