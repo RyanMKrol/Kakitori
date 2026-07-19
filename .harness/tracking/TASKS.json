@@ -1811,6 +1811,67 @@
         "workType": "bugfix",
         "risk": []
       }
+    },
+    {
+      "id": "T071",
+      "title": "Fix low-contrast canvas ink: resolve ink color to concrete high-contrast color per appearance",
+      "status": "pending",
+      "dependsOn": [],
+      "gate": null,
+      "tags": [
+        "canvas",
+        "bugfix",
+        "contrast"
+      ],
+      "scope": [
+        "Sources/Features/Session/Canvas/**",
+        "Sources/Support/Theme.swift"
+      ],
+      "design": null,
+      "verify": [
+        "Draw a stroke on the canvas in LIGHT mode on iPad (Kakitori-Sim) — the stroke must be near-black (~#1A1A1A), clearly high-contrast against the paper, not mid-grey; screenshot it.",
+        "Draw a stroke on the canvas in DARK mode on iPad (Kakitori-Sim, `xcrun simctl ui <udid> appearance dark`) — the stroke must be near-white (~#F0EDE6), clearly high-contrast, not mid-grey; screenshot it.",
+        "Repeat both light and dark screenshots on iPhone (Kakitori-Sim-Phone, compact layout).",
+        "Confirm the faded trace-guide glyphs (KakitoriTheme.inkFaint in GuideBox / TraceGuideLayer) are visibly unchanged — still low-contrast, in all four screenshots."
+      ],
+      "expectsTest": false,
+      "spec": ".harness/tasks/T071.md",
+      "visualVerify": true,
+      "facets": {
+        "layer": "canvas",
+        "workType": "bugfix",
+        "risk": []
+      }
+    },
+    {
+      "id": "T072",
+      "title": "Prune retired bundled decks on version-gated load (5->3)",
+      "status": "pending",
+      "dependsOn": [],
+      "gate": null,
+      "tags": [
+        "data",
+        "bugfix",
+        "migration"
+      ],
+      "scope": [
+        "Sources/App/**",
+        "Sources/Models/**",
+        "Tests/**"
+      ],
+      "design": null,
+      "verify": [],
+      "expectsTest": true,
+      "spec": ".harness/tasks/T072.md",
+      "visualVerify": true,
+      "facets": {
+        "layer": "data",
+        "workType": "bugfix",
+        "risk": [
+          "touches-schema",
+          "touches-core"
+        ]
+      }
     }
   ]
 }
