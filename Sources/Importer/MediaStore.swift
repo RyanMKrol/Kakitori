@@ -17,20 +17,25 @@ struct MediaStore {
         baseURL.appendingPathComponent("Media").appendingPathComponent(deckID.uuidString)
     }
 
+    /// Read an Anki `.apkg` media manifest (a JSON object mapping payload key -> real filename).
+    static func readManifest(at manifestURL: URL) throws -> [String: String] {
+        let manifestData = try Data(contentsOf: manifestURL)
+        guard let manifest = (try? JSONSerialization.jsonObject(with: manifestData)) as? [String: String] else {
+            throw MediaStoreError.badManifest
+        }
+        return manifest
+    }
+
     @discardableResult
     func copyMedia(manifestURL: URL, payloadDirectory: URL, deckID: UUID) throws -> [String] {
-        // Parse the manifest
-        let manifestData = try Data(contentsOf: manifestURL)
-        let jsonObject: Any
-        do {
-            jsonObject = try JSONSerialization.jsonObject(with: manifestData)
-        } catch {
-            throw MediaStoreError.badManifest
-        }
-        guard let manifest = jsonObject as? [String: String] else {
-            throw MediaStoreError.badManifest
-        }
+        let manifest = try MediaStore.readManifest(at: manifestURL)
+        return try copyMedia(manifest: manifest, payloadDirectory: payloadDirectory, deckID: deckID)
+    }
 
+    /// Copy exactly the payload files named by `manifest` into the deck's media directory. Pass a
+    /// FILTERED manifest (e.g. only one split deck's referenced audio) to copy just those files.
+    @discardableResult
+    func copyMedia(manifest: [String: String], payloadDirectory: URL, deckID: UUID) throws -> [String] {
         // Create the media directory with intermediate directories
         let mediaDir = mediaDirectory(for: deckID)
         try FileManager.default.createDirectory(at: mediaDir, withIntermediateDirectories: true)

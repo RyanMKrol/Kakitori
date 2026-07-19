@@ -2,54 +2,74 @@
 import SwiftData
 import XCTest
 
-/// Integration coverage that the hand-bundled Tofugu decks import in full (the user's requirement:
-/// use 100% of each deck). Reads the real `.apkg` out of the app bundle.
+/// Integration coverage that the hand-bundled Foundations source `.apkg` splits into three separate
+/// first-party decks (Hiragana / Katakana / Kanji), in full and idempotently. Reads the real `.apkg`
+/// out of the app bundle.
 final class BundledDeckImportTests: XCTestCase {
     private func appBundle() -> Bundle {
         Bundle(for: DeckLoadModel.self)
     }
 
-    @MainActor
-    func testHiraganaImportsAll101() async throws {
-        try await assertFullImport(deckNameContains: "Hiragana", expected: 101)
-    }
-
-    @MainActor
-    func testKatakanaImportsAll124() async throws {
-        try await assertFullImport(deckNameContains: "Katakana", expected: 124)
-    }
-
-    /// Parses + imports the named bundled deck into an in-memory store and asserts every note both
-    /// persists AND is reachable through `deck.sections` — the latter is the count the deck card shows,
-    /// and a section-orphaned note (the bug this guards) imports but stays invisible.
-    @MainActor
-    private func assertFullImport(deckNameContains name: String, expected: Int) async throws {
-        let urls = BundledDeckLoader.bundledDeckURLs(in: appBundle())
-        let deckURL = try XCTUnwrap(urls.first { $0.lastPathComponent.contains(name) })
-
-        let container = try ModelContainer(
+    private func inMemoryContainer() throws -> ModelContainer {
+        try ModelContainer(
             for: Deck.self, Section.self, Note.self, CardSchedule.self, DailyStats.self,
             configurations: ModelConfiguration(isStoredInMemoryOnly: true)
         )
-        let importer = ApkgImporter(container: container, mediaBaseURL: FileManager.default.temporaryDirectory)
+    }
 
-        let parsed = try await importer.parse(url: deckURL)
-        XCTAssertEqual(parsed.notes.count, expected, "Parsed notes from collection.anki21")
+    private func foundationsURL() throws -> URL {
+        let urls = BundledDeckLoader.bundledDeckURLs(in: appBundle())
+        return try XCTUnwrap(urls.first { $0.lastPathComponent.contains("Foundations") })
+    }
 
-        let ids = Set(parsed.notes.map { NoteIdentity.uuid(forAnkiGUID: $0.ankiGUID) })
-        XCTAssertEqual(ids.count, expected, "Distinct note identities (no collisions)")
+    /// Section-visible note count (what the deck card actually counts — a section-orphaned note is
+    /// imported but invisible, which this guards against).
+    private func visibleCount(_ deck: Deck) -> Int {
+        deck.sections.flatMap(\.notes).count(where: { !$0.isDeleted })
+    }
 
-        let deckID = try await importer.apply(parsed)
-        XCTAssertEqual(
-            try container.mainContext.fetch(FetchDescriptor<Note>()).count,
-            expected,
-            "Persisted Note rows"
+    @MainActor
+    func testFoundationsSplitsIntoThreeNamedDecks() async throws {
+        let container = try inMemoryContainer()
+        let importer = ApkgImporter(
+            container: container,
+            mediaBaseURL: FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         )
 
-        let deck = try XCTUnwrap(
-            container.mainContext.fetch(FetchDescriptor<Deck>()).first { $0.id == deckID }
+        try await importer.importDeckSplitBySection(from: foundationsURL(), titles: BundledDeckLoader.sectionTitles)
+
+        let decks = try container.mainContext.fetch(FetchDescriptor<Deck>())
+        let byName = Dictionary(uniqueKeysWithValues: decks.map { ($0.name, $0) })
+
+        // Three SEPARATE decks, each with a friendly name + JP title.
+        XCTAssertEqual(Set(byName.keys), ["Hiragana", "Katakana", "Kanji"], "Three split decks")
+        XCTAssertEqual(byName["Hiragana"]?.jpTitle, "ひらがな")
+        XCTAssertEqual(byName["Katakana"]?.jpTitle, "カタカナ")
+        XCTAssertEqual(byName["Kanji"]?.jpTitle, "漢字")
+
+        // sourceDeckName is the split key (the re-import idempotence key), not the friendly name.
+        XCTAssertEqual(byName["Hiragana"]?.sourceDeckName, "Kakitori Foundations::Hiragana")
+
+        // 100% of each section imported AND visible via sections.
+        XCTAssertEqual(try visibleCount(XCTUnwrap(byName["Hiragana"])), 104)
+        XCTAssertEqual(try visibleCount(XCTUnwrap(byName["Katakana"])), 104)
+        XCTAssertEqual(try visibleCount(XCTUnwrap(byName["Kanji"])), 87)
+        XCTAssertEqual(try container.mainContext.fetch(FetchDescriptor<Note>()).count, 295, "Total notes")
+    }
+
+    @MainActor
+    func testSplitReimportIsIdempotent() async throws {
+        let container = try inMemoryContainer()
+        let importer = ApkgImporter(
+            container: container,
+            mediaBaseURL: FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         )
-        let sectionVisible = deck.sections.flatMap(\.notes).count(where: { !$0.isDeleted })
-        XCTAssertEqual(sectionVisible, expected, "Notes visible via sections (what the deck card counts)")
+
+        try await importer.importDeckSplitBySection(from: foundationsURL(), titles: BundledDeckLoader.sectionTitles)
+        try await importer.importDeckSplitBySection(from: foundationsURL(), titles: BundledDeckLoader.sectionTitles)
+
+        // Still exactly 3 decks / 295 notes after a second import — matched by sourceDeckName, no dupes.
+        XCTAssertEqual(try container.mainContext.fetch(FetchDescriptor<Deck>()).count, 3)
+        XCTAssertEqual(try container.mainContext.fetch(FetchDescriptor<Note>()).count, 295)
     }
 }
