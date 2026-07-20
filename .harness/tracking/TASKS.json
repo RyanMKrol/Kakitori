@@ -1876,7 +1876,7 @@
     {
       "id": "T073",
       "title": "Fix Listen & Write audio silence: activate AVAudioSession + surface errors + TTS-fallback on missing file",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [],
       "gate": null,
       "tags": [
