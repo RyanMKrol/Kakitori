@@ -1764,7 +1764,7 @@
     {
       "id": "T069",
       "title": "DeckSetupSheet: fix clipped sheet on iPhone (.medium detent too short, Start writing CTA cut off)",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [],
       "gate": null,
       "tags": [
