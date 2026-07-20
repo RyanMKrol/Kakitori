@@ -30,3 +30,4 @@
 {"id":"T050","ts":"2026-07-18T10:12:53Z","kind":"audit-fail","rung":0,"attempt":0,"model":"claude-haiku-4-5","effort":"","facets":{"layer":"views","workType":"style","risk":[]},"detail":""}
 {"id":"T050","ts":"2026-07-18T10:24:51Z","kind":"audit-fail","rung":0,"attempt":1,"model":"claude-haiku-4-5","effort":"","facets":{"layer":"views","workType":"style","risk":[]},"detail":""}
 {"id":"T055","ts":"2026-07-18T11:31:51Z","kind":"scope-creep","rung":0,"attempt":0,"model":"claude-haiku-4-5","effort":"","facets":{"layer":"views","workType":"feature","risk":[]},"detail":"Sources/App/KakitoriApp.swift"}
+{"id":"T061","ts":"2026-07-20T02:16:09Z","kind":"ci-red","rung":0,"attempt":0,"model":"claude-haiku-4-5","effort":"","facets":{"layer":"views","workType":"component","risk":[]},"detail":"CI checks failed on the branch"}

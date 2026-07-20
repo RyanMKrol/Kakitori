@@ -1583,7 +1583,7 @@
     {
       "id": "T061",
       "title": "Deck card: 'completed today' progress indicator (X of Y against today's allotment)",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [
         "T060"
       ],
