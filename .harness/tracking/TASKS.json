@@ -1790,7 +1790,7 @@
     {
       "id": "T070",
       "title": "DeckSetupSheet: fix 'N cards due' subtitle wording over a new-card count",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [],
       "gate": null,
       "tags": [
