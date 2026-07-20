@@ -1714,7 +1714,7 @@
     {
       "id": "T067",
       "title": "Clean up the 'Show answer' reveal — no background flash, no layout jump",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [],
       "gate": null,
       "tags": [
