@@ -35,7 +35,13 @@ struct SettingsView: View {
                             text: $newCardsText
                         )
                         .keyboardType(.numberPad)
-                        .multilineTextAlignment(.trailing)
+                        .multilineTextAlignment(.center)
+                        .kakitoriFont(size: 14)
+                        .foregroundStyle(KakitoriTheme.ink)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(KakitoriTheme.inkFaint)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
                         .frame(width: 60)
                         .onReceive(Just(newCardsPerDay)) { value in
                             if newCardsText.isEmpty {
@@ -62,7 +68,13 @@ struct SettingsView: View {
                             text: $maxReviewsText
                         )
                         .keyboardType(.numberPad)
-                        .multilineTextAlignment(.trailing)
+                        .multilineTextAlignment(.center)
+                        .kakitoriFont(size: 14)
+                        .foregroundStyle(KakitoriTheme.ink)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(KakitoriTheme.inkFaint)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
                         .frame(width: 60)
                         .onReceive(Just(maxReviewsPerDay)) { value in
                             if maxReviewsText.isEmpty {
@@ -87,12 +99,20 @@ struct SettingsView: View {
                     Toggle("Show romaji", isOn: $showRomaji)
                         .accessibilityIdentifier("settings-romaji")
                 }
+                .kakitoriFont(size: 16)
+                .foregroundStyle(KakitoriTheme.ink)
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(20)
-                .background(KakitoriTheme.paper)
+                .background(KakitoriTheme.surface)
+                .clipShape(RoundedRectangle(cornerRadius: KakitoriTheme.radiusMedium))
+                .overlay(
+                    RoundedRectangle(cornerRadius: KakitoriTheme.radiusMedium)
+                        .stroke(KakitoriTheme.boxLine, lineWidth: 1)
+                )
+                .padding()
 
                 Spacer()
             }
-            .padding()
         }
         .navigationTitle("Settings")
     }
