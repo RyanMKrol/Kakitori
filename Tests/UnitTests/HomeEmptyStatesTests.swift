@@ -23,7 +23,7 @@ final class HomeEmptyStatesTests: XCTestCase {
 
     // MARK: - Today banner all-caught-up
 
-    func testCalculateDueCardsReturnsZeroWhenNoneDue() {
+    func testBannerAllowanceIsZeroWhenNoneDue() {
         let now = Date(timeIntervalSince1970: 1_700_000_000)
         let deck = makeDeck(noteStates: [])
         let section = deck.sections[0]
@@ -31,17 +31,29 @@ final class HomeEmptyStatesTests: XCTestCase {
         let note = Note(target: "あ", script: .hiragana, schedule: schedule)
         section.notes.append(note)
 
-        let (totalDue, scriptCount) = TodayBannerView.calculateDueCards(decks: [deck], now: now)
-        XCTAssertEqual(totalDue, 0)
-        XCTAssertEqual(scriptCount, 0)
+        let allowance = TodayBannerView.calculateAllowance(
+            decks: [deck],
+            dailyStats: [],
+            now: now,
+            clock: .fixed(now),
+            settings: AppSettings()
+        )
+        XCTAssertEqual(allowance.total, 0)
+        XCTAssertEqual(allowance.scriptCount, 0)
     }
 
-    func testCalculateDueCardsCountsNewLearningAndOverdueReview() {
+    func testBannerAllowanceCountsNewLearningAndOverdueReview() {
         let now = Date(timeIntervalSince1970: 1_700_000_000)
         let deck = makeDeck(noteStates: [.new])
-        let (totalDue, scriptCount) = TodayBannerView.calculateDueCards(decks: [deck], now: now)
-        XCTAssertEqual(totalDue, 1)
-        XCTAssertEqual(scriptCount, 1)
+        let allowance = TodayBannerView.calculateAllowance(
+            decks: [deck],
+            dailyStats: [],
+            now: now,
+            clock: .fixed(now),
+            settings: AppSettings()
+        )
+        XCTAssertEqual(allowance.total, 1)
+        XCTAssertEqual(allowance.scriptCount, 1)
     }
 
     // MARK: - Deck card all-caught-up

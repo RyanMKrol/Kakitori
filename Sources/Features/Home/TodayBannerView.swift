@@ -3,10 +3,19 @@ import SwiftUI
 
 struct TodayBannerView: View {
     @Query private var decks: [Deck]
+    @Query private var dailyStats: [DailyStats]
     let now: Date
+    let clock: AppClock
+    let settings: AppSettings
+
+    init(now: Date, clock: AppClock = .system, settings: AppSettings = AppSettings()) {
+        self.now = now
+        self.clock = clock
+        self.settings = settings
+    }
 
     var body: some View {
-        let (totalDue, scriptCount) = calculateDueCards()
+        let allowance = calculateAllowance()
 
         VStack(alignment: .leading, spacing: 8) {
             Text("TODAY'S PRACTICE")
@@ -14,12 +23,12 @@ struct TodayBannerView: View {
                 .foregroundStyle(KakitoriTheme.paper.opacity(0.6))
                 .tracking(0.5)
 
-            if totalDue > 0 {
+            if allowance.total > 0 {
                 HStack(spacing: 2) {
-                    Text("\(totalDue) characters to write")
+                    Text("\(allowance.total) characters to write")
                         .kakitoriFont(size: 16, weight: .semibold)
                         .foregroundStyle(KakitoriTheme.paper)
-                    Text(" across \(scriptCount) scripts")
+                    Text(" across \(allowance.scriptCount) scripts")
                         .kakitoriFont(size: 16)
                         .foregroundStyle(KakitoriTheme.paper.opacity(0.8))
                 }
@@ -35,30 +44,29 @@ struct TodayBannerView: View {
         .clipShape(RoundedRectangle(cornerRadius: 20))
     }
 
-    static func calculateDueCards(decks: [Deck], now: Date) -> (Int, Int) {
-        var totalDue = 0
-        var scriptsWithDue = Set<Script>()
-
-        for deck in decks {
-            for section in deck.sections {
-                for note in section.notes where !note.isDeleted {
-                    if let schedule = note.schedule {
-                        if schedule.state == .new
-                            || schedule.state == .learning
-                            || schedule.state == .relearning
-                            || (schedule.state == .review && schedule.dueAt ?? Date.distantFuture <= now) {
-                            totalDue += 1
-                            scriptsWithDue.insert(note.script)
-                        }
-                    }
-                }
-            }
-        }
-
-        return (totalDue, scriptsWithDue.count)
+    /// Today's allotment across all decks — the same caps a session would apply
+    /// (`DailyAllowance`), not the raw uncapped backlog.
+    static func calculateAllowance(
+        decks: [Deck],
+        dailyStats: [DailyStats],
+        now: Date,
+        clock: AppClock,
+        settings: AppSettings
+    ) -> DailyAllowance {
+        let today = clock.adjustedDay(for: now)
+        let stats = dailyStats.first { $0.day == today }
+        return DailyAllowance.forDecks(
+            decks,
+            now: now,
+            endOfToday: clock.endOfToday(after: now),
+            newPerDay: settings.newCardsPerDay,
+            maxReviewsPerDay: settings.maxReviewsPerDay,
+            newIntroducedToday: stats?.newIntroduced ?? 0,
+            reviewsDoneToday: stats?.reviewsDone ?? 0
+        )
     }
 
-    private func calculateDueCards() -> (Int, Int) {
-        Self.calculateDueCards(decks: decks, now: now)
+    private func calculateAllowance() -> DailyAllowance {
+        Self.calculateAllowance(decks: decks, dailyStats: dailyStats, now: now, clock: clock, settings: settings)
     }
 }

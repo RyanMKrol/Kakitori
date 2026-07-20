@@ -34,4 +34,16 @@ struct AppClock {
     var today: String {
         adjustedDay(for: now())
     }
+
+    /// The next day-rollover boundary (`SRSConstants.dayRolloverHour`) at or after `date`
+    /// (docs/03-srs-algorithm.md §7).
+    func endOfToday(after date: Date) -> Date {
+        var components = calendar.dateComponents([.year, .month, .day], from: date)
+        components.hour = SRSConstants.dayRolloverHour
+        components.minute = 0
+        components.second = 0
+        guard let candidate = calendar.date(from: components) else { return date }
+        if candidate > date { return candidate }
+        return calendar.date(byAdding: .day, value: 1, to: candidate) ?? candidate
+    }
 }

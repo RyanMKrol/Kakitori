@@ -57,7 +57,7 @@ struct SessionQueue {
 
         // (2) Due reviews: dueAt != nil && dueAt <= endOfToday, sorted by dueAt ascending,
         //     then capped by the remaining daily review allowance.
-        let reviewAllowance = max(0, maxReviewsPerDay - reviewsDoneToday)
+        let reviewAllowance = DailyAllowance.remainingAllowance(cap: maxReviewsPerDay, doneToday: reviewsDoneToday)
         let reviews = cards
             .filter { entry in
                 entry.snapshot.state == .review
@@ -69,7 +69,7 @@ struct SessionQueue {
             .prefix(reviewAllowance)
 
         // (3) New cards: kept in the given input order, then capped by the remaining new allowance.
-        let newAllowance = max(0, newPerDay - newIntroducedToday)
+        let newAllowance = DailyAllowance.remainingAllowance(cap: newPerDay, doneToday: newIntroducedToday)
         let newCards = cards
             .filter { $0.snapshot.state == .new }
             .prefix(newAllowance)

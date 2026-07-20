@@ -115,7 +115,22 @@ struct HomeView: View {
     }
 
     private func dueCount(for deck: Deck) -> Int {
-        TodayBannerView.calculateDueCards(decks: [deck], now: now).0
+        DailyAllowance.forDeck(
+            deck,
+            now: now,
+            endOfToday: AppClock.system.endOfToday(after: now),
+            newPerDay: AppSettings().newCardsPerDay,
+            maxReviewsPerDay: AppSettings().maxReviewsPerDay,
+            newIntroducedToday: todayStats?.newIntroduced ?? 0,
+            reviewsDoneToday: todayStats?.reviewsDone ?? 0
+        ).total
+    }
+
+    private var todayStats: DailyStats? {
+        let today = AppClock.system.adjustedDay(for: now)
+        var descriptor = FetchDescriptor<DailyStats>(predicate: #Predicate { $0.day == today })
+        descriptor.fetchLimit = 1
+        return try? modelContext.fetch(descriptor).first
     }
 
     private func startSession(deck: Deck, mode: PracticeMode) {
@@ -216,7 +231,13 @@ struct HomeView: View {
         if horizontalSizeClass == .compact {
             VStack(spacing: 12) {
                 ForEach(decks) { deck in
-                    DeckCardView(deck: deck, now: now, onStudy: { setupDeck = $0 })
+                    DeckCardView(
+                        deck: deck,
+                        now: now,
+                        newIntroducedToday: todayStats?.newIntroduced ?? 0,
+                        reviewsDoneToday: todayStats?.reviewsDone ?? 0,
+                        onStudy: { setupDeck = $0 }
+                    )
                 }
             }
             .accessibilityIdentifier("home-deck-list")
@@ -227,7 +248,13 @@ struct HomeView: View {
             ]
             LazyVGrid(columns: columns, spacing: 16) {
                 ForEach(decks) { deck in
-                    DeckCardView(deck: deck, now: now, onStudy: { setupDeck = $0 })
+                    DeckCardView(
+                        deck: deck,
+                        now: now,
+                        newIntroducedToday: todayStats?.newIntroduced ?? 0,
+                        reviewsDoneToday: todayStats?.reviewsDone ?? 0,
+                        onStudy: { setupDeck = $0 }
+                    )
                 }
             }
             .accessibilityIdentifier("home-deck-list")

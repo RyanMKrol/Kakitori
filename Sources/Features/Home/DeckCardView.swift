@@ -3,9 +3,31 @@ import SwiftUI
 struct DeckCardView: View {
     let deck: Deck
     let now: Date
+    let endOfToday: Date
+    let newIntroducedToday: Int
+    let reviewsDoneToday: Int
+    let settings: AppSettings
     let onStudy: (Deck) -> Void
 
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+
+    init(
+        deck: Deck,
+        now: Date,
+        endOfToday: Date? = nil,
+        newIntroducedToday: Int = 0,
+        reviewsDoneToday: Int = 0,
+        settings: AppSettings = AppSettings(),
+        onStudy: @escaping (Deck) -> Void
+    ) {
+        self.deck = deck
+        self.now = now
+        self.endOfToday = endOfToday ?? AppClock.system.endOfToday(after: now)
+        self.newIntroducedToday = newIntroducedToday
+        self.reviewsDoneToday = reviewsDoneToday
+        self.settings = settings
+        self.onStudy = onStudy
+    }
 
     var body: some View {
         if horizontalSizeClass == .compact {
@@ -223,42 +245,30 @@ struct DeckCardView: View {
     }
 
     var isAllCaughtUp: Bool {
-        newCount + learningCount + dueCount == 0
+        allowance.isAllCaughtUp
+    }
+
+    private var allowance: DailyAllowance {
+        DailyAllowance.forDeck(
+            deck,
+            now: now,
+            endOfToday: endOfToday,
+            newPerDay: settings.newCardsPerDay,
+            maxReviewsPerDay: settings.maxReviewsPerDay,
+            newIntroducedToday: newIntroducedToday,
+            reviewsDoneToday: reviewsDoneToday
+        )
     }
 
     private var newCount: Int {
-        countCards(with: .new)
+        allowance.newCount
     }
 
     private var learningCount: Int {
-        let learning = countCards(with: .learning)
-        let relearning = countCards(with: .relearning)
-        return learning + relearning
+        allowance.learnCount
     }
 
     private var dueCount: Int {
-        var count = 0
-        for section in deck.sections {
-            for note in section.notes where !note.isDeleted {
-                if let schedule = note.schedule, schedule.state == .review {
-                    if schedule.dueAt ?? Date.distantFuture <= now {
-                        count += 1
-                    }
-                }
-            }
-        }
-        return count
-    }
-
-    private func countCards(with state: CardState) -> Int {
-        var count = 0
-        for section in deck.sections {
-            for note in section.notes where !note.isDeleted {
-                if note.schedule?.state == state {
-                    count += 1
-                }
-            }
-        }
-        return count
+        allowance.dueCount
     }
 }
