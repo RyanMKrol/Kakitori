@@ -17,6 +17,15 @@ public enum KakitoriTheme {
         trait.userInterfaceStyle == .dark ? inkDark : inkLight
     }
 
+    /// Resolves `inkUIColor` to a concrete (non-dynamic) color for a specific trait
+    /// collection. PencilKit's `PKInkingTool` resolves a dynamic `UIColor` once, against
+    /// whatever trait collection is active at tool-creation time, and never re-resolves it —
+    /// so callers that need the ink to track live appearance changes must resolve a concrete
+    /// color themselves and re-apply it on trait change.
+    public static func resolvedInkColor(for traitCollection: UITraitCollection) -> UIColor {
+        inkUIColor.resolvedColor(with: traitCollection)
+    }
+
     public static let ink = Color(uiColor: inkUIColor)
     public static let inkFaint = ink.opacity(0.12)
     public static let accent = Color(red: 196 / 255, green: 59 / 255, blue: 46 / 255)

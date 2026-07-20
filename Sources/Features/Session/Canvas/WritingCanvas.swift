@@ -30,7 +30,7 @@ struct WritingCanvas: UIViewRepresentable {
         canvasView.drawingPolicy = .anyInput
         canvasView.backgroundColor = .clear
         canvasView.isOpaque = false
-        canvasView.tool = PKInkingTool(.pen, color: KakitoriTheme.inkUIColor, width: Self.penWidth)
+        canvasView.tool = Self.inkingTool(for: canvasView.traitCollection)
         canvasView.delegate = context.coordinator
         canvasView.accessibilityIdentifier = "writing-canvas"
 
@@ -38,11 +38,26 @@ struct WritingCanvas: UIViewRepresentable {
         pencilInteraction.delegate = context.coordinator
         canvasView.addInteraction(pencilInteraction)
 
+        // PKInkingTool resolves a dynamic color once, against the trait collection active
+        // when the tool is created, and never re-resolves it — so the tool must be rebuilt
+        // with a freshly-resolved concrete color whenever the appearance changes.
+        canvasView.registerForTraitChanges(
+            [UITraitUserInterfaceStyle.self]
+        ) { (view: PKCanvasView, _: UITraitCollection) in
+            view.tool = Self.inkingTool(for: view.traitCollection)
+        }
+
         controller.canvasView = canvasView
         return canvasView
     }
 
-    func updateUIView(_: PKCanvasView, context _: Context) {}
+    func updateUIView(_ canvasView: PKCanvasView, context _: Context) {
+        canvasView.tool = Self.inkingTool(for: canvasView.traitCollection)
+    }
+
+    private static func inkingTool(for traitCollection: UITraitCollection) -> PKInkingTool {
+        PKInkingTool(.pen, color: KakitoriTheme.resolvedInkColor(for: traitCollection), width: penWidth)
+    }
 
     func makeCoordinator() -> Coordinator {
         Coordinator(controller: controller)
