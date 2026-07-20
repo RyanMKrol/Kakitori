@@ -79,7 +79,9 @@ final class DailyStatsTests: XCTestCase {
 
     /// Reopening a store written before `deckKey` existed (via `KakitoriSchemaV1`) must not
     /// crash, and the pre-existing row must survive — as the legacy/global sentinel
-    /// (`deckKey == nil`) — once migrated to `KakitoriSchemaV2` via `KakitoriMigrationPlan`.
+    /// (`deckKey == nil`), with the later additive fields (`dailyTarget`/`completedCardIDs`)
+    /// defaulting cleanly — once migrated all the way to the current `KakitoriSchemaV3` via
+    /// `KakitoriMigrationPlan` (V1 → V2 → V3).
     func testPreDeckKeyRowSurvivesAdditiveSchemaChange() throws {
         let storeURL = FileManager.default.temporaryDirectory
             .appendingPathComponent("DailyStatsMigrationTest-\(UUID().uuidString)")
@@ -99,10 +101,10 @@ final class DailyStatsTests: XCTestCase {
             try legacyContext.save()
         }
 
-        let v2Schema = Schema(versionedSchema: KakitoriSchemaV2.self)
-        let currentConfiguration = ModelConfiguration(schema: v2Schema, url: storeURL)
+        let v3Schema = Schema(versionedSchema: KakitoriSchemaV3.self)
+        let currentConfiguration = ModelConfiguration(schema: v3Schema, url: storeURL)
         let migratedContainer = try ModelContainer(
-            for: v2Schema,
+            for: v3Schema,
             migrationPlan: KakitoriMigrationPlan.self,
             configurations: currentConfiguration
         )
@@ -116,5 +118,8 @@ final class DailyStatsTests: XCTestCase {
         XCTAssertEqual(row.reviewsDone, 3)
         XCTAssertEqual(row.secondsStudied, 120)
         XCTAssertNil(row.deckKey, "a pre-migration row has no deck association — it's the legacy global sentinel")
+        // The V2 → V3 additive fields default cleanly on a row that predates them.
+        XCTAssertEqual(row.dailyTarget, 0)
+        XCTAssertTrue(row.completedCardIDs.isEmpty)
     }
 }

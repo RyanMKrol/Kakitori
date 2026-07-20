@@ -46,6 +46,7 @@ final class SessionViewModel {
     private let sessionStart: Date
     private var hasAutoplayed = false
     private var modeResolver: ModeResolver
+    private let dailyStatsRow: DailyStats?
 
     var newCount: Int {
         queue.newCount
@@ -59,15 +60,20 @@ final class SessionViewModel {
         queue.dueCount
     }
 
-    /// Cards completed this session (graded out of learning/relearning so they left for good) —
-    /// the progress numerator. Never advances on "Again". (T077)
+    /// The deck's progress toward TODAY's target (unified-progress). The in-session bar shows the
+    /// SAME X/Y as the deck card and Home banner: `dayCompleted` (X) rises as cards are finished
+    /// (graded anything but "Again", once per card per day), and `dayTarget` (Y) is the fixed daily
+    /// target snapshotted at the start of the day. Study mode never affects these.
+    private(set) var dayCompleted: Int = 0
+    private(set) var dayTarget: Int = 0
+
+    /// Progress numerator / denominator consumed by SessionView — the deck's day progress.
     var completedCount: Int {
-        queue.completedCount
+        dayCompleted
     }
 
-    /// The fixed number of cards that entered the session — the progress denominator. (T077)
     var sessionCardCount: Int {
-        queue.initialCount
+        dayTarget
     }
 
     /// Grade-preview labels for the current card, for the grading buttons (T033).
@@ -101,29 +107,31 @@ final class SessionViewModel {
         let now = clock.now()
         sessionStart = now
 
+        // Snapshot today's target for this deck (fixed at day start) and read what's already done
+        // today, so the in-session bar shows the deck's day progress and we don't re-serve cards
+        // already finished today. (unified-progress)
+        let statsRow = try? StatsRecorder.ensureDailyStats(
+            for: deck,
+            now: now,
+            newPerDay: newPerDay,
+            maxReviewsPerDay: maxReviewsPerDay,
+            in: modelContext
+        )
+        dailyStatsRow = statsRow
+        dayTarget = statsRow?.dailyTarget ?? 0
+        dayCompleted = statsRow?.completedToday ?? 0
+        let completedTodayIDs = Set(statsRow?.completedCardIDs ?? [])
+
         let notes = deck.sections.flatMap(\.notes).filter { !$0.isDeleted }
-        var entries: [QueueEntry] = []
-        var notesByID: [UUID: Note] = [:]
-        entries.reserveCapacity(notes.count)
-        for note in notes {
-            guard let schedule = note.schedule else { continue }
-            guard ModeAvailability.cardQualifies(
-                mode,
-                hasAudio: note.audioFilename != nil,
-                ttsAvailable: audio.isAvailable,
-                english: note.english
-            ) else { continue }
-            entries.append(QueueEntry(id: note.id, snapshot: Self.snapshot(from: schedule)))
-            notesByID[note.id] = note
-        }
-        self.notesByID = notesByID
+        let built = Self.buildEntries(notes: notes, mode: mode, audio: audio, completedTodayIDs: completedTodayIDs)
+        notesByID = built.notesByID
 
         let today = clock.adjustedDay(for: now)
         let todayStats = Self.fetchDailyStats(for: today, deckKey: deck.sourceDeckName, in: modelContext)
         let endOfToday = Self.endOfToday(after: now, using: clock)
 
         queue = SessionQueue.build(
-            cards: entries,
+            cards: built.entries,
             now: now,
             endOfToday: endOfToday,
             newPerDay: newPerDay,
@@ -164,6 +172,17 @@ final class SessionViewModel {
 
         do {
             try StatsRecorder.recordGrade(previousState: previousState, now: now, deckKey: deckKey, in: modelContext)
+            // A non-"Again" grade finishes the card for the day — record it and advance the deck's
+            // day progress (the source of truth for every progress bar). (unified-progress)
+            if grade != .again {
+                try StatsRecorder.recordCompletion(
+                    cardID: currentEntry.id,
+                    deckKey: deckKey,
+                    now: now,
+                    in: modelContext
+                )
+                dayCompleted = dailyStatsRow?.completedToday ?? dayCompleted
+            }
         } catch {
             lastError = error
         }
@@ -173,7 +192,10 @@ final class SessionViewModel {
 
         queue.markGraded(currentEntry.id, grade: grade, newSnapshot: newSnapshot, now: now)
 
-        if let nextEntry = queue.next(now: now) {
+        // Finished the day's target → the session is done, even if the queue isn't literally empty.
+        if dayTarget > 0, dayCompleted >= dayTarget {
+            finish(now: now)
+        } else if let nextEntry = queue.next(now: now) {
             self.currentEntry = nextEntry
             currentNote = notesByID[nextEntry.id]
             updatePresentedMode()
@@ -220,6 +242,33 @@ final class SessionViewModel {
         schedule.intervalDays = snapshot.intervalDays
         schedule.dueAt = snapshot.dueAt
         schedule.lapses = snapshot.lapses
+    }
+
+    /// Build the session's queue entries from a deck's notes: skip cards already finished today and
+    /// cards that don't qualify for the chosen mode. Returns the entries plus an id→Note lookup.
+    private static func buildEntries(
+        notes: [Note],
+        mode: PracticeMode,
+        audio: any AudioPlaying,
+        completedTodayIDs: Set<String>
+    ) -> (entries: [QueueEntry], notesByID: [UUID: Note]) {
+        var entries: [QueueEntry] = []
+        var notesByID: [UUID: Note] = [:]
+        entries.reserveCapacity(notes.count)
+        for note in notes {
+            guard let schedule = note.schedule else { continue }
+            // Skip cards already finished today — they've had their turn; don't re-serve them.
+            guard !completedTodayIDs.contains(note.id.uuidString) else { continue }
+            guard ModeAvailability.cardQualifies(
+                mode,
+                hasAudio: note.audioFilename != nil,
+                ttsAvailable: audio.isAvailable,
+                english: note.english
+            ) else { continue }
+            entries.append(QueueEntry(id: note.id, snapshot: snapshot(from: schedule)))
+            notesByID[note.id] = note
+        }
+        return (entries, notesByID)
     }
 
     private static func snapshot(from schedule: CardSchedule) -> ScheduleSnapshot {

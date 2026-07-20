@@ -15,7 +15,7 @@ struct TodayBannerView: View {
     }
 
     var body: some View {
-        let allowance = calculateAllowance()
+        let remaining = calculateRemaining()
 
         VStack(alignment: .leading, spacing: 8) {
             Text("TODAY'S PRACTICE")
@@ -23,12 +23,12 @@ struct TodayBannerView: View {
                 .foregroundStyle(KakitoriTheme.paper.opacity(0.6))
                 .tracking(0.5)
 
-            if allowance.total > 0 {
+            if remaining.total > 0 {
                 HStack(spacing: 2) {
-                    Text("\(allowance.total) characters to write")
+                    Text("\(remaining.total) characters to write")
                         .kakitoriFont(size: 16, weight: .semibold)
                         .foregroundStyle(KakitoriTheme.paper)
-                    Text(" across \(allowance.scriptCount) scripts")
+                    Text(" across \(remaining.scriptCount) scripts")
                         .kakitoriFont(size: 16)
                         .foregroundStyle(KakitoriTheme.paper.opacity(0.8))
                 }
@@ -44,35 +44,50 @@ struct TodayBannerView: View {
         .clipShape(RoundedRectangle(cornerRadius: 20))
     }
 
-    /// Today's allotment across all decks — the same caps a session would apply
-    /// (`DailyAllowance`), not the raw uncapped backlog. Each deck's allotment is computed from
-    /// its OWN daily stats row (matched by `day` and `deckKey`), then summed, so one deck hitting
-    /// its cap never suppresses another deck's allotment.
-    static func calculateAllowance(
+    /// Cards still to do today across all decks — Σ(Y − X) over each deck's fixed daily target and
+    /// cards completed today (unified-progress). Each deck uses its OWN DailyStats row (matched by
+    /// `day` + `deckKey`); a deck with no row yet today falls back to its fresh live allowance so it
+    /// still contributes. `scriptCount` counts only scripts that still have remaining work.
+    static func calculateRemaining(
         decks: [Deck],
         dailyStats: [DailyStats],
         now: Date,
         clock: AppClock,
         settings: AppSettings
-    ) -> DailyAllowance {
+    ) -> (total: Int, scriptCount: Int) {
         let today = clock.adjustedDay(for: now)
         let endOfToday = clock.endOfToday(after: now)
-        let allowances = decks.map { deck -> DailyAllowance in
+        var total = 0
+        var scripts = Set<Script>()
+        for deck in decks {
             let stats = dailyStats.first { $0.day == today && $0.deckKey == deck.sourceDeckName }
-            return DailyAllowance.forDeck(
-                deck,
-                now: now,
-                endOfToday: endOfToday,
-                newPerDay: settings.newCardsPerDay,
-                maxReviewsPerDay: settings.maxReviewsPerDay,
-                newIntroducedToday: stats?.newIntroduced ?? 0,
-                reviewsDoneToday: stats?.reviewsDone ?? 0
-            )
+            let target: Int
+            let completed: Int
+            if let stats, stats.dailyTarget > 0 {
+                target = stats.dailyTarget
+                completed = stats.completedToday
+            } else {
+                target = DailyAllowance.forDeck(
+                    deck,
+                    now: now,
+                    endOfToday: endOfToday,
+                    newPerDay: settings.newCardsPerDay,
+                    maxReviewsPerDay: settings.maxReviewsPerDay,
+                    newIntroducedToday: 0,
+                    reviewsDoneToday: 0
+                ).total
+                completed = 0
+            }
+            let deckRemaining = max(0, target - completed)
+            if deckRemaining > 0 {
+                total += deckRemaining
+                scripts.formUnion(deck.sections.flatMap(\.notes).filter { !$0.isDeleted }.map(\.script))
+            }
         }
-        return DailyAllowance.aggregate(allowances)
+        return (total, scripts.count)
     }
 
-    private func calculateAllowance() -> DailyAllowance {
-        Self.calculateAllowance(decks: decks, dailyStats: dailyStats, now: now, clock: clock, settings: settings)
+    private func calculateRemaining() -> (total: Int, scriptCount: Int) {
+        Self.calculateRemaining(decks: decks, dailyStats: dailyStats, now: now, clock: clock, settings: settings)
     }
 }

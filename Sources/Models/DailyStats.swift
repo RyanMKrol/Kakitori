@@ -13,13 +13,38 @@ final class DailyStats {
     /// want per-deck isolation must match on both `day` AND `deckKey`.
     var deckKey: String?
 
+    /// Unified daily progress (docs: unified-progress design). `dailyTarget` (Y) is the number of
+    /// cards this deck asks the user to practise today — snapshotted ONCE at the start of the day,
+    /// when nothing is done, so it never shrinks as cards are completed. `completedCardIDs` holds
+    /// the ids of cards finished today (graded anything but "Again", once per card per day).
+    /// The deck card, in-session bar, and Home banner all derive from this pair.
+    var dailyTarget: Int = 0
+    var completedCardIDs: [String] = []
+
+    /// Cards finished today for this deck (distinct, mode-independent). The X of X/Y.
+    var completedToday: Int {
+        completedCardIDs.count
+    }
+
+    /// Cards still to do today for this deck, never negative. Y − X.
+    var remainingToday: Int {
+        max(0, dailyTarget - completedToday)
+    }
+
+    /// True once the day's target has been met (or there was nothing to do).
+    var isDayComplete: Bool {
+        completedToday >= dailyTarget
+    }
+
     init(
         day: String,
         cardsWritten: Int = 0,
         newIntroduced: Int = 0,
         reviewsDone: Int = 0,
         secondsStudied: Int = 0,
-        deckKey: String? = nil
+        deckKey: String? = nil,
+        dailyTarget: Int = 0,
+        completedCardIDs: [String] = []
     ) {
         self.day = day
         self.cardsWritten = cardsWritten
@@ -27,6 +52,8 @@ final class DailyStats {
         self.reviewsDone = reviewsDone
         self.secondsStudied = secondsStudied
         self.deckKey = deckKey
+        self.dailyTarget = dailyTarget
+        self.completedCardIDs = completedCardIDs
     }
 
     /// Consecutive active days ending at today, or at yesterday if today isn't active yet
