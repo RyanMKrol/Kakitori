@@ -274,46 +274,6 @@
             try renderCanvasPaneAndSave(canvasPane, filename: "T043-canvas-translate.png")
         }
 
-        func testRecallModeCanvasHidesGuideBoxes() throws {
-            let container = try makeContainer()
-            let context = ModelContext(container)
-            let fixedTime = makeDate(year: 2026, month: 7, day: 18, hour: 12, minute: 0)
-            let clock = AppClock.fixed(fixedTime, timeZone: tokyo)
-
-            let deck = Deck(name: "Kanji", sourceDeckName: "kanji", importedAt: fixedTime)
-            let section = Section(name: "Section 1", orderIndex: 0)
-            deck.sections = [section]
-            context.insert(deck)
-            context.insert(section)
-
-            let note = Note(target: "火", pronunciation: "ひ", english: "fire", script: .kanji)
-            let schedule = CardSchedule(
-                state: .review,
-                stepIndex: 0,
-                easeFactor: 2.5,
-                intervalDays: 10,
-                dueAt: Date.distantPast,
-                lapses: 0
-            )
-            note.schedule = schedule
-            deck.sections[0].notes.append(note)
-            context.insert(note)
-            context.insert(schedule)
-
-            let viewModel = SessionViewModel(
-                deck: deck,
-                mode: .recall,
-                modelContext: context,
-                clock: clock,
-                seed: 12345
-            )
-
-            let canvasPane = CanvasPaneView(viewModel: viewModel)
-                .frame(width: 1194, height: 834)
-
-            try renderCanvasPaneAndSave(canvasPane, filename: "T044-canvas-recall.png")
-        }
-
         private func renderCanvasPaneAndSave(_ view: some View, filename: String) throws {
             let hostingController = UIHostingController(rootView: view)
             hostingController.view.frame = CGRect(x: 0, y: 0, width: 1194, height: 834)

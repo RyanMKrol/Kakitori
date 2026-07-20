@@ -4,27 +4,27 @@ import XCTest
 final class ModeAvailabilityTests: XCTestCase {
     func testDeckModesHiraganaOnly() {
         let modes = ModeAvailability.deckModes(scripts: [.hiragana])
-        XCTAssertEqual(modes, [.trace, .listen, .recall, .mixed])
+        XCTAssertEqual(modes, [.trace, .listen, .mixed])
     }
 
     func testDeckModesKatakanaOnly() {
         let modes = ModeAvailability.deckModes(scripts: [.katakana])
-        XCTAssertEqual(modes, [.trace, .listen, .recall, .mixed])
+        XCTAssertEqual(modes, [.trace, .listen, .mixed])
     }
 
     func testDeckModesHiraganaAndKatakana() {
         let modes = ModeAvailability.deckModes(scripts: [.hiragana, .katakana])
-        XCTAssertEqual(modes, [.trace, .listen, .recall, .mixed])
+        XCTAssertEqual(modes, [.trace, .listen, .mixed])
     }
 
     func testDeckModesKanjiOnly() {
         let modes = ModeAvailability.deckModes(scripts: [.kanji])
-        XCTAssertEqual(modes, [.trace, .listen, .translate, .recall, .mixed])
+        XCTAssertEqual(modes, [.trace, .listen, .translate, .mixed])
     }
 
     func testDeckModesKanjiAndMixed() {
         let modes = ModeAvailability.deckModes(scripts: [.kanji, .mixed])
-        XCTAssertEqual(modes, [.trace, .listen, .translate, .recall, .mixed])
+        XCTAssertEqual(modes, [.trace, .listen, .translate, .mixed])
     }
 
     func testCardQualifiesListenWithAudio() {
@@ -84,12 +84,6 @@ final class ModeAvailabilityTests: XCTestCase {
     func testCardQualifiesTraceAlwaysQualifies() {
         XCTAssertTrue(
             ModeAvailability.cardQualifies(.trace, hasAudio: false, ttsAvailable: false, english: nil)
-        )
-    }
-
-    func testCardQualifiesRecallAlwaysQualifies() {
-        XCTAssertTrue(
-            ModeAvailability.cardQualifies(.recall, hasAudio: false, ttsAvailable: false, english: nil)
         )
     }
 

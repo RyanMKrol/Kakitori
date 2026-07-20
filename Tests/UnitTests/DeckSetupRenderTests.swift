@@ -9,7 +9,7 @@ final class DeckSetupRenderTests: XCTestCase {
             jpTitle: "ひらがな",
             enTitle: "Hiragana",
             dueCount: 10,
-            availableModes: [.trace, .listen, .recall, .mixed],
+            availableModes: [.trace, .listen, .mixed],
             onStart: { _ in },
             onClose: {}
         )
