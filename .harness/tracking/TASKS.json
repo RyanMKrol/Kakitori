@@ -1611,7 +1611,7 @@
     {
       "id": "T063",
       "title": "Deck card: never render the deck name twice / a Latin string in the JP serif slot",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [],
       "gate": null,
       "tags": [
