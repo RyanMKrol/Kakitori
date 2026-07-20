@@ -1,9 +1,11 @@
 @testable import Kakitori
 import XCTest
 
-/// T077 — the session progress bar must count cards COMPLETED (graduated out of learning), not
-/// grade attempts, so it never advances on "Again". These tests pin `SessionQueue`'s progress
-/// accounting: `initialCount` (the fixed denominator) and `completedCount` (the monotonic numerator).
+/// T077 — the session progress bar must count cards the user has got RIGHT (graded anything but
+/// "Again") at least once, not raw grade attempts. It must advance when you grade a card correctly —
+/// even if that card is still in its learning steps and hasn't fully graduated — and must never
+/// advance on "Again". These tests pin `SessionQueue`'s progress accounting: `initialCount` (the
+/// fixed denominator) and `completedCount` (distinct non-Again-graded cards, the numerator).
 final class SessionQueueProgressTests: XCTestCase {
     private let t0 = Date(timeIntervalSince1970: 1_000_000)
 
@@ -43,6 +45,7 @@ final class SessionQueueProgressTests: XCTestCase {
         // "Again" re-queues the card; the fixed denominator must stay 1, not grow with the queue.
         queue.markGraded(
             idA,
+            grade: .again,
             newSnapshot: snapshot(state: .learning, stepIndex: 0, dueAt: t0.addingTimeInterval(60)),
             now: t0
         )
@@ -56,105 +59,133 @@ final class SessionQueueProgressTests: XCTestCase {
         var queue = SessionQueue(entries: [
             QueueEntry(id: idA, snapshot: snapshot(state: .learning, dueAt: t0.addingTimeInterval(-60))),
         ])
-        // Graded "Again" → stays in learning (re-queued). Not a completion.
         queue.markGraded(
             idA,
+            grade: .again,
             newSnapshot: snapshot(state: .learning, stepIndex: 0, dueAt: t0.addingTimeInterval(60)),
             now: t0
         )
         XCTAssertEqual(queue.completedCount, 0)
 
-        // Relearning (a lapsed review re-entering) is likewise NOT a completion.
+        // A second "Again" (still re-queued) still doesn't count.
         queue.markGraded(
             idA,
+            grade: .again,
             newSnapshot: snapshot(state: .relearning, stepIndex: 0, dueAt: t0.addingTimeInterval(120)),
             now: t0
         )
         XCTAssertEqual(queue.completedCount, 0)
     }
 
-    // MARK: - Graduation counts exactly once
+    // MARK: - A correct grade counts even when the card is STILL LEARNING (the T077 fix)
 
-    func testGraduatingGradeIncrementsCompletedCountOnce() {
+    func testNonAgainGradeCountsEvenWhileCardStaysInLearning() {
+        // A brand-new card graded "Good" advances to a learning step (not .review) — it has NOT
+        // graduated, but the user got it right, so it must count as done.
+        let idA = UUID()
+        var queue = SessionQueue(entries: [
+            QueueEntry(id: idA, snapshot: snapshot(state: .new, dueAt: nil)),
+        ])
+        queue.markGraded(
+            idA,
+            grade: .good,
+            newSnapshot: snapshot(state: .learning, stepIndex: 0, dueAt: t0.addingTimeInterval(60)),
+            now: t0
+        )
+        XCTAssertEqual(queue.completedCount, 1, "a correct grade counts even before the card graduates")
+    }
+
+    func testHardAlsoCountsAsCorrect() {
         let idA = UUID()
         var queue = SessionQueue(entries: [
             QueueEntry(id: idA, snapshot: snapshot(state: .learning, dueAt: t0.addingTimeInterval(-60))),
         ])
         queue.markGraded(
             idA,
-            newSnapshot: snapshot(state: .review, intervalDays: 1, dueAt: t0.addingTimeInterval(86400)),
+            grade: .hard,
+            newSnapshot: snapshot(state: .learning, stepIndex: 0, dueAt: t0.addingTimeInterval(60)),
             now: t0
         )
         XCTAssertEqual(queue.completedCount, 1)
-        XCTAssertTrue(queue.isFinished)
     }
 
-    func testGradedReviewCardCountsAsCompleted() {
-        // A card entering the session already in .review, graded and leaving, counts once.
+    func testGraduatingGradeCountsOnce() {
         let idA = UUID()
         var queue = SessionQueue(entries: [
-            QueueEntry(id: idA, snapshot: snapshot(state: .review, dueAt: t0.addingTimeInterval(-10))),
+            QueueEntry(id: idA, snapshot: snapshot(state: .learning, dueAt: t0.addingTimeInterval(-60))),
         ])
         queue.markGraded(
             idA,
+            grade: .easy,
             newSnapshot: snapshot(state: .review, intervalDays: 4, dueAt: t0.addingTimeInterval(4 * 86400)),
             now: t0
         )
         XCTAssertEqual(queue.completedCount, 1)
+        XCTAssertTrue(queue.isFinished)
     }
 
-    // MARK: - "Again" repeatedly, then graduate → completed exactly once
+    // MARK: - Distinct: re-grading an already-counted card doesn't double-count
 
-    func testMultipleAgainsThenGraduateCountsOnce() {
+    func testAgainThenCorrectCountsOnceOnTheCorrectGrade() {
         let idA = UUID()
         var queue = SessionQueue(entries: [
             QueueEntry(id: idA, snapshot: snapshot(state: .learning, dueAt: t0.addingTimeInterval(-60))),
         ])
-        // Three "Again"s — still learning each time, never completed.
-        for i in 1 ... 3 {
+        // Two Agains — no progress.
+        for i in 1 ... 2 {
             queue.markGraded(
                 idA,
-                newSnapshot: snapshot(state: .learning, stepIndex: 0, dueAt: t0.addingTimeInterval(Double(i) * 60)),
+                grade: .again,
+                newSnapshot: snapshot(state: .learning, dueAt: t0.addingTimeInterval(Double(i) * 60)),
                 now: t0
             )
-            XCTAssertEqual(queue.completedCount, 0, "still learning after Again #\(i)")
+            XCTAssertEqual(queue.completedCount, 0, "no progress after Again #\(i)")
         }
-        // Finally graduates.
+        // Now a correct grade — counts once.
         queue.markGraded(
             idA,
+            grade: .good,
+            newSnapshot: snapshot(state: .learning, dueAt: t0.addingTimeInterval(600)),
+            now: t0
+        )
+        XCTAssertEqual(queue.completedCount, 1)
+
+        // Grading the same card correctly AGAIN (next learning step) does not double-count.
+        queue.markGraded(
+            idA,
+            grade: .good,
             newSnapshot: snapshot(state: .review, intervalDays: 1, dueAt: t0.addingTimeInterval(86400)),
             now: t0
         )
-        XCTAssertEqual(queue.completedCount, 1, "completed exactly once across all those attempts")
+        XCTAssertEqual(queue.completedCount, 1, "distinct — the same card counts at most once")
     }
 
-    // MARK: - Whole session reaches denominator, never over-runs
+    // MARK: - A first correct pass over the session reaches 100%, never over-runs
 
-    func testCompletingEverySessionCardReachesButDoesNotExceedDenominator() {
+    func testGradingEveryCardCorrectlyOnceReachesButDoesNotExceedDenominator() {
         let idA = UUID()
         let idB = UUID()
         var queue = SessionQueue(entries: [
-            QueueEntry(id: idA, snapshot: snapshot(state: .learning, dueAt: t0.addingTimeInterval(-60))),
-            QueueEntry(id: idB, snapshot: snapshot(state: .learning, dueAt: t0.addingTimeInterval(-30))),
+            QueueEntry(id: idA, snapshot: snapshot(state: .new, dueAt: nil)),
+            QueueEntry(id: idB, snapshot: snapshot(state: .new, dueAt: nil)),
         ])
         XCTAssertEqual(queue.initialCount, 2)
 
-        // A: one Again, then graduate. B: graduate straight away.
-        queue.markGraded(idA, newSnapshot: snapshot(state: .learning, dueAt: t0.addingTimeInterval(60)), now: t0)
+        // Both graded "Good" on their first pass — still learning, but both count.
         queue.markGraded(
             idA,
-            newSnapshot: snapshot(state: .review, intervalDays: 1, dueAt: t0.addingTimeInterval(86400)),
+            grade: .good,
+            newSnapshot: snapshot(state: .learning, dueAt: t0.addingTimeInterval(60)),
             now: t0
         )
         queue.markGraded(
             idB,
-            newSnapshot: snapshot(state: .review, intervalDays: 1, dueAt: t0.addingTimeInterval(86400)),
+            grade: .good,
+            newSnapshot: snapshot(state: .learning, dueAt: t0.addingTimeInterval(60)),
             now: t0
         )
 
-        // completed == denominator (100%), and never over-runs it.
         XCTAssertEqual(queue.completedCount, 2)
-        XCTAssertEqual(queue.completedCount, queue.initialCount)
-        XCTAssertTrue(queue.isFinished)
+        XCTAssertEqual(queue.completedCount, queue.initialCount, "reaches 100% after a correct first pass")
     }
 }
