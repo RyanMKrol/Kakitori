@@ -1928,7 +1928,7 @@
     {
       "id": "T075",
       "title": "Make Home screen scrollable so decks below the fold are reachable",
-      "status": "blocked",
+      "status": "done",
       "dependsOn": [],
       "gate": null,
       "tags": [],

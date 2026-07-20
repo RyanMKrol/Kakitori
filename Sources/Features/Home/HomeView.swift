@@ -18,22 +18,31 @@ struct HomeView: View {
             ZStack {
                 KakitoriTheme.paper.ignoresSafeArea()
 
-                VStack(spacing: 24) {
-                    header
-                    StatsRowView()
-
-                    if !decks.isEmpty {
-                        VStack(spacing: 16) {
-                            TodayBannerView(now: now)
-                            deckList
+                if !decks.isEmpty {
+                    ScrollView {
+                        VStack(spacing: 24) {
+                            header
+                            StatsRowView()
+                            VStack(spacing: 16) {
+                                TodayBannerView(now: now)
+                                deckList
+                            }
                         }
-                    } else if case let .failed(message) = deckLoad.phase {
-                        loadFailedState(message)
-                    } else {
-                        loadingState
+                        .padding()
                     }
+                } else {
+                    VStack(spacing: 24) {
+                        header
+                        StatsRowView()
+
+                        if case let .failed(message) = deckLoad.phase {
+                            loadFailedState(message)
+                        } else {
+                            loadingState
+                        }
+                    }
+                    .padding()
                 }
-                .padding()
             }
             .navigationDestination(for: String.self) { destination in
                 if destination == "settings" {
