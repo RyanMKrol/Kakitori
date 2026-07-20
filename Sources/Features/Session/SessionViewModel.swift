@@ -59,6 +59,17 @@ final class SessionViewModel {
         queue.dueCount
     }
 
+    /// Cards completed this session (graded out of learning/relearning so they left for good) —
+    /// the progress numerator. Never advances on "Again". (T077)
+    var completedCount: Int {
+        queue.completedCount
+    }
+
+    /// The fixed number of cards that entered the session — the progress denominator. (T077)
+    var sessionCardCount: Int {
+        queue.initialCount
+    }
+
     /// Grade-preview labels for the current card, for the grading buttons (T033).
     var gradePreviews: [Grade: SchedulePreview] {
         guard let currentEntry else { return [:] }

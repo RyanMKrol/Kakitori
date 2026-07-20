@@ -138,17 +138,21 @@ struct SessionView: View {
         .padding(.vertical, 8)
     }
 
+    /// Progress reflects cards COMPLETED (graduated out of learning), not grade attempts — so it
+    /// never advances on "Again" and, against a fixed session-size denominator, is monotonic. (T077)
     private var done: Int {
-        viewModel.gradeCounts.values.reduce(0, +)
+        viewModel.completedCount
     }
 
     private var left: Int {
-        viewModel.newCount + viewModel.learnCount + viewModel.dueCount
+        max(0, viewModel.sessionCardCount - viewModel.completedCount)
     }
 
     private var progressBar: some View {
-        let total = done + left
-        let progress = total > 0 ? Double(done) / Double(total) : 0
+        let denominator = viewModel.sessionCardCount
+        let progress = denominator > 0
+            ? min(1, max(0, Double(viewModel.completedCount) / Double(denominator)))
+            : 0
 
         return GeometryReader { geometry in
             ZStack(alignment: .leading) {
