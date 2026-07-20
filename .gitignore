@@ -31,6 +31,14 @@ TestResults.xcresult/
 *.xcconfig.local
 secrets.plist
 
+# Stray build/test output logs — a builder sometimes redirects xcodebuild output into the working
+# tree (e.g. `xcodebuild test > test-output.txt`); ignore them so a stray log can't trip the
+# loop's scope-creep gate (which blocks on the first out-of-scope file with no retry).
+/*.log
+/*-output.txt
+test-output.txt
+build_test_output.log
+
 # >>> implementation-harness managed (auto-maintained — do not edit inside) >>>
 # Transient loop scratch (last-iteration verdict) + the generated status board.
 .harness/worklog/.result
