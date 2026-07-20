@@ -35,6 +35,12 @@ struct WritingCanvas: UIViewRepresentable {
         canvasView.drawingPolicy = .anyInput
         canvasView.backgroundColor = .clear
         canvasView.isOpaque = false
+        // PencilKit auto-INVERTS stroke colours when the canvas's own trait is dark (to keep dark
+        // ink readable on a dark background) — which flipped our near-white ink back to near-black.
+        // Pin the canvas to a light trait so PencilKit never inverts, then we drive the actual ink
+        // colour ourselves from the SwiftUI colorScheme below. The canvas background is `.clear`, so
+        // the dark app background still shows through — only the ink adaptation is disabled.
+        canvasView.overrideUserInterfaceStyle = .light
         canvasView.tool = Self.inkingTool(for: colorScheme)
         canvasView.delegate = context.coordinator
         canvasView.accessibilityIdentifier = "writing-canvas"
