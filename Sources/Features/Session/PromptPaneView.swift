@@ -25,13 +25,20 @@ struct PromptPaneView: View {
         ZStack {
             KakitoriTheme.paper
 
-            if viewModel.phase == .prompt {
-                promptView
-                    .transition(.opacity)
-            } else {
-                answerBlock
-                    .transition(.opacity)
-            }
+            // The prompt stays fully rendered and OPAQUE underneath the whole time; only the
+            // answer's opacity animates on top. Because there is always a fully-opaque foreground
+            // layer over the paper, the background never bleeds through the reveal crossfade — no
+            // flash. This is a pure opacity change (no scale/slide), so Reduce Motion is honored.
+            promptView
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(KakitoriTheme.paper)
+                .accessibilityHidden(viewModel.phase == .revealed)
+
+            answerBlock
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(KakitoriTheme.paper)
+                .opacity(viewModel.phase == .revealed ? 1 : 0)
+                .accessibilityHidden(viewModel.phase != .revealed)
         }
         .animation(.easeInOut(duration: 0.25), value: viewModel.phase)
     }

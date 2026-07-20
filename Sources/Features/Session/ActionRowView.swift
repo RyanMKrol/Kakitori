@@ -8,13 +8,24 @@ struct ActionRowView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        if viewModel.phase == .revealed {
+        ZStack {
+            // Invisible sizer: the grade row is always laid out (and is the taller of the two —
+            // it stacks four buttons vertically at accessibility sizes) so the action area reserves
+            // its footprint in BOTH phases. The visible button/grade row then swaps in place, so the
+            // reveal never changes the action area's height and never reflows the canvas above it.
             gradeRow
-                .transition(KakitoriTheme.emphasisTransition(reduceMotion: reduceMotion))
-        } else {
-            showAnswerButton
-                .transition(KakitoriTheme.emphasisTransition(reduceMotion: reduceMotion))
+                .hidden()
+                .accessibilityHidden(true)
+
+            if viewModel.phase == .revealed {
+                gradeRow
+                    .transition(KakitoriTheme.emphasisTransition(reduceMotion: reduceMotion))
+            } else {
+                showAnswerButton
+                    .transition(KakitoriTheme.emphasisTransition(reduceMotion: reduceMotion))
+            }
         }
+        .animation(.easeInOut(duration: 0.25), value: viewModel.phase)
     }
 
     private var showAnswerButton: some View {
