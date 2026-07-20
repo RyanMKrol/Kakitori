@@ -44,3 +44,4 @@
 {"id":"T074","ts":"2026-07-20T11:04:55Z","kind":"audit-fail","rung":0,"attempt":1,"model":"claude-haiku-4-5","effort":"","facets":{"layer":"canvas","workType":"bugfix","risk":[]},"detail":""}
 {"id":"T074","ts":"2026-07-20T11:32:44Z","kind":"audit-fail","rung":1,"attempt":0,"model":"claude-sonnet-5","effort":"medium","facets":{"layer":"canvas","workType":"bugfix","risk":[]},"detail":""}
 {"id":"T075","ts":"2026-07-20T12:01:36Z","kind":"scope-creep","rung":0,"attempt":0,"model":"claude-haiku-4-5","effort":"","facets":{"layer":"views","workType":"bugfix","risk":[]},"detail":"build_test_output.log"}
+{"id":"T077","ts":"2026-07-20T12:35:39Z","kind":"scope-creep","rung":0,"attempt":0,"model":"claude-haiku-4-5","effort":"","facets":{"layer":"scheduler","workType":"bugfix","risk":[]},"detail":"test-output.txt"}
