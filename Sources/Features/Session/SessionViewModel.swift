@@ -171,7 +171,7 @@ final class SessionViewModel {
         gradeCounts[grade, default: 0] += 1
         cardsWritten += 1
 
-        queue.markGraded(currentEntry.id, newSnapshot: newSnapshot, now: now)
+        queue.markGraded(currentEntry.id, grade: grade, newSnapshot: newSnapshot, now: now)
 
         if let nextEntry = queue.next(now: now) {
             self.currentEntry = nextEntry

@@ -25,10 +25,17 @@ struct SessionQueue {
     /// against it is monotonic and can never over-run 100%.
     let initialCount: Int
 
-    /// Cards completed so far: graded to a state that is NOT `.learning`/`.relearning`, so the card
-    /// left the session for good (the exact condition `markGraded` uses to decide NOT to re-queue).
-    /// Monotonic — incremented exactly once per card, and never on "Again" (which re-queues).
-    private(set) var completedCount = 0
+    /// Distinct cards the user has graded with anything OTHER than "Again" at least once this
+    /// session — i.e. cards they've got right at least once, whether or not the card has fully
+    /// graduated yet (new cards take several learning steps to graduate, so "graduated" would keep
+    /// the bar at 0 through the whole first pass). This is the progress numerator.
+    private var completedCardIDs: Set<UUID> = []
+
+    /// Progress numerator: distinct cards graded non-"Again" at least once. Monotonic, never
+    /// advances on "Again".
+    var completedCount: Int {
+        completedCardIDs.count
+    }
 
     init(entries: [QueueEntry]) {
         self.entries = entries
@@ -151,16 +158,20 @@ struct SessionQueue {
     /// Removes the entry with `id` (no-op if not found).
     /// If the new state is `.learning` or `.relearning`, appends a new entry so the card re-enters the queue.
     /// If the new state is `.review`, the card leaves the session for good.
-    mutating func markGraded(_ id: UUID, newSnapshot: ScheduleSnapshot, now _: Date) {
+    mutating func markGraded(_ id: UUID, grade: Grade, newSnapshot: ScheduleSnapshot, now _: Date) {
         let wasPresent = entries.contains { $0.id == id }
         entries.removeAll { $0.id == id }
 
         if newSnapshot.state == .learning || newSnapshot.state == .relearning {
-            // Re-queued — the card is not finished ("Again" / still learning). Not a completion.
+            // Re-queued so the card is shown again this session (learning step or a lapse).
             entries.append(QueueEntry(id: id, snapshot: newSnapshot))
-        } else if wasPresent {
-            // Graduated out of learning (or a review card leaving) — the card is done for good.
-            completedCount += 1
+        }
+
+        // Progress counts a card as done once it's graded anything but "Again" — you got it right at
+        // least once — even if it hasn't fully graduated. "Again" never advances the bar. Distinct,
+        // so re-grading an already-counted card doesn't double-count.
+        if wasPresent, grade != .again {
+            completedCardIDs.insert(id)
         }
     }
 

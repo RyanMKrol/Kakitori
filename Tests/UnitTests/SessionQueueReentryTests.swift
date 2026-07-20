@@ -69,6 +69,7 @@ final class SessionQueueReentryTests: XCTestCase {
         // Grade A to learning step 0 at t0 + 60
         queue.markGraded(
             idA,
+            grade: .again,
             newSnapshot: snapshot(state: .learning, stepIndex: 0, dueAt: t0.addingTimeInterval(60)),
             now: t0
         )
@@ -95,6 +96,7 @@ final class SessionQueueReentryTests: XCTestCase {
 
         queue.markGraded(
             idB,
+            grade: .good,
             newSnapshot: snapshot(state: .review, intervalDays: 1, dueAt: t0.addingTimeInterval(86400)),
             now: t0
         )
@@ -136,6 +138,7 @@ final class SessionQueueReentryTests: XCTestCase {
         // Grade A to learning step 1 (still sub-day)
         queue.markGraded(
             idA,
+            grade: .good,
             newSnapshot: snapshot(state: .learning, stepIndex: 1, dueAt: t0.addingTimeInterval(660)),
             now: t0.addingTimeInterval(60)
         )
@@ -147,6 +150,7 @@ final class SessionQueueReentryTests: XCTestCase {
         // Grade A to review (>= 1-day)
         queue.markGraded(
             idA,
+            grade: .good,
             newSnapshot: snapshot(
                 state: .review,
                 intervalDays: 1,
@@ -178,6 +182,7 @@ final class SessionQueueReentryTests: XCTestCase {
         // Grade C to review; now A is the only entry and is now due
         queue.markGraded(
             idC,
+            grade: .good,
             newSnapshot: snapshot(state: .review, intervalDays: 1, dueAt: t0.addingTimeInterval(86400)),
             now: t0.addingTimeInterval(61)
         )
@@ -199,6 +204,7 @@ final class SessionQueueReentryTests: XCTestCase {
         // Grade unknown card (no-op)
         queue.markGraded(
             idUnknown,
+            grade: .good,
             newSnapshot: snapshot(state: .review, intervalDays: 1, dueAt: t0.addingTimeInterval(86400)),
             now: t0
         )
@@ -222,6 +228,7 @@ final class SessionQueueReentryTests: XCTestCase {
         // Grade to relearning
         queue.markGraded(
             idA,
+            grade: .again,
             newSnapshot: snapshot(state: .relearning, dueAt: t0.addingTimeInterval(600)),
             now: t0
         )
@@ -244,6 +251,7 @@ final class SessionQueueReentryTests: XCTestCase {
         // Shouldn't happen in practice, but: grade a new card (it has dueAt nil)
         queue.markGraded(
             idNew,
+            grade: .again,
             newSnapshot: snapshot(state: .new, dueAt: nil),
             now: t0
         )
@@ -272,6 +280,7 @@ final class SessionQueueReentryTests: XCTestCase {
         // Remove B and add a learning re-entry
         queue.markGraded(
             idB,
+            grade: .good,
             newSnapshot: snapshot(state: .learning, stepIndex: 1, dueAt: t0.addingTimeInterval(600)),
             now: t0
         )
