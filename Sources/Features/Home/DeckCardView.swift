@@ -6,6 +6,11 @@ struct DeckCardView: View {
     let endOfToday: Date
     let newIntroducedToday: Int
     let reviewsDoneToday: Int
+    /// The deck's fixed daily target (Y) and cards completed today (X) from its DailyStats row.
+    /// `dailyTarget == 0` means no row yet today → fall back to the fresh live allowance so the card
+    /// still shows a sensible Y before the first study. (unified-progress)
+    let dailyTarget: Int
+    let completedTodayCount: Int
     let settings: AppSettings
     let onStudy: (Deck) -> Void
 
@@ -17,6 +22,8 @@ struct DeckCardView: View {
         endOfToday: Date? = nil,
         newIntroducedToday: Int = 0,
         reviewsDoneToday: Int = 0,
+        dailyTarget: Int = 0,
+        completedTodayCount: Int = 0,
         settings: AppSettings = AppSettings(),
         onStudy: @escaping (Deck) -> Void
     ) {
@@ -25,6 +32,8 @@ struct DeckCardView: View {
         self.endOfToday = endOfToday ?? AppClock.system.endOfToday(after: now)
         self.newIntroducedToday = newIntroducedToday
         self.reviewsDoneToday = reviewsDoneToday
+        self.dailyTarget = dailyTarget
+        self.completedTodayCount = completedTodayCount
         self.settings = settings
         self.onStudy = onStudy
     }
@@ -272,7 +281,7 @@ struct DeckCardView: View {
     }
 
     var isAllCaughtUp: Bool {
-        allowance.isAllCaughtUp
+        todayAllotment == 0 || completedToday >= todayAllotment
     }
 
     private var allowance: DailyAllowance {
@@ -299,15 +308,15 @@ struct DeckCardView: View {
         allowance.dueCount
     }
 
-    private var completedToday: Int {
-        DailyAllowance.completedToday(
-            allotment: allowance,
-            newIntroducedToday: newIntroducedToday,
-            reviewsDoneToday: reviewsDoneToday
-        )
+    /// Y — the deck's fixed daily target. Uses the snapshotted `dailyTarget` from the DailyStats
+    /// row; before any study today (no row → 0) it falls back to the fresh live allowance so the
+    /// card still shows a sensible denominator. (unified-progress)
+    private var todayAllotment: Int {
+        dailyTarget > 0 ? dailyTarget : allowance.total
     }
 
-    private var todayAllotment: Int {
-        allowance.total
+    /// X — cards finished today for this deck (clamped so the bar can't exceed 100%).
+    private var completedToday: Int {
+        min(completedTodayCount, todayAllotment)
     }
 }

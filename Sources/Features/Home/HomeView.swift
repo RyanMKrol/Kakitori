@@ -64,6 +64,20 @@ struct HomeView: View {
                     .presentationDetents([.large])
                 }
             }
+            .task(id: decks.count) {
+                // Snapshot each deck's fixed daily target on first appear of the day, so the deck
+                // cards + banner show a stable Y even before a session starts. Idempotent — an
+                // existing row keeps its snapshot. (unified-progress)
+                for deck in decks {
+                    try? StatsRecorder.ensureDailyStats(
+                        for: deck,
+                        now: AppClock.system.now(),
+                        newPerDay: AppSettings().newCardsPerDay,
+                        maxReviewsPerDay: AppSettings().maxReviewsPerDay,
+                        in: modelContext
+                    )
+                }
+            }
             .fullScreenCover(
                 isPresented: sessionCoverBinding,
                 onDismiss: {
@@ -249,6 +263,8 @@ struct HomeView: View {
                         now: now,
                         newIntroducedToday: todayStats(for: deck)?.newIntroduced ?? 0,
                         reviewsDoneToday: todayStats(for: deck)?.reviewsDone ?? 0,
+                        dailyTarget: todayStats(for: deck)?.dailyTarget ?? 0,
+                        completedTodayCount: todayStats(for: deck)?.completedToday ?? 0,
                         onStudy: { setupDeck = $0 }
                     )
                 }
@@ -266,6 +282,8 @@ struct HomeView: View {
                         now: now,
                         newIntroducedToday: todayStats(for: deck)?.newIntroduced ?? 0,
                         reviewsDoneToday: todayStats(for: deck)?.reviewsDone ?? 0,
+                        dailyTarget: todayStats(for: deck)?.dailyTarget ?? 0,
+                        completedTodayCount: todayStats(for: deck)?.completedToday ?? 0,
                         onStudy: { setupDeck = $0 }
                     )
                 }

@@ -187,16 +187,17 @@ final class DailyAllowanceTests: XCTestCase {
 
     // MARK: - TodayBannerView reflects the allotment
 
-    func testBannerAllowanceIsZeroWhenDailyCapsAreHit() {
+    func testBannerRemainingIsZeroWhenDayTargetIsMet() {
+        // A deck whose daily target (2) has been fully completed today → nothing remaining.
         let deck = makeDeck(states: [.new, .new])
         let stats = DailyStats(
             day: clock.adjustedDay(for: now),
-            newIntroduced: 10,
-            reviewsDone: 100,
-            deckKey: deck.sourceDeckName
+            deckKey: deck.sourceDeckName,
+            dailyTarget: 2,
+            completedCardIDs: [UUID().uuidString, UUID().uuidString]
         )
 
-        let allowance = TodayBannerView.calculateAllowance(
+        let remaining = TodayBannerView.calculateRemaining(
             decks: [deck],
             dailyStats: [stats],
             now: now,
@@ -204,14 +205,14 @@ final class DailyAllowanceTests: XCTestCase {
             settings: AppSettings()
         )
 
-        XCTAssertTrue(allowance.isAllCaughtUp)
-        XCTAssertEqual(allowance.total, 0)
+        XCTAssertEqual(remaining.total, 0)
     }
 
-    func testBannerAllowanceReflectsRemainingAllotment() {
+    func testBannerRemainingReflectsDailyTarget() {
+        // No stats row yet today → falls back to the fresh target (3 new), nothing done → 3 remaining.
         let deck = makeDeck(states: [.new, .new, .new])
 
-        let allowance = TodayBannerView.calculateAllowance(
+        let remaining = TodayBannerView.calculateRemaining(
             decks: [deck],
             dailyStats: [],
             now: now,
@@ -219,7 +220,28 @@ final class DailyAllowanceTests: XCTestCase {
             settings: AppSettings()
         )
 
-        XCTAssertEqual(allowance.total, 3)
+        XCTAssertEqual(remaining.total, 3)
+    }
+
+    func testBannerRemainingCountsDownAsCardsAreCompleted() {
+        // Target 3, one done today → 2 remaining.
+        let deck = makeDeck(states: [.new, .new, .new])
+        let stats = DailyStats(
+            day: clock.adjustedDay(for: now),
+            deckKey: deck.sourceDeckName,
+            dailyTarget: 3,
+            completedCardIDs: [UUID().uuidString]
+        )
+
+        let remaining = TodayBannerView.calculateRemaining(
+            decks: [deck],
+            dailyStats: [stats],
+            now: now,
+            clock: clock,
+            settings: AppSettings()
+        )
+
+        XCTAssertEqual(remaining.total, 2)
     }
 
     // MARK: - DeckCardView reads "all caught up" when only the daily cap is hit

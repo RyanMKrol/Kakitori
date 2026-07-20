@@ -31,7 +31,7 @@ final class HomeEmptyStatesTests: XCTestCase {
         let note = Note(target: "あ", script: .hiragana, schedule: schedule)
         section.notes.append(note)
 
-        let allowance = TodayBannerView.calculateAllowance(
+        let allowance = TodayBannerView.calculateRemaining(
             decks: [deck],
             dailyStats: [],
             now: now,
@@ -45,7 +45,7 @@ final class HomeEmptyStatesTests: XCTestCase {
     func testBannerAllowanceCountsNewLearningAndOverdueReview() {
         let now = Date(timeIntervalSince1970: 1_700_000_000)
         let deck = makeDeck(noteStates: [.new])
-        let allowance = TodayBannerView.calculateAllowance(
+        let allowance = TodayBannerView.calculateRemaining(
             decks: [deck],
             dailyStats: [],
             now: now,

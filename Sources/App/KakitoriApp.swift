@@ -21,7 +21,7 @@ struct KakitoriApp: App {
     }
 
     private static func makeModelContainer() -> ModelContainer {
-        let schema = Schema(versionedSchema: KakitoriSchemaV2.self)
+        let schema = Schema(versionedSchema: KakitoriSchemaV3.self)
         do {
             return try ModelContainer(for: schema, migrationPlan: KakitoriMigrationPlan.self)
         } catch {
