@@ -41,6 +41,13 @@ final class BundledDeckLoaderPruneTests: XCTestCase {
         return note.id
     }
 
+    /// The computed `expectedSourceNames` (used by the every-launch reconcile-prune) must equal the
+    /// three Foundations split-deck names — pins it so a rename of the root/section keys can't
+    /// silently make the prune delete the real decks or keep the retired ones.
+    func testExpectedSourceNamesMatchesTheThreeFoundationsDecks() {
+        XCTAssertEqual(BundledDeckLoader.expectedSourceNames, foundationsExpected)
+    }
+
     func testPruneRemovesRetiredDeckAndCascadesToNoteAndSchedule() throws {
         let container = try makeInMemoryContainer()
         let context = ModelContext(container)
