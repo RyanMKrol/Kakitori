@@ -82,26 +82,38 @@ struct DeckCardView: View {
                         .font(.caption)
                         .foregroundStyle(KakitoriTheme.ink.opacity(0.6))
                 } else {
-                    HStack(spacing: 8) {
-                        chipView(
-                            count: newCount,
-                            label: "new",
-                            background: KakitoriTheme.chipNewBackground,
-                            foreground: KakitoriTheme.chipNewForeground
-                        )
-                        chipView(
-                            count: learningCount,
-                            label: "learning",
-                            background: KakitoriTheme.chipLearnBackground,
-                            foreground: KakitoriTheme.chipLearnForeground
-                        )
-                        chipView(
-                            count: dueCount,
-                            label: "due",
-                            background: KakitoriTheme.chipDueBackground,
-                            foreground: KakitoriTheme.chipDueForeground
-                        )
-                        Spacer()
+                    VStack(spacing: 8) {
+                        HStack(spacing: 8) {
+                            chipView(
+                                count: newCount,
+                                label: "new",
+                                background: KakitoriTheme.chipNewBackground,
+                                foreground: KakitoriTheme.chipNewForeground
+                            )
+                            chipView(
+                                count: learningCount,
+                                label: "learning",
+                                background: KakitoriTheme.chipLearnBackground,
+                                foreground: KakitoriTheme.chipLearnForeground
+                            )
+                            chipView(
+                                count: dueCount,
+                                label: "due",
+                                background: KakitoriTheme.chipDueBackground,
+                                foreground: KakitoriTheme.chipDueForeground
+                            )
+                            Spacer()
+                        }
+                        if todayAllotment > 0 {
+                            HStack(spacing: 8) {
+                                Text("\(completedToday)/\(todayAllotment) today")
+                                    .font(.caption)
+                                    .foregroundStyle(KakitoriTheme.ink.opacity(0.6))
+                                ProgressView(value: Double(completedToday), total: Double(todayAllotment))
+                                    .frame(height: 4)
+                                    .clipShape(Capsule())
+                            }
+                        }
                     }
                 }
             }
@@ -163,6 +175,17 @@ struct DeckCardView: View {
                     .padding(8)
                     .background(KakitoriTheme.accent)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
+                }
+
+                if todayAllotment > 0 {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("\(completedToday)/\(todayAllotment) today")
+                            .font(.caption)
+                            .foregroundStyle(KakitoriTheme.ink.opacity(0.6))
+                        ProgressView(value: Double(completedToday), total: Double(todayAllotment))
+                            .frame(height: 6)
+                            .clipShape(Capsule())
+                    }
                 }
 
                 if isAllCaughtUp {
@@ -270,5 +293,17 @@ struct DeckCardView: View {
 
     private var dueCount: Int {
         allowance.dueCount
+    }
+
+    private var completedToday: Int {
+        DailyAllowance.completedToday(
+            allotment: allowance,
+            newIntroducedToday: newIntroducedToday,
+            reviewsDoneToday: reviewsDoneToday
+        )
+    }
+
+    private var todayAllotment: Int {
+        allowance.total
     }
 }

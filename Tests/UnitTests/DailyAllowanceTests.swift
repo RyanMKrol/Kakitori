@@ -243,6 +243,161 @@ final class DailyAllowanceTests: XCTestCase {
         XCTAssertFalse(deckCard.isAllCaughtUp)
     }
 
+    // MARK: - Completed today progress tracking
+
+    func testCompletedTodayReadsZeroWhenNoCardsCompleted() {
+        let deck = makeDeck(states: [.new, .new])
+        let allowance = DailyAllowance.forDeck(
+            deck,
+            now: now,
+            endOfToday: endOfToday,
+            newPerDay: 10,
+            maxReviewsPerDay: 100,
+            newIntroducedToday: 0,
+            reviewsDoneToday: 0
+        )
+
+        let completed = DailyAllowance.completedToday(
+            allotment: allowance,
+            newIntroducedToday: 0,
+            reviewsDoneToday: 0
+        )
+
+        XCTAssertEqual(completed, 0)
+    }
+
+    func testCompletedTodayReflectsNewIntroduced() {
+        let deck = makeDeck(states: [.new, .new, .new, .new, .new])
+        let allowance = DailyAllowance.forDeck(
+            deck,
+            now: now,
+            endOfToday: endOfToday,
+            newPerDay: 10,
+            maxReviewsPerDay: 100,
+            newIntroducedToday: 0,
+            reviewsDoneToday: 0
+        )
+
+        let completed = DailyAllowance.completedToday(
+            allotment: allowance,
+            newIntroducedToday: 3,
+            reviewsDoneToday: 0
+        )
+
+        XCTAssertEqual(completed, 3)
+    }
+
+    func testCompletedTodayReflectsReviewsDone() {
+        let deck = makeDeck(states: [.review, .review, .review], dueAt: now.addingTimeInterval(-10))
+        let allowance = DailyAllowance.forDeck(
+            deck,
+            now: now,
+            endOfToday: endOfToday,
+            newPerDay: 10,
+            maxReviewsPerDay: 100,
+            newIntroducedToday: 0,
+            reviewsDoneToday: 0
+        )
+
+        let completed = DailyAllowance.completedToday(
+            allotment: allowance,
+            newIntroducedToday: 0,
+            reviewsDoneToday: 2
+        )
+
+        XCTAssertEqual(completed, 2)
+    }
+
+    func testCompletedTodayIsTheSum() {
+        let deck = makeDeck(states: [.new, .new, .review], dueAt: now.addingTimeInterval(-10))
+        let allowance = DailyAllowance.forDeck(
+            deck,
+            now: now,
+            endOfToday: endOfToday,
+            newPerDay: 10,
+            maxReviewsPerDay: 100,
+            newIntroducedToday: 0,
+            reviewsDoneToday: 0
+        )
+
+        let completed = DailyAllowance.completedToday(
+            allotment: allowance,
+            newIntroducedToday: 2,
+            reviewsDoneToday: 1
+        )
+
+        XCTAssertEqual(completed, 3)
+    }
+
+    func testCompletedTodayNeverExceedsAllotment() {
+        let deck = makeDeck(states: [.new, .new])
+        let allowance = DailyAllowance.forDeck(
+            deck,
+            now: now,
+            endOfToday: endOfToday,
+            newPerDay: 10,
+            maxReviewsPerDay: 100,
+            newIntroducedToday: 0,
+            reviewsDoneToday: 0
+        )
+
+        let completed = DailyAllowance.completedToday(
+            allotment: allowance,
+            newIntroducedToday: 100,
+            reviewsDoneToday: 100
+        )
+
+        XCTAssertEqual(completed, allowance.total)
+        XCTAssertEqual(completed, 2)
+    }
+
+    func testCompletedTodayClampedWhenCapsAreHit() {
+        let reviewNotes = (0 ..< 30).map { i in
+            makeNote(state: .review, dueAt: now.addingTimeInterval(TimeInterval(-1000 + i)))
+        }
+
+        let allowance = DailyAllowance.forNotes(
+            reviewNotes,
+            now: now,
+            endOfToday: endOfToday,
+            newPerDay: 10,
+            maxReviewsPerDay: 5,
+            newIntroducedToday: 0,
+            reviewsDoneToday: 0
+        )
+
+        let completed = DailyAllowance.completedToday(
+            allotment: allowance,
+            newIntroducedToday: 0,
+            reviewsDoneToday: 20
+        )
+
+        XCTAssertEqual(completed, allowance.total)
+        XCTAssertEqual(completed, 5)
+    }
+
+    func testCompletedTodayFreshDayReadsZero() {
+        let deck = makeDeck(states: [.new, .new, .new])
+        let allowance = DailyAllowance.forDeck(
+            deck,
+            now: now,
+            endOfToday: endOfToday,
+            newPerDay: 10,
+            maxReviewsPerDay: 100,
+            newIntroducedToday: 0,
+            reviewsDoneToday: 0
+        )
+
+        let completed = DailyAllowance.completedToday(
+            allotment: allowance,
+            newIntroducedToday: 0,
+            reviewsDoneToday: 0
+        )
+
+        XCTAssertEqual(completed, 0)
+        XCTAssertEqual(allowance.total, 3)
+    }
+
     // MARK: - Fixtures
 
     private func makeNote(state: CardState, dueAt: Date? = nil) -> Note {

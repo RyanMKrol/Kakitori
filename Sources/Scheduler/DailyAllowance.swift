@@ -22,6 +22,18 @@ struct DailyAllowance: Equatable {
         total == 0
     }
 
+    /// Completed-today progress: X of X/Y, clamped to 0..Y.
+    /// Y = newCount + learnCount + dueCount (today's full allotment).
+    /// X = newIntroducedToday + reviewsDoneToday (clamped to 0..Y).
+    static func completedToday(
+        allotment: DailyAllowance,
+        newIntroducedToday: Int,
+        reviewsDoneToday: Int
+    ) -> Int {
+        let completed = newIntroducedToday + reviewsDoneToday
+        return min(completed, allotment.total)
+    }
+
     static func remainingAllowance(cap: Int, doneToday: Int) -> Int {
         max(0, cap - doneToday)
     }
