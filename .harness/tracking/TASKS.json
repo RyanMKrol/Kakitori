@@ -1846,7 +1846,7 @@
     {
       "id": "T072",
       "title": "Prune retired bundled decks on version-gated load (5->3)",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [],
       "gate": null,
       "tags": [
