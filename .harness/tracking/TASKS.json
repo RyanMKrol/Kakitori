@@ -2028,7 +2028,7 @@
     {
       "id": "T079",
       "title": "Fix SummaryView compact button labels swapped vs actions ('Back home' reopens setup)",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [],
       "gate": null,
       "tags": [],
