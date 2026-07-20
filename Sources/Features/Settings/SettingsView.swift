@@ -1,4 +1,5 @@
 import Combine
+import SwiftData
 import SwiftUI
 
 struct SettingsView: View {
@@ -7,8 +8,12 @@ struct SettingsView: View {
     @AppStorage("audioAutoplay") private var audioAutoplay = true
     @AppStorage("showRomaji") private var showRomaji = true
 
+    @Environment(\.modelContext) private var modelContext
+    @Environment(DeckLoadModel.self) private var deckLoad
+
     @State private var newCardsText: String
     @State private var maxReviewsText: String
+    @State private var showResetConfirm = false
     @FocusState private var focusedField: FocusedField?
 
     enum FocusedField {
@@ -111,10 +116,43 @@ struct SettingsView: View {
                 )
                 .padding()
 
+                resetButton
+
                 Spacer()
             }
         }
         .navigationTitle("Settings")
+        .alert("Reset everything?", isPresented: $showResetConfirm) {
+            Button("Cancel", role: .cancel) {}
+            Button("Reset", role: .destructive) { performReset() }
+        } message: {
+            Text("Deletes all your progress and reloads the decks from scratch. Your settings are kept.")
+        }
+    }
+
+    private var resetButton: some View {
+        Button(role: .destructive) {
+            showResetConfirm = true
+        } label: {
+            Text("Reset all data")
+                .kakitoriFont(size: 16, weight: .semibold)
+                .foregroundStyle(KakitoriTheme.accent)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 14)
+                .background(KakitoriTheme.accent.opacity(0.1))
+                .clipShape(RoundedRectangle(cornerRadius: KakitoriTheme.radiusMedium))
+                .overlay(
+                    RoundedRectangle(cornerRadius: KakitoriTheme.radiusMedium)
+                        .stroke(KakitoriTheme.accent.opacity(0.3), lineWidth: 1)
+                )
+        }
+        .accessibilityIdentifier("settings-reset")
+        .padding(.horizontal)
+    }
+
+    private func performReset() {
+        try? AppDataReset.resetAll(container: modelContext.container)
+        Task { await deckLoad.retry(container: modelContext.container) }
     }
 
     private func commitNewCardsValue() {
@@ -140,4 +178,6 @@ struct SettingsView: View {
     NavigationStack {
         SettingsView()
     }
+    .environment(DeckLoadModel())
+    .modelContainer(for: [Deck.self, Section.self, Note.self, CardSchedule.self, DailyStats.self], inMemory: true)
 }

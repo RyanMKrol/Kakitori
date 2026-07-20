@@ -56,6 +56,12 @@ enum BundledDeckLoader {
         defaults.integer(forKey: versionKey) == bundleVersion
     }
 
+    /// Forget that the bundled decks were loaded, so the next load re-imports them from scratch
+    /// (used by the Settings "reset all data" action to restore a clean-install state).
+    static func resetLoadedVersion(defaults: UserDefaults = .standard) {
+        defaults.removeObject(forKey: versionKey)
+    }
+
     /// Import every bundled deck into `container`. Idempotent per deck. Returns the first error
     /// encountered (nil on success); records the loaded version only when every deck succeeded.
     @discardableResult
