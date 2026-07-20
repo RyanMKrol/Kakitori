@@ -74,4 +74,18 @@ import XCTest
         fake.speakTarget("テスト")
         XCTAssertEqual(fake.calls.count, 2)
     }
+
+    // MARK: - Missing Deck Audio Falls Back to Speech
+
+    func testPlayWithPresentFilenameFallsBackToSpeechWhenDeckAudioFails() {
+        let fake = FakeAudioPlayer()
+        fake.deckAudioSucceeds = false
+        let target = "おはよう"
+        let filename = "missing.mp3"
+        let deckID = UUID()
+
+        fake.play(target: target, audioFilename: filename, deckID: deckID)
+
+        XCTAssertEqual(fake.calls, [.deck(filename: filename, deckID: deckID), .speak(target)])
+    }
 }

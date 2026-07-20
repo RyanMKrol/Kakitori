@@ -3,14 +3,16 @@ import Foundation
 
 @MainActor protocol AudioPlaying: AnyObject {
     var isAvailable: Bool { get }
-    func playDeckAudio(filename: String, deckID: UUID)
+    @discardableResult func playDeckAudio(filename: String, deckID: UUID) -> Bool
     func speakTarget(_ target: String)
 }
 
 extension AudioPlaying {
     func play(target: String, audioFilename: String?, deckID: UUID) {
         if let filename = audioFilename, !filename.isEmpty {
-            playDeckAudio(filename: filename, deckID: deckID)
+            if !playDeckAudio(filename: filename, deckID: deckID) {
+                speakTarget(target)
+            }
         } else {
             speakTarget(target)
         }
@@ -25,6 +27,7 @@ extension AudioPlaying {
     private var currentPlayer: AVAudioPlayer?
     private let synthesizer = AVSpeechSynthesizer()
     private let mediaBaseURL: URL
+    private var isAudioSessionActive = false
 
     init(mediaBaseURL: URL? = nil) {
         if let url = mediaBaseURL {
@@ -40,16 +43,37 @@ extension AudioPlaying {
         AVSpeechSynthesisVoice(language: "ja-JP") != nil
     }
 
-    func playDeckAudio(filename: String, deckID: UUID) {
+    @discardableResult
+    func playDeckAudio(filename: String, deckID: UUID) -> Bool {
+        activateAudioSessionIfNeeded()
         let url = Self.mediaFileURL(filename: filename, deckID: deckID, mediaBaseURL: mediaBaseURL)
-        guard let player = try? AVAudioPlayer(contentsOf: url) else { return }
-        currentPlayer = player
-        player.play()
+        do {
+            let player = try AVAudioPlayer(contentsOf: url)
+            currentPlayer = player
+            player.play()
+            return true
+        } catch {
+            print("AudioService: failed to load deck audio at \(url.path): \(error)")
+            return false
+        }
     }
 
     func speakTarget(_ target: String) {
+        activateAudioSessionIfNeeded()
         let utterance = AVSpeechUtterance(string: target)
         utterance.voice = AVSpeechSynthesisVoice(language: "ja-JP")
         synthesizer.speak(utterance)
+    }
+
+    private func activateAudioSessionIfNeeded() {
+        guard !isAudioSessionActive else { return }
+        do {
+            let session = AVAudioSession.sharedInstance()
+            try session.setCategory(.playback)
+            try session.setActive(true)
+            isAudioSessionActive = true
+        } catch {
+            print("AudioService: failed to activate audio session: \(error)")
+        }
     }
 }

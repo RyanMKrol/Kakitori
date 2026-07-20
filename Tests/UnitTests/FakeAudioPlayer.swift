@@ -9,9 +9,12 @@ import Foundation
 
     private(set) var calls: [Call] = []
     var isAvailable = true
+    var deckAudioSucceeds = true
 
-    func playDeckAudio(filename: String, deckID: UUID) {
+    @discardableResult
+    func playDeckAudio(filename: String, deckID: UUID) -> Bool {
         calls.append(.deck(filename: filename, deckID: deckID))
+        return deckAudioSucceeds
     }
 
     func speakTarget(_ target: String) {
