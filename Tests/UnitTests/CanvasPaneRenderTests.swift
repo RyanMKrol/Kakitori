@@ -111,6 +111,68 @@
             try pngData.write(to: URL(fileURLWithPath: pngPath))
         }
 
+        func testCanvasPaneCentersSingleCharacterBoxOnCompactWidth() throws {
+            let container = try makeContainer()
+            let context = ModelContext(container)
+            let fixedTime = makeDate(year: 2026, month: 7, day: 18, hour: 12, minute: 0)
+            let clock = AppClock.fixed(fixedTime, timeZone: tokyo)
+
+            let deck = Deck(name: "Kanji", sourceDeckName: "kanji", importedAt: fixedTime)
+            let section = Section(name: "Section 1", orderIndex: 0)
+            deck.sections = [section]
+            context.insert(deck)
+            context.insert(section)
+
+            makeReviewNote(target: "火", deck: deck, context: context)
+
+            let viewModel = SessionViewModel(
+                deck: deck,
+                mode: .trace,
+                modelContext: context,
+                clock: clock,
+                seed: 12345
+            )
+
+            let canvasPane = CanvasPaneView(viewModel: viewModel)
+                .environment(\.horizontalSizeClass, .compact)
+                .frame(width: 390, height: 600)
+
+            let hostingController = UIHostingController(rootView: canvasPane)
+            hostingController.view.frame = CGRect(x: 0, y: 0, width: 390, height: 600)
+
+            let window = UIWindow(frame: hostingController.view.frame)
+            window.rootViewController = hostingController
+            window.isHidden = false
+            hostingController.view.layoutIfNeeded()
+            RunLoop.current.run(until: Date().addingTimeInterval(0.1))
+
+            let imageRenderer = UIGraphicsImageRenderer(bounds: hostingController.view.bounds)
+            let uiImage = imageRenderer.image { _ in
+                hostingController.view.drawHierarchy(in: hostingController.view.bounds, afterScreenUpdates: true)
+            }
+
+            let repoRoot = URL(fileURLWithPath: #filePath)
+                .deletingLastPathComponent()
+                .deletingLastPathComponent()
+                .deletingLastPathComponent()
+                .path
+
+            let screenshotsDir = repoRoot + "/screenshots"
+            try FileManager.default.createDirectory(
+                atPath: screenshotsDir,
+                withIntermediateDirectories: true,
+                attributes: nil
+            )
+
+            let pngPath = screenshotsDir + "/T074-canvas-compact-single-char.png"
+            guard let pngData = uiImage.pngData() else {
+                XCTFail("Failed to encode UIImage as PNG")
+                return
+            }
+
+            try pngData.write(to: URL(fileURLWithPath: pngPath))
+        }
+
         func testListenModeCanvasHidesGuideBoxes() throws {
             let container = try makeContainer()
             let context = ModelContext(container)

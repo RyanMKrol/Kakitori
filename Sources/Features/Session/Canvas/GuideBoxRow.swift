@@ -14,7 +14,7 @@ struct GuideBoxRow: View {
     var body: some View {
         VStack(alignment: .center, spacing: 8) {
             GeometryReader { geometry in
-                let wrappedRows = layoutRows(width: geometry.size.width)
+                let wrappedRows = indexedRows()
 
                 VStack(alignment: .center, spacing: 8) {
                     ForEach(0 ..< wrappedRows.count, id: \.self) { rowIndex in
@@ -25,9 +25,12 @@ struct GuideBoxRow: View {
                             }
                             return count
                         }
-                        let boxSize = Swift.min(160, (geometry.size.width - 40) / CGFloat(Swift.max(1, rowBoxCount)))
+                        let boxSize = GuideBoxGridGeometry.boxSize(
+                            forRowBoxCount: rowBoxCount,
+                            availableWidth: geometry.size.width
+                        )
 
-                        HStack(spacing: 4) {
+                        HStack(spacing: GuideBoxGridGeometry.interItemSpacing) {
                             ForEach(0 ..< row.count, id: \.self) { unitIndex in
                                 let (globalIndex, unit) = row[unitIndex]
 
@@ -48,44 +51,28 @@ struct GuideBoxRow: View {
                                         .frame(height: boxSize, alignment: .center)
                                 }
                             }
-
-                            Spacer()
                         }
                         .frame(maxWidth: .infinity, alignment: .center)
                     }
                 }
-                .frame(maxWidth: .infinity, alignment: .center)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
             }
         }
         .accessibilityIdentifier("guide-box-row")
     }
 
-    private func layoutRows(width _: CGFloat) -> [[(Int, SegmentedUnit)]] {
-        var rows: [[(Int, SegmentedUnit)]] = []
-        var currentRow: [(Int, SegmentedUnit)] = []
-        var boxCount = 0
+    /// `GuideBoxGridGeometry.rows(units:maxBoxesPerRow:)`, re-paired with each unit's original
+    /// index in `units` (used for the `guide-box-<index>` accessibility identifiers).
+    private func indexedRows() -> [[(Int, SegmentedUnit)]] {
+        let wrappedRows = GuideBoxGridGeometry.rows(units: units, maxBoxesPerRow: maxBoxesPerRow)
+        var globalIndex = 0
 
-        for (index, unit) in units.enumerated() {
-            switch unit {
-            case .box:
-                if boxCount >= maxBoxesPerRow, !currentRow.isEmpty {
-                    rows.append(currentRow)
-                    currentRow = []
-                    boxCount = 0
-                }
-                currentRow.append((index, unit))
-                boxCount += 1
-
-            case .inline:
-                currentRow.append((index, unit))
+        return wrappedRows.map { row in
+            row.map { unit in
+                defer { globalIndex += 1 }
+                return (globalIndex, unit)
             }
         }
-
-        if !currentRow.isEmpty {
-            rows.append(currentRow)
-        }
-
-        return rows
     }
 }
 

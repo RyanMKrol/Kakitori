@@ -12,15 +12,27 @@ struct CanvasPaneView: View {
         VStack(spacing: 12) {
             topRow
 
-            ZStack {
-                TraceGuideLayer(
+            GeometryReader { geometry in
+                let gridSize = GuideBoxGridGeometry.gridSize(
                     units: segmentedUnits,
-                    maxBoxesPerRow: horizontalSizeClass == .compact ? 4 : 6,
-                    isVisible: viewModel.mode == .trace
+                    maxBoxesPerRow: maxBoxesPerRow,
+                    availableWidth: geometry.size.width
                 )
-                WritingCanvas(controller: controller)
+
+                ZStack {
+                    TraceGuideLayer(
+                        units: segmentedUnits,
+                        maxBoxesPerRow: maxBoxesPerRow,
+                        isVisible: viewModel.mode == .trace
+                    )
+                    WritingCanvas(controller: controller)
+                        .frame(
+                            width: gridSize.width > 0 ? gridSize.width : nil,
+                            height: gridSize.height > 0 ? gridSize.height : nil
+                        )
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .accessibilityAction(named: "Show answer") {
                 viewModel.showAnswer()
             }
@@ -34,6 +46,10 @@ struct CanvasPaneView: View {
     private var segmentedUnits: [SegmentedUnit] {
         guard let target = viewModel.currentNote?.target else { return [] }
         return TargetSegmenter.segment(target)
+    }
+
+    private var maxBoxesPerRow: Int {
+        horizontalSizeClass == .compact ? 4 : 6
     }
 
     private var hint: String {
