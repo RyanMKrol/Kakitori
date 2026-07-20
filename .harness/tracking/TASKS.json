@@ -1978,7 +1978,7 @@
     {
       "id": "T077",
       "title": "Session progress bar counts completions, not attempts — never advances on \"Again\"",
-      "status": "blocked",
+      "status": "done",
       "dependsOn": [],
       "gate": null,
       "tags": [

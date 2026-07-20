@@ -20,6 +20,21 @@ struct QueueEntry: Equatable {
 struct SessionQueue {
     private(set) var entries: [QueueEntry]
 
+    /// Number of distinct cards that entered the session at build time — the FIXED progress
+    /// denominator. It does NOT grow when a card is re-queued after "Again", so a bar computed
+    /// against it is monotonic and can never over-run 100%.
+    let initialCount: Int
+
+    /// Cards completed so far: graded to a state that is NOT `.learning`/`.relearning`, so the card
+    /// left the session for good (the exact condition `markGraded` uses to decide NOT to re-queue).
+    /// Monotonic — incremented exactly once per card, and never on "Again" (which re-queues).
+    private(set) var completedCount = 0
+
+    init(entries: [QueueEntry]) {
+        self.entries = entries
+        initialCount = entries.count
+    }
+
     /// Entries whose state is `.new`.
     var newCount: Int {
         entries.count(where: { $0.snapshot.state == .new })
@@ -137,10 +152,15 @@ struct SessionQueue {
     /// If the new state is `.learning` or `.relearning`, appends a new entry so the card re-enters the queue.
     /// If the new state is `.review`, the card leaves the session for good.
     mutating func markGraded(_ id: UUID, newSnapshot: ScheduleSnapshot, now _: Date) {
+        let wasPresent = entries.contains { $0.id == id }
         entries.removeAll { $0.id == id }
 
         if newSnapshot.state == .learning || newSnapshot.state == .relearning {
+            // Re-queued — the card is not finished ("Again" / still learning). Not a completion.
             entries.append(QueueEntry(id: id, snapshot: newSnapshot))
+        } else if wasPresent {
+            // Graduated out of learning (or a review card leaving) — the card is done for good.
+            completedCount += 1
         }
     }
 
