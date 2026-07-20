@@ -1815,7 +1815,7 @@
     {
       "id": "T071",
       "title": "Fix low-contrast canvas ink: resolve ink color to concrete high-contrast color per appearance",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [],
       "gate": null,
       "tags": [
