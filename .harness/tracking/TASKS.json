@@ -2005,7 +2005,7 @@
     {
       "id": "T078",
       "title": "Settings: restyle on-brand + make numeric fields obviously editable",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [],
       "gate": null,
       "tags": [
