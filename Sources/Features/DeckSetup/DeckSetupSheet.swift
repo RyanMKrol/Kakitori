@@ -100,7 +100,7 @@ struct DeckSetupSheet: View {
                     .font(KakitoriTheme.japaneseDisplayFont(size: 28))
                     .foregroundStyle(KakitoriTheme.paper)
 
-                Text("\(enTitle) · \(dueCount) cards due")
+                Text("\(enTitle) · \(dueCount) cards to study")
                     .font(.subheadline)
                     .foregroundStyle(KakitoriTheme.paper.opacity(0.8))
             }
