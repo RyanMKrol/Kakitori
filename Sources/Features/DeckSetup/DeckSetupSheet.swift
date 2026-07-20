@@ -4,7 +4,6 @@ enum PracticeMode: String, CaseIterable {
     case trace
     case listen
     case translate
-    case recall
     case mixed
 
     var glyph: String {
@@ -12,7 +11,6 @@ enum PracticeMode: String, CaseIterable {
         case .trace: "書"
         case .listen: "聞"
         case .translate: "訳"
-        case .recall: "思"
         case .mixed: "混"
         }
     }
@@ -22,7 +20,6 @@ enum PracticeMode: String, CaseIterable {
         case .trace: "Trace"
         case .listen: "Listen & Write"
         case .translate: "Translate & Write"
-        case .recall: "Recall"
         case .mixed: "Mixed"
         }
     }
@@ -32,8 +29,7 @@ enum PracticeMode: String, CaseIterable {
         case .trace: "Write over a faded guide"
         case .listen: "Hear it, then write what you heard"
         case .translate: "See the English, write the Japanese"
-        case .recall: "From the reading, write from memory"
-        case .mixed: "Rotate through all four modes"
+        case .mixed: "Rotate through the other modes"
         }
     }
 
@@ -42,7 +38,6 @@ enum PracticeMode: String, CaseIterable {
         case .trace: "mode-trace"
         case .listen: "mode-listen"
         case .translate: "mode-translate"
-        case .recall: "mode-recall"
         case .mixed: "mode-mixed"
         }
     }
@@ -218,7 +213,7 @@ struct DeckSetupSheet: View {
         jpTitle: "ひらがな",
         enTitle: "Hiragana",
         dueCount: 10,
-        availableModes: [.trace, .listen, .recall, .mixed],
+        availableModes: [.trace, .listen, .mixed],
         onStart: { _ in },
         onClose: {}
     )

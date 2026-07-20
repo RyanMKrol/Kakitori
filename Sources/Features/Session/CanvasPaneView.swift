@@ -61,8 +61,6 @@ struct CanvasPaneView: View {
             "Write the word you heard"
         case .translate:
             "Write the Japanese here"
-        case .recall:
-            "Write the word from memory"
         default:
             ""
         }
