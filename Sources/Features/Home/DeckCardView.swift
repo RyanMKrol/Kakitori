@@ -52,10 +52,12 @@ struct DeckCardView: View {
                     .frame(width: 52, height: 52)
 
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(deck.jpTitle ?? deck.name)
-                            .font(KakitoriTheme.japaneseDisplayFont(size: 17))
-                            .foregroundStyle(KakitoriTheme.ink)
-                            .lineLimit(1)
+                        if let jpTitle = deck.jpTitle, !jpTitle.isEmpty, jpTitle != deck.name {
+                            Text(jpTitle)
+                                .font(KakitoriTheme.japaneseDisplayFont(size: 17))
+                                .foregroundStyle(KakitoriTheme.ink)
+                                .lineLimit(1)
+                        }
                         Text(deck.name)
                             .kakitoriFont(size: 14, weight: .semibold)
                             .foregroundStyle(KakitoriTheme.ink)
@@ -146,10 +148,12 @@ struct DeckCardView: View {
             VStack(alignment: .leading, spacing: 12) {
                 HStack(alignment: .top) {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(deck.jpTitle ?? deck.name)
-                            .font(KakitoriTheme.japaneseDisplayFont(size: 32))
-                            .foregroundStyle(KakitoriTheme.ink)
-                            .lineLimit(1)
+                        if let jpTitle = deck.jpTitle, !jpTitle.isEmpty, jpTitle != deck.name {
+                            Text(jpTitle)
+                                .font(KakitoriTheme.japaneseDisplayFont(size: 32))
+                                .foregroundStyle(KakitoriTheme.ink)
+                                .lineLimit(1)
+                        }
 
                         Text(deck.name)
                             .kakitoriFont(size: 15, weight: .semibold)
