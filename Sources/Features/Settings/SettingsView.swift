@@ -1,3 +1,4 @@
+import Combine
 import SwiftUI
 
 struct SettingsView: View {
@@ -5,6 +6,20 @@ struct SettingsView: View {
     @AppStorage("maxReviewsPerDay") private var maxReviewsPerDay = 100
     @AppStorage("audioAutoplay") private var audioAutoplay = true
     @AppStorage("showRomaji") private var showRomaji = true
+
+    @State private var newCardsText: String
+    @State private var maxReviewsText: String
+    @FocusState private var focusedField: FocusedField?
+
+    enum FocusedField {
+        case newCards
+        case maxReviews
+    }
+
+    init() {
+        _newCardsText = State(initialValue: "")
+        _maxReviewsText = State(initialValue: "")
+    }
 
     var body: some View {
         ZStack {
@@ -15,26 +30,54 @@ struct SettingsView: View {
                     HStack {
                         Text("New cards per day")
                         Spacer()
-                        Stepper(
-                            value: $newCardsPerDay,
-                            in: 1 ... 50,
-                            label: {
-                                Text("\(newCardsPerDay)")
-                            }
+                        TextField(
+                            "\(newCardsPerDay)",
+                            text: $newCardsText
                         )
+                        .keyboardType(.numberPad)
+                        .multilineTextAlignment(.trailing)
+                        .frame(width: 60)
+                        .onReceive(Just(newCardsPerDay)) { value in
+                            if newCardsText.isEmpty {
+                                newCardsText = "\(value)"
+                            }
+                        }
+                        .focused($focusedField, equals: .newCards)
+                        .onSubmit {
+                            commitNewCardsValue()
+                        }
+                        .onChange(of: focusedField) {
+                            if focusedField != .newCards, !newCardsText.isEmpty {
+                                commitNewCardsValue()
+                            }
+                        }
                         .accessibilityIdentifier("settings-new-per-day")
                     }
 
                     HStack {
                         Text("Max reviews per day")
                         Spacer()
-                        Stepper(
-                            value: $maxReviewsPerDay,
-                            in: 10 ... 500,
-                            label: {
-                                Text("\(maxReviewsPerDay)")
-                            }
+                        TextField(
+                            "\(maxReviewsPerDay)",
+                            text: $maxReviewsText
                         )
+                        .keyboardType(.numberPad)
+                        .multilineTextAlignment(.trailing)
+                        .frame(width: 60)
+                        .onReceive(Just(maxReviewsPerDay)) { value in
+                            if maxReviewsText.isEmpty {
+                                maxReviewsText = "\(value)"
+                            }
+                        }
+                        .focused($focusedField, equals: .maxReviews)
+                        .onSubmit {
+                            commitMaxReviewsValue()
+                        }
+                        .onChange(of: focusedField) {
+                            if focusedField != .maxReviews, !maxReviewsText.isEmpty {
+                                commitMaxReviewsValue()
+                            }
+                        }
                         .accessibilityIdentifier("settings-max-reviews")
                     }
 
@@ -52,6 +95,24 @@ struct SettingsView: View {
             .padding()
         }
         .navigationTitle("Settings")
+    }
+
+    private func commitNewCardsValue() {
+        let min = 1
+        let max = 50
+        if let value = Int(newCardsText.trimmingCharacters(in: .whitespaces)), value >= min, value <= max {
+            newCardsPerDay = value
+        }
+        newCardsText = "\(newCardsPerDay)"
+    }
+
+    private func commitMaxReviewsValue() {
+        let min = 10
+        let max = 500
+        if let value = Int(maxReviewsText.trimmingCharacters(in: .whitespaces)), value >= min, value <= max {
+            maxReviewsPerDay = value
+        }
+        maxReviewsText = "\(maxReviewsPerDay)"
     }
 }
 
