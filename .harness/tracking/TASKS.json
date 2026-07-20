@@ -1524,7 +1524,7 @@
     {
       "id": "T059",
       "title": "Fix empty session (daily cap reached): finish immediately, never dead buttons",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [],
       "gate": null,
       "tags": [
