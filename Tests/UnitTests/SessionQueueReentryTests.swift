@@ -125,9 +125,9 @@ final class SessionQueueReentryTests: XCTestCase {
         XCTAssertEqual(next?.id, idA)
     }
 
-    // MARK: - End rule: isFinished only true when all cards >= 1-day
+    // MARK: - End rule: "Again" keeps the session open; a non-"Again" grade clears the card
 
-    func testEndRuleSubdayCardsKeepSessionOpen() {
+    func testAgainKeepsSessionOpenAndNonAgainClearsIt() {
         let idA = UUID()
         var queue = SessionQueue(entries: [
             QueueEntry(id: idA, snapshot: snapshot(state: .learning, dueAt: t0.addingTimeInterval(-60))),
@@ -135,33 +135,26 @@ final class SessionQueueReentryTests: XCTestCase {
 
         XCTAssertFalse(queue.isFinished)
 
-        // Grade A to learning step 1 (still sub-day)
+        // "Again" re-queues → the session stays open.
+        queue.markGraded(
+            idA,
+            grade: .again,
+            newSnapshot: snapshot(state: .learning, stepIndex: 0, dueAt: t0.addingTimeInterval(60)),
+            now: t0
+        )
+        XCTAssertFalse(queue.isFinished)
+        XCTAssertEqual(queue.entries.count, 1)
+
+        // A non-"Again" grade clears the card for the session — even though SM2 keeps it in a
+        // learning step — so the queue empties and the session finishes.
         queue.markGraded(
             idA,
             grade: .good,
             newSnapshot: snapshot(state: .learning, stepIndex: 1, dueAt: t0.addingTimeInterval(660)),
             now: t0.addingTimeInterval(60)
         )
-
-        // Still open (sub-day pending)
-        XCTAssertFalse(queue.isFinished)
-        XCTAssertEqual(queue.entries.count, 1)
-
-        // Grade A to review (>= 1-day)
-        queue.markGraded(
-            idA,
-            grade: .good,
-            newSnapshot: snapshot(
-                state: .review,
-                intervalDays: 1,
-                dueAt: t0.addingTimeInterval(660 + 86400)
-            ),
-            now: t0.addingTimeInterval(660)
-        )
-
-        // Now finished
         XCTAssertTrue(queue.isFinished)
-        XCTAssertNil(queue.next(now: t0.addingTimeInterval(660)))
+        XCTAssertNil(queue.next(now: t0.addingTimeInterval(60)))
     }
 
     // MARK: - Re-entry when due: position matters
@@ -248,15 +241,15 @@ final class SessionQueueReentryTests: XCTestCase {
             QueueEntry(id: idNew, snapshot: snapshot(state: .new, dueAt: nil)),
         ])
 
-        // Shouldn't happen in practice, but: grade a new card (it has dueAt nil)
+        // Shouldn't happen in practice, but: grade a new card non-Again — it leaves, no re-queue.
         queue.markGraded(
             idNew,
-            grade: .again,
+            grade: .good,
             newSnapshot: snapshot(state: .new, dueAt: nil),
             now: t0
         )
 
-        // Entry removed; new doesn't re-queue (not .learning or .relearning)
+        // Entry removed; a non-Again grade doesn't re-queue.
         XCTAssertEqual(queue.entries.count, 1)
         XCTAssertEqual(queue.entries.first?.id, idA)
     }
@@ -277,10 +270,10 @@ final class SessionQueueReentryTests: XCTestCase {
         XCTAssertEqual(queue.learnCount, 1)
         XCTAssertEqual(queue.dueCount, 1)
 
-        // Remove B and add a learning re-entry
+        // "Again" on B re-queues it as a learning entry (a non-Again grade would clear it instead).
         queue.markGraded(
             idB,
-            grade: .good,
+            grade: .again,
             newSnapshot: snapshot(state: .learning, stepIndex: 1, dueAt: t0.addingTimeInterval(600)),
             now: t0
         )

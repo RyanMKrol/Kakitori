@@ -155,22 +155,21 @@ struct SessionQueue {
     }
 
     /// Record the post-grade snapshot for a card and update the live queue.
-    /// Removes the entry with `id` (no-op if not found).
-    /// If the new state is `.learning` or `.relearning`, appends a new entry so the card re-enters the queue.
-    /// If the new state is `.review`, the card leaves the session for good.
+    /// Removes the entry with `id` (no-op if not found). Re-queues the card ONLY when it was graded
+    /// "Again" — a non-"Again" grade (Hard/Good/Easy) finishes the card for this session and it does
+    /// not re-appear, even if SM2 keeps it in a learning step (its next appearance is on a later day
+    /// per its persisted schedule). This is what lets the session end once every card is cleared,
+    /// instead of endlessly re-serving learning-step re-reps.
     mutating func markGraded(_ id: UUID, grade: Grade, newSnapshot: ScheduleSnapshot, now _: Date) {
         let wasPresent = entries.contains { $0.id == id }
         entries.removeAll { $0.id == id }
 
-        if newSnapshot.state == .learning || newSnapshot.state == .relearning {
-            // Re-queued so the card is shown again this session (learning step or a lapse).
+        if grade == .again {
+            // Not finished — re-queue so the card is shown again this session.
             entries.append(QueueEntry(id: id, snapshot: newSnapshot))
-        }
-
-        // Progress counts a card as done once it's graded anything but "Again" — you got it right at
-        // least once — even if it hasn't fully graduated. "Again" never advances the bar. Distinct,
-        // so re-grading an already-counted card doesn't double-count.
-        if wasPresent, grade != .again {
+        } else if wasPresent {
+            // Graded Hard/Good/Easy — done for the session; it leaves and counts toward progress.
+            // Distinct, so re-grading an already-finished card can't double-count.
             completedCardIDs.insert(id)
         }
     }
