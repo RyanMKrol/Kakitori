@@ -45,7 +45,9 @@ struct TodayBannerView: View {
     }
 
     /// Today's allotment across all decks — the same caps a session would apply
-    /// (`DailyAllowance`), not the raw uncapped backlog.
+    /// (`DailyAllowance`), not the raw uncapped backlog. Each deck's allotment is computed from
+    /// its OWN daily stats row (matched by `day` and `deckKey`), then summed, so one deck hitting
+    /// its cap never suppresses another deck's allotment.
     static func calculateAllowance(
         decks: [Deck],
         dailyStats: [DailyStats],
@@ -54,16 +56,20 @@ struct TodayBannerView: View {
         settings: AppSettings
     ) -> DailyAllowance {
         let today = clock.adjustedDay(for: now)
-        let stats = dailyStats.first { $0.day == today }
-        return DailyAllowance.forDecks(
-            decks,
-            now: now,
-            endOfToday: clock.endOfToday(after: now),
-            newPerDay: settings.newCardsPerDay,
-            maxReviewsPerDay: settings.maxReviewsPerDay,
-            newIntroducedToday: stats?.newIntroduced ?? 0,
-            reviewsDoneToday: stats?.reviewsDone ?? 0
-        )
+        let endOfToday = clock.endOfToday(after: now)
+        let allowances = decks.map { deck -> DailyAllowance in
+            let stats = dailyStats.first { $0.day == today && $0.deckKey == deck.sourceDeckName }
+            return DailyAllowance.forDeck(
+                deck,
+                now: now,
+                endOfToday: endOfToday,
+                newPerDay: settings.newCardsPerDay,
+                maxReviewsPerDay: settings.maxReviewsPerDay,
+                newIntroducedToday: stats?.newIntroduced ?? 0,
+                reviewsDoneToday: stats?.reviewsDone ?? 0
+            )
+        }
+        return DailyAllowance.aggregate(allowances)
     }
 
     private func calculateAllowance() -> DailyAllowance {

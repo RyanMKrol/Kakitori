@@ -29,6 +29,7 @@ final class SessionViewModel {
 
     let mode: PracticeMode
     let deckName: String
+    private let deckKey: String
     var autoplayEnabled: Bool {
         (UserDefaults.standard.object(forKey: "audioAutoplay") as? Bool) ?? true
     }
@@ -76,6 +77,7 @@ final class SessionViewModel {
     ) {
         self.mode = mode
         deckName = deck.name
+        deckKey = deck.sourceDeckName
         self.modelContext = modelContext
         self.clock = clock
         self.audio = audio
@@ -106,7 +108,7 @@ final class SessionViewModel {
         self.notesByID = notesByID
 
         let today = clock.adjustedDay(for: now)
-        let todayStats = Self.fetchDailyStats(for: today, in: modelContext)
+        let todayStats = Self.fetchDailyStats(for: today, deckKey: deck.sourceDeckName, in: modelContext)
         let endOfToday = Self.endOfToday(after: now, using: clock)
 
         queue = SessionQueue.build(
@@ -150,7 +152,7 @@ final class SessionViewModel {
         applySnapshot(newSnapshot, to: schedule)
 
         do {
-            try StatsRecorder.recordGrade(previousState: previousState, now: now, in: modelContext)
+            try StatsRecorder.recordGrade(previousState: previousState, now: now, deckKey: deckKey, in: modelContext)
         } catch {
             lastError = error
         }
@@ -194,7 +196,7 @@ final class SessionViewModel {
     private func recordStudySeconds(now: Date) {
         let seconds = Int(now.timeIntervalSince(sessionStart))
         do {
-            try StatsRecorder.recordStudySeconds(seconds, now: now, in: modelContext)
+            try StatsRecorder.recordStudySeconds(seconds, now: now, deckKey: deckKey, in: modelContext)
         } catch {
             lastError = error
         }
@@ -220,8 +222,10 @@ final class SessionViewModel {
         )
     }
 
-    private static func fetchDailyStats(for day: String, in context: ModelContext) -> DailyStats? {
-        var descriptor = FetchDescriptor<DailyStats>(predicate: #Predicate { $0.day == day })
+    private static func fetchDailyStats(for day: String, deckKey: String?, in context: ModelContext) -> DailyStats? {
+        var descriptor = FetchDescriptor<DailyStats>(
+            predicate: #Predicate { $0.day == day && $0.deckKey == deckKey }
+        )
         descriptor.fetchLimit = 1
         return try? context.fetch(descriptor).first
     }

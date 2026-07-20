@@ -115,20 +115,24 @@ struct HomeView: View {
     }
 
     private func dueCount(for deck: Deck) -> Int {
-        DailyAllowance.forDeck(
+        let stats = todayStats(for: deck)
+        return DailyAllowance.forDeck(
             deck,
             now: now,
             endOfToday: AppClock.system.endOfToday(after: now),
             newPerDay: AppSettings().newCardsPerDay,
             maxReviewsPerDay: AppSettings().maxReviewsPerDay,
-            newIntroducedToday: todayStats?.newIntroduced ?? 0,
-            reviewsDoneToday: todayStats?.reviewsDone ?? 0
+            newIntroducedToday: stats?.newIntroduced ?? 0,
+            reviewsDoneToday: stats?.reviewsDone ?? 0
         ).total
     }
 
-    private var todayStats: DailyStats? {
+    private func todayStats(for deck: Deck) -> DailyStats? {
         let today = AppClock.system.adjustedDay(for: now)
-        var descriptor = FetchDescriptor<DailyStats>(predicate: #Predicate { $0.day == today })
+        let deckKey = deck.sourceDeckName
+        var descriptor = FetchDescriptor<DailyStats>(
+            predicate: #Predicate { $0.day == today && $0.deckKey == deckKey }
+        )
         descriptor.fetchLimit = 1
         return try? modelContext.fetch(descriptor).first
     }
@@ -234,8 +238,8 @@ struct HomeView: View {
                     DeckCardView(
                         deck: deck,
                         now: now,
-                        newIntroducedToday: todayStats?.newIntroduced ?? 0,
-                        reviewsDoneToday: todayStats?.reviewsDone ?? 0,
+                        newIntroducedToday: todayStats(for: deck)?.newIntroduced ?? 0,
+                        reviewsDoneToday: todayStats(for: deck)?.reviewsDone ?? 0,
                         onStudy: { setupDeck = $0 }
                     )
                 }
@@ -251,8 +255,8 @@ struct HomeView: View {
                     DeckCardView(
                         deck: deck,
                         now: now,
-                        newIntroducedToday: todayStats?.newIntroduced ?? 0,
-                        reviewsDoneToday: todayStats?.reviewsDone ?? 0,
+                        newIntroducedToday: todayStats(for: deck)?.newIntroduced ?? 0,
+                        reviewsDoneToday: todayStats(for: deck)?.reviewsDone ?? 0,
                         onStudy: { setupDeck = $0 }
                     )
                 }

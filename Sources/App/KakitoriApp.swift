@@ -21,15 +21,9 @@ struct KakitoriApp: App {
     }
 
     private static func makeModelContainer() -> ModelContainer {
-        let schema = Schema([
-            Deck.self,
-            Section.self,
-            Note.self,
-            CardSchedule.self,
-            DailyStats.self,
-        ])
+        let schema = Schema(versionedSchema: KakitoriSchemaV2.self)
         do {
-            return try ModelContainer(for: schema)
+            return try ModelContainer(for: schema, migrationPlan: KakitoriMigrationPlan.self)
         } catch {
             fatalError("Failed to create ModelContainer: \(error)")
         }

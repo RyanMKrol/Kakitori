@@ -8,19 +8,25 @@ final class DailyStats {
     var newIntroduced: Int
     var reviewsDone: Int
     var secondsStudied: Int
+    /// The studied deck's stable `Deck.sourceDeckName`. `nil` means either a legacy
+    /// pre-per-deck row (additive migration backfill) or the whole-app aggregate — callers that
+    /// want per-deck isolation must match on both `day` AND `deckKey`.
+    var deckKey: String?
 
     init(
         day: String,
         cardsWritten: Int = 0,
         newIntroduced: Int = 0,
         reviewsDone: Int = 0,
-        secondsStudied: Int = 0
+        secondsStudied: Int = 0,
+        deckKey: String? = nil
     ) {
         self.day = day
         self.cardsWritten = cardsWritten
         self.newIntroduced = newIntroduced
         self.reviewsDone = reviewsDone
         self.secondsStudied = secondsStudied
+        self.deckKey = deckKey
     }
 
     /// Consecutive active days ending at today, or at yesterday if today isn't active yet

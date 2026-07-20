@@ -48,16 +48,19 @@ struct StatsRowView: View {
         return String(streak)
     }
 
-    private var writtenTodayValue: String {
+    /// Sums across all of today's per-deck rows (plus any legacy global row) — these stats stay
+    /// whole-app even though `DailyStats` is now keyed per deck.
+    private var todayStats: [DailyStats] {
         let today = AppClock.system.today
-        let todayStats = allStats.first { $0.day == today }
-        return String(todayStats?.cardsWritten ?? 0)
+        return allStats.filter { $0.day == today }
+    }
+
+    private var writtenTodayValue: String {
+        String(todayStats.reduce(0) { $0 + $1.cardsWritten })
     }
 
     private var minutesValue: String {
-        let today = AppClock.system.today
-        let todayStats = allStats.first { $0.day == today }
-        let minutes = (todayStats?.secondsStudied ?? 0) / 60
+        let minutes = todayStats.reduce(0) { $0 + $1.secondsStudied } / 60
         return "\(minutes)m"
     }
 }

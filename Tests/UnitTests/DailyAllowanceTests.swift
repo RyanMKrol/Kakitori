@@ -189,7 +189,12 @@ final class DailyAllowanceTests: XCTestCase {
 
     func testBannerAllowanceIsZeroWhenDailyCapsAreHit() {
         let deck = makeDeck(states: [.new, .new])
-        let stats = DailyStats(day: clock.adjustedDay(for: now), newIntroduced: 10, reviewsDone: 100)
+        let stats = DailyStats(
+            day: clock.adjustedDay(for: now),
+            newIntroduced: 10,
+            reviewsDone: 100,
+            deckKey: deck.sourceDeckName
+        )
 
         let allowance = TodayBannerView.calculateAllowance(
             decks: [deck],
