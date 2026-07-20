@@ -105,7 +105,7 @@ struct SummaryView: View {
     private var buttonsView: some View {
         VStack(spacing: 12) {
             Button(action: onBackToDecks) {
-                Text(isCompact ? "Study another script" : "Back to decks")
+                Text(isCompact ? "Back home" : "Back to decks")
                     .frame(maxWidth: .infinity)
                     .frame(height: 48)
                     .kakitoriFont(size: 16, weight: .semibold)
@@ -116,7 +116,7 @@ struct SummaryView: View {
             .accessibilityIdentifier("back-to-decks")
 
             Button(action: onStudyAnother) {
-                Text(isCompact ? "Back home" : "Study another deck")
+                Text(isCompact ? "Study another script" : "Study another deck")
                     .frame(maxWidth: .infinity)
                     .frame(height: 48)
                     .kakitoriFont(size: 16, weight: .semibold)
