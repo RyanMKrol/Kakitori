@@ -1948,7 +1948,7 @@
     {
       "id": "T076",
       "title": "Per-deck daily tracking: key DailyStats by deck so one session no longer caps every deck",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [],
       "gate": null,
       "tags": [],
