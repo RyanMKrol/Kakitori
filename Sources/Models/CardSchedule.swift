@@ -16,7 +16,7 @@ final class CardSchedule {
     var intervalDays: Double
     var dueAt: Date?
     var lapses: Int
-    @Relationship(inverse: \Note.schedule) var note: Note?
+    var note: Note?
 
     init(
         state: CardState = .new,

@@ -59,8 +59,13 @@ enum BundledDeckLoader {
 
         let importer = ApkgImporter(container: container, mediaBaseURL: mediaBaseURL())
         var firstError: ImporterError?
+        var expectedSourceNames: Set<String> = []
         for url in urls {
             do {
+                let rootName = try await importer.parse(url: url).deckName
+                for key in sectionTitles.keys {
+                    expectedSourceNames.insert("\(rootName)::\(key)")
+                }
                 // Split the source deck's sections into separate Hiragana/Katakana/Kanji decks.
                 try await importer.importDeckSplitBySection(from: url, titles: sectionTitles)
             } catch let error as ImporterError {
@@ -71,9 +76,39 @@ enum BundledDeckLoader {
         }
 
         if firstError == nil {
+            pruneRetiredDecks(container: container, keeping: expectedSourceNames)
             defaults.set(bundleVersion, forKey: versionKey)
         }
         return firstError
+    }
+
+    /// Delete any on-disk `Deck` no longer produced by the current bundle (e.g. the retired Tofugu
+    /// decks left behind by an install that upgraded past the Foundations split). Only decks whose
+    /// `sourceDeckName` is outside `expectedSourceNames` are touched; deleting a `Deck` cascades to its
+    /// `Section`s and `Note`s (and, via `Note.schedule`'s cascade rule, their `CardSchedule`s) so no
+    /// orphaned rows are left behind.
+    static func pruneRetiredDecks(container: ModelContainer, keeping expectedSourceNames: Set<String>) {
+        let context = ModelContext(container)
+        guard let decks = try? context.fetch(FetchDescriptor<Deck>()) else { return }
+
+        let staleDecks = decks.filter { !expectedSourceNames.contains($0.sourceDeckName) }
+        guard !staleDecks.isEmpty else { return }
+
+        // Sectionless notes are linked directly via `Note.deck` (not through `Section`), so the
+        // Deck -> Section -> Note cascade wouldn't reach them; delete those explicitly first.
+        if let sectionlessNotes = try? context.fetch(FetchDescriptor<Note>()) {
+            for note in sectionlessNotes where note.section == nil {
+                if staleDecks.contains(where: { $0 === note.deck }) {
+                    context.delete(note)
+                }
+            }
+        }
+
+        for deck in staleDecks {
+            context.delete(deck)
+        }
+
+        try? context.save()
     }
 }
 

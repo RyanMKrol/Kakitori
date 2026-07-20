@@ -21,7 +21,9 @@ final class Note {
     var units: [String]
     var isSoftDeleted: Bool
     var section: Section?
-    var schedule: CardSchedule?
+    /// Cascade so a deleted note never leaves behind an orphaned schedule row (SwiftData's default
+    /// nullify would just clear `CardSchedule.note` and strand the schedule in the store).
+    @Relationship(deleteRule: .cascade, inverse: \CardSchedule.note) var schedule: CardSchedule?
     /// Direct owning-deck link so re-import can find sectionless notes too, not just via `section`.
     var deck: Deck?
 
