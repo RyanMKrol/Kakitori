@@ -25,12 +25,17 @@ struct WritingCanvas: UIViewRepresentable {
 
     let controller: WritingCanvasController
 
+    /// Drives the ink colour. Comes from the SwiftUI `\.colorScheme` environment (authoritative for
+    /// light/dark), NOT the PKCanvasView's own trait collection — that can still read `.light`/
+    /// `.unspecified` when the tool is built, which resolved the ink to near-black on a dark canvas.
+    var colorScheme: ColorScheme = .light
+
     func makeUIView(context: Context) -> PKCanvasView {
         let canvasView = PKCanvasView()
         canvasView.drawingPolicy = .anyInput
         canvasView.backgroundColor = .clear
         canvasView.isOpaque = false
-        canvasView.tool = Self.inkingTool(for: canvasView.traitCollection)
+        canvasView.tool = Self.inkingTool(for: colorScheme)
         canvasView.delegate = context.coordinator
         canvasView.accessibilityIdentifier = "writing-canvas"
 
@@ -38,25 +43,20 @@ struct WritingCanvas: UIViewRepresentable {
         pencilInteraction.delegate = context.coordinator
         canvasView.addInteraction(pencilInteraction)
 
-        // PKInkingTool resolves a dynamic color once, against the trait collection active
-        // when the tool is created, and never re-resolves it — so the tool must be rebuilt
-        // with a freshly-resolved concrete color whenever the appearance changes.
-        canvasView.registerForTraitChanges(
-            [UITraitUserInterfaceStyle.self]
-        ) { (view: PKCanvasView, _: UITraitCollection) in
-            view.tool = Self.inkingTool(for: view.traitCollection)
-        }
-
         controller.canvasView = canvasView
         return canvasView
     }
 
     func updateUIView(_ canvasView: PKCanvasView, context _: Context) {
-        canvasView.tool = Self.inkingTool(for: canvasView.traitCollection)
+        // SwiftUI re-invokes updateUIView when `colorScheme` changes, so the ink re-resolves to a
+        // concrete near-black (light) / near-white (dark) colour and tracks live appearance switches.
+        canvasView.tool = Self.inkingTool(for: colorScheme)
     }
 
-    private static func inkingTool(for traitCollection: UITraitCollection) -> PKInkingTool {
-        PKInkingTool(.pen, color: KakitoriTheme.resolvedInkColor(for: traitCollection), width: penWidth)
+    private static func inkingTool(for colorScheme: ColorScheme) -> PKInkingTool {
+        let style: UIUserInterfaceStyle = colorScheme == .dark ? .dark : .light
+        let trait = UITraitCollection(userInterfaceStyle: style)
+        return PKInkingTool(.pen, color: KakitoriTheme.resolvedInkColor(for: trait), width: penWidth)
     }
 
     func makeCoordinator() -> Coordinator {

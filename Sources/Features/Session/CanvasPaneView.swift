@@ -7,6 +7,7 @@ struct CanvasPaneView: View {
     @State private var controller = WritingCanvasController()
 
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         VStack(spacing: 12) {
@@ -25,7 +26,7 @@ struct CanvasPaneView: View {
                         maxBoxesPerRow: maxBoxesPerRow,
                         isVisible: viewModel.mode == .trace
                     )
-                    WritingCanvas(controller: controller)
+                    WritingCanvas(controller: controller, colorScheme: colorScheme)
                         .frame(
                             width: gridSize.width > 0 ? gridSize.width : nil,
                             height: gridSize.height > 0 ? gridSize.height : nil
