@@ -1902,7 +1902,7 @@
     {
       "id": "T074",
       "title": "Canvas: centre the guide box and constrain ink to it (drawable rect == visible box)",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [],
       "gate": null,
       "tags": [
