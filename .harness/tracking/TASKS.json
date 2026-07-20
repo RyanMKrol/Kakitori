@@ -1872,6 +1872,179 @@
           "touches-core"
         ]
       }
+    },
+    {
+      "id": "T073",
+      "title": "Fix Listen & Write audio silence: activate AVAudioSession + surface errors + TTS-fallback on missing file",
+      "status": "pending",
+      "dependsOn": [],
+      "gate": null,
+      "tags": [
+        "audio",
+        "bugfix"
+      ],
+      "scope": [
+        "Sources/Audio/**",
+        "Tests/UnitTests/**"
+      ],
+      "design": null,
+      "verify": [],
+      "expectsTest": true,
+      "spec": ".harness/tasks/T073.md",
+      "facets": {
+        "layer": "services",
+        "workType": "bugfix",
+        "risk": [
+          "touches-core"
+        ]
+      }
+    },
+    {
+      "id": "T074",
+      "title": "Canvas: centre the guide box and constrain ink to it (drawable rect == visible box)",
+      "status": "pending",
+      "dependsOn": [],
+      "gate": null,
+      "tags": [
+        "canvas",
+        "bugfix",
+        "iphone",
+        "ipad"
+      ],
+      "scope": [
+        "Sources/Features/Session/Canvas/**",
+        "Sources/Features/Session/CanvasPaneView.swift"
+      ],
+      "design": null,
+      "verify": [],
+      "expectsTest": false,
+      "spec": ".harness/tasks/T074.md",
+      "facets": {
+        "layer": "canvas",
+        "workType": "bugfix",
+        "risk": []
+      }
+    },
+    {
+      "id": "T075",
+      "title": "Make Home screen scrollable so decks below the fold are reachable",
+      "status": "pending",
+      "dependsOn": [],
+      "gate": null,
+      "tags": [],
+      "scope": [
+        "Sources/Features/Home/**"
+      ],
+      "design": null,
+      "verify": [],
+      "expectsTest": false,
+      "spec": ".harness/tasks/T075.md",
+      "facets": {
+        "layer": "views",
+        "workType": "bugfix",
+        "risk": []
+      }
+    },
+    {
+      "id": "T076",
+      "title": "Per-deck daily tracking: key DailyStats by deck so one session no longer caps every deck",
+      "status": "pending",
+      "dependsOn": [],
+      "gate": null,
+      "tags": [],
+      "scope": [
+        "Sources/Models/**",
+        "Sources/Scheduler/**",
+        "Sources/Features/Home/**",
+        "Sources/Features/Session/**",
+        "Sources/App/**",
+        "Tests/UnitTests/**",
+        "Tests/Fixtures/**"
+      ],
+      "design": null,
+      "verify": [],
+      "expectsTest": true,
+      "spec": ".harness/tasks/T076.md",
+      "visualVerify": true,
+      "facets": {
+        "layer": "data",
+        "workType": "migration",
+        "risk": [
+          "touches-schema",
+          "touches-core"
+        ]
+      }
+    },
+    {
+      "id": "T077",
+      "title": "Session progress bar counts completions, not attempts — never advances on \"Again\"",
+      "status": "pending",
+      "dependsOn": [],
+      "gate": null,
+      "tags": [
+        "bug",
+        "session",
+        "progress"
+      ],
+      "scope": [
+        "Sources/Features/Session/**",
+        "Sources/Scheduler/**",
+        "Tests/**"
+      ],
+      "design": null,
+      "verify": [],
+      "expectsTest": true,
+      "spec": ".harness/tasks/T077.md",
+      "visualVerify": true,
+      "facets": {
+        "layer": "scheduler",
+        "workType": "bugfix",
+        "risk": []
+      }
+    },
+    {
+      "id": "T078",
+      "title": "Settings: restyle on-brand + make numeric fields obviously editable",
+      "status": "pending",
+      "dependsOn": [],
+      "gate": null,
+      "tags": [
+        "ui",
+        "settings"
+      ],
+      "scope": [
+        "Sources/Features/Settings/**"
+      ],
+      "design": null,
+      "verify": [],
+      "expectsTest": false,
+      "spec": ".harness/tasks/T078.md",
+      "facets": {
+        "layer": "views",
+        "workType": "style",
+        "risk": []
+      }
+    },
+    {
+      "id": "T079",
+      "title": "Fix SummaryView compact button labels swapped vs actions ('Back home' reopens setup)",
+      "status": "pending",
+      "dependsOn": [],
+      "gate": null,
+      "tags": [],
+      "scope": [
+        "Sources/Features/Summary/**",
+        "Sources/Features/Home/**"
+      ],
+      "design": null,
+      "verify": [],
+      "expectsTest": false,
+      "spec": ".harness/tasks/T079.md",
+      "facets": {
+        "layer": "views",
+        "workType": "bugfix",
+        "risk": []
+      }
     }
   ]
 }
