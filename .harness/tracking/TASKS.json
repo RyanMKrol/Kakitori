@@ -1553,7 +1553,7 @@
     {
       "id": "T060",
       "title": "Shared daily-allowance helper: banner + deck chips reflect today's allotment, not full backlog",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [],
       "gate": null,
       "tags": [
