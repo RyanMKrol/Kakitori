@@ -124,11 +124,13 @@ final class SessionViewModel {
             currentNote = notesByID[firstEntry.id]
             updatePresentedMode()
             autoplayOnCardEntry()
+        } else {
+            finish(now: now)
         }
     }
 
     func showAnswer() {
-        guard phase == .prompt else { return }
+        guard phase == .prompt, currentEntry != nil, currentNote != nil else { return }
         phase = .revealed
     }
 

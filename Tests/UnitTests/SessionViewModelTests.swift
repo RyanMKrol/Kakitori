@@ -214,6 +214,55 @@ final class SessionViewModelTests: XCTestCase {
         XCTAssertEqual(stats.secondsStudied, 60)
     }
 
+    // MARK: - Empty start (daily allowance already exhausted)
+
+    func testEmptyStartRoutesDirectlyToFinishedSummary() throws {
+        let scripted = ScriptedClock(baseNow)
+        let clock = makeClock(scripted)
+        let deck = makeDeck()
+
+        makeReviewNote(target: "あ", dueBefore: baseNow, deck: deck)
+
+        let viewModel = SessionViewModel(
+            deck: deck, mode: .trace, modelContext: modelContext, clock: clock, seed: 42,
+            newPerDay: 0, maxReviewsPerDay: 0
+        )
+
+        XCTAssertEqual(viewModel.phase, .finished)
+        XCTAssertNil(viewModel.currentNote)
+        let summary = try XCTUnwrap(viewModel.summary)
+        XCTAssertEqual(summary.cardsWritten, 0)
+        XCTAssertTrue(summary.gradeCounts.isEmpty)
+        XCTAssertEqual(summary.seconds, 0)
+
+        let dayKey = clock.adjustedDay(for: scripted.current)
+        let stats = try fetchDailyStats(for: dayKey)
+        XCTAssertEqual(stats?.secondsStudied ?? 0, 0)
+    }
+
+    func testEmptyStartShowAnswerAndGradeAreSafeNoOps() {
+        let scripted = ScriptedClock(baseNow)
+        let clock = makeClock(scripted)
+        let deck = makeDeck()
+
+        makeReviewNote(target: "あ", dueBefore: baseNow, deck: deck)
+
+        let viewModel = SessionViewModel(
+            deck: deck, mode: .trace, modelContext: modelContext, clock: clock, seed: 42,
+            newPerDay: 0, maxReviewsPerDay: 0
+        )
+
+        XCTAssertEqual(viewModel.phase, .finished)
+
+        viewModel.showAnswer()
+        XCTAssertEqual(viewModel.phase, .finished)
+
+        viewModel.grade(.good)
+        XCTAssertEqual(viewModel.phase, .finished)
+        XCTAssertEqual(viewModel.cardsWritten, 0)
+        XCTAssertTrue(viewModel.gradeCounts.isEmpty)
+    }
+
     // MARK: - Grading before reveal is a no-op
 
     func testGradeBeforeShowAnswerIsNoOp() throws {
