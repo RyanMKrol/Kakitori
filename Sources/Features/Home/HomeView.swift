@@ -52,7 +52,7 @@ struct HomeView: View {
                         onStart: { mode in startSession(deck: setupDeck, mode: mode) },
                         onClose: { self.setupDeck = nil }
                     )
-                    .presentationDetents(horizontalSizeClass == .compact ? [.medium] : [.large])
+                    .presentationDetents([.large])
                 }
             }
             .fullScreenCover(
