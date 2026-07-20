@@ -1740,7 +1740,7 @@
     {
       "id": "T068",
       "title": "Settings: replace daily-limit Steppers with clamped numeric inputs",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [],
       "gate": null,
       "tags": [
