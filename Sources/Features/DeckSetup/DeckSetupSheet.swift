@@ -153,7 +153,7 @@ struct DeckSetupSheet: View {
                         Text(mode.label)
                             .font(.body.bold())
                             .foregroundStyle(KakitoriTheme.ink)
-                        Text(mode.description)
+                        Text(modeDescription(mode))
                             .font(.caption)
                             .foregroundStyle(KakitoriTheme.ink.opacity(0.6))
                             .lineLimit(1)
@@ -168,6 +168,14 @@ struct DeckSetupSheet: View {
             }
         )
         .accessibilityIdentifier(mode.accessibilityIdentifier)
+    }
+
+    private func modeDescription(_ mode: PracticeMode) -> String {
+        if mode == .mixed {
+            let nonMixedCount = availableModes.count(where: { $0 != .mixed })
+            return "Rotate through \(nonMixedCount) mode\(nonMixedCount == 1 ? "" : "s")"
+        }
+        return mode.description
     }
 
     private func selectionRing(isSelected: Bool) -> some View {
