@@ -1638,7 +1638,7 @@
     {
       "id": "T064",
       "title": "Fix Mixed practice-mode subtitle: not 'four modes'",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [],
       "gate": null,
       "tags": [
