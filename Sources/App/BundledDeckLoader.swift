@@ -19,6 +19,9 @@ enum BundledDeckLoader {
     /// pool, never surfaced directly.
     static let deckResourceNames = ["Foundations"]
 
+    /// The `.apkg` top-level deck name the Foundations source splits under ("Kakitori Foundations::…").
+    static let rootDeckName = "Kakitori Foundations"
+
     /// Friendly display name + JP title for each section the Foundations source splits into, keyed by
     /// the importer's section name (the `.apkg` subdeck under "Kakitori Foundations::…").
     static let sectionTitles: [String: (name: String, jpTitle: String?)] = [
@@ -26,6 +29,13 @@ enum BundledDeckLoader {
         "Katakana": ("Katakana", "カタカナ"),
         "Kanji": ("Kanji", "漢字"),
     ]
+
+    /// The `sourceDeckName`s the current bundle produces — every split deck's `"<root>::<section>"`.
+    /// Any on-disk `Deck` outside this set is retired content to be pruned. Computed without parsing
+    /// the `.apkg`, so the reconcile-prune can run cheaply on every launch (not just a version bump).
+    static var expectedSourceNames: Set<String> {
+        Set(sectionTitles.keys.map { "\(rootDeckName)::\($0)" })
+    }
 
     /// Where imported deck audio/media is copied (matches the rest of the app).
     static func mediaBaseURL() -> URL {
@@ -59,13 +69,8 @@ enum BundledDeckLoader {
 
         let importer = ApkgImporter(container: container, mediaBaseURL: mediaBaseURL())
         var firstError: ImporterError?
-        var expectedSourceNames: Set<String> = []
         for url in urls {
             do {
-                let rootName = try await importer.parse(url: url).deckName
-                for key in sectionTitles.keys {
-                    expectedSourceNames.insert("\(rootName)::\(key)")
-                }
                 // Split the source deck's sections into separate Hiragana/Katakana/Kanji decks.
                 try await importer.importDeckSplitBySection(from: url, titles: sectionTitles)
             } catch let error as ImporterError {
@@ -79,6 +84,7 @@ enum BundledDeckLoader {
             pruneRetiredDecks(container: container, keeping: expectedSourceNames)
             defaults.set(bundleVersion, forKey: versionKey)
         }
+        // (`expectedSourceNames` is the computed static above — no need to derive it from a parse.)
         return firstError
     }
 
@@ -130,6 +136,13 @@ final class DeckLoadModel {
     func runIfNeeded(container: ModelContainer) async {
         guard !didRun else { return }
         didRun = true
+
+        // Reconcile the on-disk deck set against the current bundle on EVERY launch, even when the
+        // import is up to date. An install that loaded an earlier bundle version before the prune
+        // existed (or before the deck set changed) would otherwise keep retired decks forever, since
+        // the prune used to run only inside the version-gated load(). This is cheap (one fetch + a
+        // filtered delete) and self-healing.
+        BundledDeckLoader.pruneRetiredDecks(container: container, keeping: BundledDeckLoader.expectedSourceNames)
 
         guard !BundledDeckLoader.isUpToDate() else {
             phase = .idle
