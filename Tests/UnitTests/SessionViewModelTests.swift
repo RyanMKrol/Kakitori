@@ -300,4 +300,95 @@ final class SessionViewModelTests: XCTestCase {
         XCTAssertEqual(after.dueAt, beforeState.4)
         XCTAssertEqual(after.lapses, beforeState.5)
     }
+
+    // MARK: - Listen-mode audio autoplay
+
+    func testListenModeAutoplaysAudioOnEntryAndOnAdvance() throws {
+        let scripted = ScriptedClock(baseNow)
+        let clock = makeClock(scripted)
+        let deck = makeDeck()
+
+        let noteA = makeReviewNote(target: "あ", dueBefore: baseNow, deck: deck)
+        noteA.audioFilename = "a.mp3"
+        noteA.deck = deck
+        let noteB = makeReviewNote(target: "い", dueBefore: baseNow, deck: deck)
+        noteB.audioFilename = "i.mp3"
+        noteB.deck = deck
+        try modelContext.save()
+
+        let fake = FakeAudioPlayer()
+        let viewModel = SessionViewModel(
+            deck: deck, mode: .listen, modelContext: modelContext, clock: clock, seed: 42, audio: fake
+        )
+
+        // First card in a Listen session should auto-play its audio on entry.
+        XCTAssertEqual(viewModel.presentedMode, .listen)
+        XCTAssertEqual(fake.calls.count, 1, "audio should auto-play on the first Listen card")
+
+        // Advancing to the next card should auto-play again.
+        viewModel.showAnswer()
+        scripted.advance(by: 30)
+        viewModel.grade(.good)
+        XCTAssertEqual(viewModel.phase, .prompt, "there should be a second card to show")
+        XCTAssertEqual(fake.calls.count, 2, "audio should auto-play again when the next card appears")
+    }
+
+    func testTraceModeAlsoAutoplaysAudio() throws {
+        let scripted = ScriptedClock(baseNow)
+        let clock = makeClock(scripted)
+        let deck = makeDeck()
+        let note = makeReviewNote(target: "あ", dueBefore: baseNow, deck: deck)
+        note.audioFilename = "a.mp3"
+        note.deck = deck
+        try modelContext.save()
+
+        let fake = FakeAudioPlayer()
+        let viewModel = SessionViewModel(
+            deck: deck, mode: .trace, modelContext: modelContext, clock: clock, seed: 42, audio: fake
+        )
+        XCTAssertEqual(viewModel.presentedMode, .trace)
+        XCTAssertEqual(fake.calls.count, 1, "Trace mode should also auto-play the card's audio on entry")
+    }
+
+    func testTranslateModeDoesNotAutoplay() throws {
+        let scripted = ScriptedClock(baseNow)
+        let clock = makeClock(scripted)
+        let deck = makeDeck()
+        // A kanji note with English so Translate qualifies.
+        let note = Note(target: "火", pronunciation: "ひ", english: "fire", script: .kanji)
+        let schedule = CardSchedule(state: .review, dueAt: baseNow.addingTimeInterval(-3600))
+        note.schedule = schedule
+        note.audioFilename = "hi.mp3"
+        note.deck = deck
+        deck.sections[0].notes.append(note)
+        modelContext.insert(note)
+        modelContext.insert(schedule)
+        try modelContext.save()
+
+        let fake = FakeAudioPlayer()
+        let viewModel = SessionViewModel(
+            deck: deck, mode: .translate, modelContext: modelContext, clock: clock, seed: 42, audio: fake
+        )
+        XCTAssertEqual(viewModel.presentedMode, .translate)
+        XCTAssertTrue(fake.calls.isEmpty, "Translate must NOT auto-play — it would give away the answer")
+    }
+
+    func testAutoplayDoesNotFireWhenDisabled() throws {
+        UserDefaults.standard.set(false, forKey: "audioAutoplay")
+        defer { UserDefaults.standard.removeObject(forKey: "audioAutoplay") }
+
+        let scripted = ScriptedClock(baseNow)
+        let clock = makeClock(scripted)
+        let deck = makeDeck()
+        let note = makeReviewNote(target: "あ", dueBefore: baseNow, deck: deck)
+        note.audioFilename = "a.mp3"
+        note.deck = deck
+        try modelContext.save()
+
+        let fake = FakeAudioPlayer()
+        _ = SessionViewModel(
+            deck: deck, mode: .listen, modelContext: modelContext, clock: clock, seed: 42, audio: fake
+        )
+        XCTAssertTrue(fake.calls.isEmpty, "auto-play must respect the Audio autoplay setting being off")
+    }
 }
