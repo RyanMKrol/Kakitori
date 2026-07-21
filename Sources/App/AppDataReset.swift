@@ -40,7 +40,7 @@ enum AppDataReset {
         // Clear the on-disk imported media too. Deck UUIDs regenerate on the fresh re-import, so the
         // old Media/<deckID>/ trees would otherwise linger as orphans; removing the whole tree keeps
         // reset a true clean slate and lets the re-import repopulate it.
-        try? FileManager.default.removeItem(at: BundledDeckLoader.mediaBaseURL())
+        try? FileManager.default.removeItem(at: BundledDeckLoader.mediaBaseURL().appendingPathComponent("Media"))
 
         BundledDeckLoader.resetLoadedVersion(defaults: defaults)
     }

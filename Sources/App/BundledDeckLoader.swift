@@ -10,7 +10,9 @@ import SwiftData
 /// upsert → media copy), whose re-import logic is itself idempotent as a second line of defence.
 enum BundledDeckLoader {
     /// Bump when the bundled `.apkg` set changes so existing installs re-import on their next launch.
-    static let bundleVersion = 2
+    /// (v3: fixes the doubled `Media/Media/<deckID>` copy path so deck audio actually resolves —
+    /// existing installs must re-import to copy the media to the correct location.)
+    static let bundleVersion = 3
     private static let versionKey = "loadedBundledDecksVersion"
 
     /// Resource base-names (without extension) of the shipped decks, in display order. The single
@@ -37,10 +39,13 @@ enum BundledDeckLoader {
         Set(sectionTitles.keys.map { "\(rootDeckName)::\($0)" })
     }
 
-    /// Where imported deck audio/media is copied (matches the rest of the app).
+    /// The media store's base directory. `MediaStore` appends `Media/<deckID>/` itself, so this must
+    /// be `…/Kakitori` (NOT `…/Kakitori/Media`) — otherwise the copy path doubles to
+    /// `Kakitori/Media/Media/<deckID>` while `AudioService` reads `Kakitori/Media/<deckID>`, so deck
+    /// audio never resolves and every card falls back to TTS.
     static func mediaBaseURL() -> URL {
         FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("Kakitori/Media")
+            .appendingPathComponent("Kakitori")
     }
 
     static func bundledDeckURLs(in bundle: Bundle = .main) -> [URL] {
