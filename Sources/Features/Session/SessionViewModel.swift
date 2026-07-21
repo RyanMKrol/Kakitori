@@ -325,7 +325,12 @@ final class SessionViewModel {
     }
 
     private func autoplayOnCardEntry() {
-        guard !hasAutoplayed, presentedMode == .listen, autoplayEnabled else { return }
+        // Auto-play the card's pronunciation on entry in the modes where it doesn't give away the
+        // answer: Listen (the audio IS the prompt) and Trace (the character is already shown). NOT
+        // Translate — there the prompt is the English and auto-playing the Japanese reading would
+        // spoil it. Respects the "Audio autoplay" setting.
+        let autoplayMode = presentedMode == .listen || presentedMode == .trace
+        guard !hasAutoplayed, autoplayEnabled, autoplayMode else { return }
         hasAutoplayed = true
         replayAudio()
     }
