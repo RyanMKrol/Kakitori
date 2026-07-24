@@ -2049,7 +2049,7 @@
     {
       "id": "T080",
       "title": "Trace mode must not autoplay card audio on entry",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [],
       "gate": null,
       "tags": [
