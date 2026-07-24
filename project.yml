@@ -28,6 +28,9 @@ targets:
         buildPhase: resources
     settings:
       base:
+        # App icon lives in Sources/Assets.xcassets/AppIcon.appiconset (single 1024 image,
+        # Xcode downsizes the rest). The catalog is picked up via the `Sources` source dir above.
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         # Explicit — XcodeGen's derived id would be com.ryankrol.Kakitori (capital K);
         # build_run.sh, the harness overlays, and sibling-repo convention use lowercase.
         PRODUCT_BUNDLE_IDENTIFIER: com.ryankrol.kakitori
