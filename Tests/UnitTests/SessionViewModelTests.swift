@@ -333,7 +333,7 @@ final class SessionViewModelTests: XCTestCase {
         XCTAssertEqual(fake.calls.count, 2, "audio should auto-play again when the next card appears")
     }
 
-    func testTraceModeAlsoAutoplaysAudio() throws {
+    func testTraceModeDoesNotAutoplayAudio() throws {
         let scripted = ScriptedClock(baseNow)
         let clock = makeClock(scripted)
         let deck = makeDeck()
@@ -347,7 +347,7 @@ final class SessionViewModelTests: XCTestCase {
             deck: deck, mode: .trace, modelContext: modelContext, clock: clock, seed: 42, audio: fake
         )
         XCTAssertEqual(viewModel.presentedMode, .trace)
-        XCTAssertEqual(fake.calls.count, 1, "Trace mode should also auto-play the card's audio on entry")
+        XCTAssertTrue(fake.calls.isEmpty, "Trace mode does NOT auto-play — user must tap the replay button")
     }
 
     func testTranslateModeDoesNotAutoplay() throws {
