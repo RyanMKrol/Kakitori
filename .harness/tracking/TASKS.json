@@ -2045,6 +2045,226 @@
         "workType": "bugfix",
         "risk": []
       }
+    },
+    {
+      "id": "T080",
+      "title": "Trace mode must not autoplay card audio on entry",
+      "status": "pending",
+      "dependsOn": [],
+      "gate": null,
+      "tags": [
+        "session",
+        "audio",
+        "bugfix"
+      ],
+      "scope": [
+        "Sources/Features/Session/SessionViewModel.swift",
+        "Tests/UnitTests/SessionViewModelTests.swift"
+      ],
+      "design": null,
+      "verify": [],
+      "expectsTest": true,
+      "spec": ".harness/tasks/T080.md",
+      "facets": {
+        "layer": "views",
+        "workType": "bugfix",
+        "risk": []
+      }
+    },
+    {
+      "id": "T081",
+      "title": "Fire card autoplay on view appearance, not in view-model init/grade",
+      "status": "pending",
+      "dependsOn": [
+        "T080"
+      ],
+      "gate": null,
+      "tags": [
+        "session",
+        "audio",
+        "bugfix",
+        "timing"
+      ],
+      "scope": [
+        "Sources/Features/Session/**",
+        "Tests/UnitTests/SessionViewModelTests.swift"
+      ],
+      "design": null,
+      "verify": [],
+      "expectsTest": true,
+      "spec": ".harness/tasks/T081.md",
+      "facets": {
+        "layer": "views",
+        "workType": "refactor",
+        "risk": []
+      }
+    },
+    {
+      "id": "T082",
+      "title": "Don't launch a hollow session when a deck is already caught up",
+      "status": "pending",
+      "dependsOn": [],
+      "gate": null,
+      "tags": [
+        "session",
+        "bugfix",
+        "caught-up"
+      ],
+      "scope": [
+        "Sources/Features/Session/**",
+        "Sources/Features/Home/**",
+        "Tests/UnitTests/SessionViewModelTests.swift"
+      ],
+      "design": null,
+      "verify": [],
+      "expectsTest": true,
+      "spec": ".harness/tasks/T082.md",
+      "facets": {
+        "layer": "views",
+        "workType": "bugfix",
+        "risk": []
+      }
+    },
+    {
+      "id": "T083",
+      "title": "Free Study session path decoupled from SRS (no schedule, no stats)",
+      "status": "pending",
+      "dependsOn": [
+        "T082"
+      ],
+      "gate": null,
+      "tags": [
+        "session",
+        "scheduler",
+        "free-study",
+        "feature"
+      ],
+      "scope": [
+        "Sources/Features/Session/**",
+        "Sources/Scheduler/**",
+        "Tests/UnitTests/SessionViewModelTests.swift",
+        "Tests/UnitTests/FreeStudyTests.swift"
+      ],
+      "design": null,
+      "verify": [],
+      "expectsTest": true,
+      "spec": ".harness/tasks/T083.md",
+      "facets": {
+        "layer": "scheduler",
+        "workType": "feature",
+        "risk": [
+          "touches-core"
+        ]
+      }
+    },
+    {
+      "id": "T084",
+      "title": "Free Study entry point + visibly-distinct Free Study session UI",
+      "status": "pending",
+      "dependsOn": [
+        "T082",
+        "T083"
+      ],
+      "gate": null,
+      "tags": [
+        "session",
+        "views",
+        "free-study",
+        "feature"
+      ],
+      "scope": [
+        "Sources/Features/Session/**",
+        "Sources/Features/Home/**",
+        "Sources/Features/Summary/**"
+      ],
+      "design": null,
+      "verify": [],
+      "expectsTest": false,
+      "spec": ".harness/tasks/T084.md",
+      "facets": {
+        "layer": "views",
+        "workType": "feature",
+        "risk": []
+      }
+    },
+    {
+      "id": "T085",
+      "title": "'Study another' on Summary routes to a deck/script picker, not the same deck",
+      "status": "pending",
+      "dependsOn": [
+        "T082"
+      ],
+      "gate": null,
+      "tags": [
+        "summary",
+        "home",
+        "views",
+        "bugfix",
+        "navigation"
+      ],
+      "scope": [
+        "Sources/Features/Summary/**",
+        "Sources/Features/Home/**"
+      ],
+      "design": null,
+      "verify": [],
+      "expectsTest": false,
+      "spec": ".harness/tasks/T085.md",
+      "facets": {
+        "layer": "views",
+        "workType": "bugfix",
+        "risk": []
+      }
+    },
+    {
+      "id": "T086",
+      "title": "Settings number fields: allow clearing while focused so a new value can be typed",
+      "status": "pending",
+      "dependsOn": [],
+      "gate": null,
+      "tags": [
+        "settings",
+        "bugfix",
+        "frontend"
+      ],
+      "scope": [
+        "Sources/Features/Settings/**"
+      ],
+      "design": null,
+      "verify": [],
+      "expectsTest": false,
+      "spec": ".harness/tasks/T086.md",
+      "facets": {
+        "layer": "views",
+        "workType": "bugfix",
+        "risk": []
+      }
+    },
+    {
+      "id": "T087",
+      "title": "Grow the writing canvas to fill the pane, as one continuous surface sized to N characters",
+      "status": "pending",
+      "dependsOn": [],
+      "gate": null,
+      "tags": [
+        "canvas",
+        "layout",
+        "session"
+      ],
+      "scope": [
+        "Sources/Features/Session/**",
+        "Tests/UnitTests/GuideBoxGridGeometryTests.swift",
+        "Tests/UnitTests/CanvasPaneRenderTests.swift"
+      ],
+      "design": null,
+      "verify": [],
+      "expectsTest": false,
+      "spec": ".harness/tasks/T087.md",
+      "facets": {
+        "layer": "canvas",
+        "workType": "bugfix",
+        "risk": []
+      }
     }
   ]
 }
