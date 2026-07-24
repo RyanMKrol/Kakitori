@@ -39,6 +39,9 @@ struct CanvasPaneView: View {
             }
         }
         .padding(16)
+        .task(id: viewModel.currentNote?.id) {
+            viewModel.triggerAutoplayOnCardAppearance()
+        }
         .onChange(of: viewModel.currentNote?.id) {
             controller.clear()
         }

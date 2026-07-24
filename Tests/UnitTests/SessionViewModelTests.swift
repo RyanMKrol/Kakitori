@@ -321,16 +321,27 @@ final class SessionViewModelTests: XCTestCase {
             deck: deck, mode: .listen, modelContext: modelContext, clock: clock, seed: 42, audio: fake
         )
 
-        // First card in a Listen session should auto-play its audio on entry.
+        // Construction alone does not auto-play — must be triggered by view appearance.
         XCTAssertEqual(viewModel.presentedMode, .listen)
-        XCTAssertEqual(fake.calls.count, 1, "audio should auto-play on the first Listen card")
+        XCTAssertTrue(fake.calls.isEmpty, "audio should NOT auto-play during init()")
 
-        // Advancing to the next card should auto-play again.
+        // Trigger autoplay for the first card (simulates view appearing).
+        viewModel.triggerAutoplayOnCardAppearance()
+        XCTAssertEqual(fake.calls.count, 1, "audio should auto-play when view trigger is called")
+
+        // Advancing to the next card: grade first.
         viewModel.showAnswer()
         scripted.advance(by: 30)
         viewModel.grade(.good)
         XCTAssertEqual(viewModel.phase, .prompt, "there should be a second card to show")
-        XCTAssertEqual(fake.calls.count, 2, "audio should auto-play again when the next card appears")
+        XCTAssertEqual(fake.calls.count, 1, "audio should NOT auto-play during grade()")
+
+        // Trigger autoplay for the second card (simulates view appearing with new card id).
+        viewModel.triggerAutoplayOnCardAppearance()
+        XCTAssertEqual(
+            fake.calls.count, 2,
+            "audio should auto-play again when the view trigger is called for the new card"
+        )
     }
 
     func testTraceModeDoesNotAutoplayAudio() throws {
@@ -347,6 +358,10 @@ final class SessionViewModelTests: XCTestCase {
             deck: deck, mode: .trace, modelContext: modelContext, clock: clock, seed: 42, audio: fake
         )
         XCTAssertEqual(viewModel.presentedMode, .trace)
+        XCTAssertTrue(fake.calls.isEmpty, "Trace mode does NOT auto-play during init()")
+
+        // Even if the view trigger is called, Trace mode still does not auto-play.
+        viewModel.triggerAutoplayOnCardAppearance()
         XCTAssertTrue(fake.calls.isEmpty, "Trace mode does NOT auto-play — user must tap the replay button")
     }
 
@@ -386,9 +401,13 @@ final class SessionViewModelTests: XCTestCase {
         try modelContext.save()
 
         let fake = FakeAudioPlayer()
-        _ = SessionViewModel(
+        let viewModel = SessionViewModel(
             deck: deck, mode: .listen, modelContext: modelContext, clock: clock, seed: 42, audio: fake
         )
+        XCTAssertTrue(fake.calls.isEmpty, "auto-play must respect the Audio autoplay setting being off")
+
+        // Even if the view trigger is called, autoplay setting off prevents playback.
+        viewModel.triggerAutoplayOnCardAppearance()
         XCTAssertTrue(fake.calls.isEmpty, "auto-play must respect the Audio autoplay setting being off")
     }
 }

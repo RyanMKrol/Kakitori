@@ -144,7 +144,6 @@ final class SessionViewModel {
             currentEntry = firstEntry
             currentNote = notesByID[firstEntry.id]
             updatePresentedMode()
-            autoplayOnCardEntry()
         } else {
             finish(now: now)
         }
@@ -201,7 +200,6 @@ final class SessionViewModel {
             updatePresentedMode()
             phase = .prompt
             hasAutoplayed = false
-            autoplayOnCardEntry()
         } else {
             finish(now: now)
         }
@@ -324,8 +322,8 @@ final class SessionViewModel {
         presentedMode = modeResolver.nextMode(cardState: currentEntry.snapshot.state, qualifies: qualifies)
     }
 
-    private func autoplayOnCardEntry() {
-        // Auto-play the card's pronunciation on entry only in Listen mode, where the audio IS the
+    func triggerAutoplayOnCardAppearance() {
+        // Auto-play the card's pronunciation on appearance only in Listen mode, where the audio IS the
         // prompt. NOT Trace — the user must explicitly tap replay. NOT Translate — there the prompt
         // is the English and auto-playing the Japanese reading would spoil it. Respects the "Audio
         // autoplay" setting.
