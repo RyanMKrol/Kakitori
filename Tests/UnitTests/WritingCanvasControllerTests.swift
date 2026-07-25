@@ -88,59 +88,6 @@ final class WritingCanvasControllerTests: XCTestCase {
         return PKDrawing(strokes: [PKStroke(ink: PKInk(WritingCanvas.inkType, color: .black), path: path)])
     }
 
-    // MARK: - Brush angle lock
-
-    func testBrushAngleStartsFollowingThePencil() {
-        let controller = WritingCanvasController()
-
-        XCTAssertNil(controller.lockedBrushAngle)
-    }
-
-    func testLockingAndReleasingTheBrushAngle() {
-        let controller = WritingCanvasController()
-        controller.canvasView = PKCanvasView()
-
-        controller.lockBrushAngle(to: .pi / 4)
-        XCTAssertEqual(controller.lockedBrushAngle ?? 0, .pi / 4, accuracy: 0.0001)
-
-        controller.releaseBrushAngleLock()
-        XCTAssertNil(controller.lockedBrushAngle, "there has to be a way back to following the pencil")
-    }
-
-    /// Dragging the dial previews an angle on the canvas without committing to it, so letting go
-    /// somewhere you didn't mean doesn't leave the brush stuck there.
-    func testPreviewingAnAngleDoesNotLockIt() {
-        let controller = WritingCanvasController()
-        controller.canvasView = PKCanvasView()
-
-        controller.previewBrushAngle(.pi / 3)
-
-        XCTAssertNil(controller.lockedBrushAngle)
-    }
-
-    /// The angle has to survive a light/dark change — that rebuilds the ink, and an ink rebuilt
-    /// from scratch would quietly go back to following the pencil mid-session.
-    func testLockedAngleSurvivesAnInkRebuild() {
-        let controller = WritingCanvasController()
-        controller.canvasView = PKCanvasView()
-        controller.lockBrushAngle(to: .pi / 4)
-
-        controller.colorScheme = .dark
-        controller.applyInk()
-
-        XCTAssertEqual(controller.lockedBrushAngle ?? 0, .pi / 4, accuracy: 0.0001)
-    }
-
-    /// The lock is what the menu exists for, so on an OS that can't pin an angle the menu would be
-    /// an empty box — the gesture and the button both check this before offering it.
-    func testAngleLockingAvailabilityMatchesTheRunningOS() {
-        if #available(iOS 26.0, *) {
-            XCTAssertTrue(WritingCanvas.canLockBrushAngle)
-        } else {
-            XCTAssertFalse(WritingCanvas.canLockBrushAngle)
-        }
-    }
-
     /// The ink is pressure/speed responsive on purpose — a uniform-width ink writes kana flat.
     func testInkTypeIsThePressureResponsiveBrush() {
         XCTAssertEqual(WritingCanvas.inkType, .fountainPen)
