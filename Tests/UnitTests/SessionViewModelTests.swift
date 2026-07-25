@@ -90,6 +90,59 @@ final class SessionViewModelTests: XCTestCase {
         return try modelContext.fetch(descriptor).first
     }
 
+    // MARK: - Caught up with no queue but daily target zero
+
+    func testCaughtUpWhenNoQueueAndNoDailyTarget() throws {
+        let scripted = ScriptedClock(baseNow)
+        let clock = makeClock(scripted)
+        let deck = makeDeck()
+
+        let viewModel = SessionViewModel(
+            deck: deck, mode: .trace, modelContext: modelContext, clock: clock, seed: 42,
+            newPerDay: 0, maxReviewsPerDay: 0
+        )
+
+        XCTAssertEqual(viewModel.phase, .caughtUp)
+        XCTAssertNil(viewModel.currentNote)
+        XCTAssertNil(viewModel.summary, "caught-up session must not have a summary")
+
+        let dayKey = clock.adjustedDay(for: scripted.current)
+        let stats = try fetchDailyStats(for: dayKey)
+        XCTAssertEqual(stats?.secondsStudied ?? 0, 0, "caught-up session must not record study seconds")
+    }
+
+    func testCaughtUpWhenDailyTargetMetBeforeSession() throws {
+        let scripted = ScriptedClock(baseNow)
+        let clock = makeClock(scripted)
+        let deck = makeDeck()
+
+        let note = makeReviewNote(target: "あ", dueBefore: baseNow, deck: deck)
+
+        let viewModel = SessionViewModel(
+            deck: deck, mode: .trace, modelContext: modelContext, clock: clock, seed: 42,
+            newPerDay: 1, maxReviewsPerDay: 10
+        )
+
+        XCTAssertEqual(viewModel.phase, .prompt)
+        XCTAssertNotNil(viewModel.currentNote)
+        viewModel.showAnswer()
+        scripted.advance(by: 30)
+        viewModel.grade(.good)
+
+        XCTAssertEqual(viewModel.phase, .finished)
+        let summary1 = try XCTUnwrap(viewModel.summary)
+        XCTAssertEqual(summary1.cardsWritten, 1)
+
+        let viewModel2 = SessionViewModel(
+            deck: deck, mode: .trace, modelContext: modelContext, clock: clock, seed: 42,
+            newPerDay: 1, maxReviewsPerDay: 10
+        )
+
+        XCTAssertEqual(viewModel2.phase, .caughtUp, "second session should be caught-up since daily target is met")
+        XCTAssertNil(viewModel2.currentNote)
+        XCTAssertNil(viewModel2.summary, "caught-up session must not have a summary")
+    }
+
     // MARK: - Happy path
 
     func testHappyPathThreeReviewCards() throws {
@@ -216,7 +269,7 @@ final class SessionViewModelTests: XCTestCase {
 
     // MARK: - Empty start (daily allowance already exhausted)
 
-    func testEmptyStartRoutesDirectlyToFinishedSummary() throws {
+    func testEmptyStartRoutsTooCaughtUpState() throws {
         let scripted = ScriptedClock(baseNow)
         let clock = makeClock(scripted)
         let deck = makeDeck()
@@ -228,16 +281,13 @@ final class SessionViewModelTests: XCTestCase {
             newPerDay: 0, maxReviewsPerDay: 0
         )
 
-        XCTAssertEqual(viewModel.phase, .finished)
+        XCTAssertEqual(viewModel.phase, .caughtUp)
         XCTAssertNil(viewModel.currentNote)
-        let summary = try XCTUnwrap(viewModel.summary)
-        XCTAssertEqual(summary.cardsWritten, 0)
-        XCTAssertTrue(summary.gradeCounts.isEmpty)
-        XCTAssertEqual(summary.seconds, 0)
+        XCTAssertNil(viewModel.summary, "caught-up session must not synthesize a summary")
 
         let dayKey = clock.adjustedDay(for: scripted.current)
         let stats = try fetchDailyStats(for: dayKey)
-        XCTAssertEqual(stats?.secondsStudied ?? 0, 0)
+        XCTAssertEqual(stats?.secondsStudied ?? 0, 0, "caught-up session must not record study seconds")
     }
 
     func testEmptyStartShowAnswerAndGradeAreSafeNoOps() {
@@ -252,13 +302,13 @@ final class SessionViewModelTests: XCTestCase {
             newPerDay: 0, maxReviewsPerDay: 0
         )
 
-        XCTAssertEqual(viewModel.phase, .finished)
+        XCTAssertEqual(viewModel.phase, .caughtUp)
 
         viewModel.showAnswer()
-        XCTAssertEqual(viewModel.phase, .finished)
+        XCTAssertEqual(viewModel.phase, .caughtUp)
 
         viewModel.grade(.good)
-        XCTAssertEqual(viewModel.phase, .finished)
+        XCTAssertEqual(viewModel.phase, .caughtUp)
         XCTAssertEqual(viewModel.cardsWritten, 0)
         XCTAssertTrue(viewModel.gradeCounts.isEmpty)
     }

@@ -11,6 +11,7 @@ final class SessionViewModel {
         case prompt
         case revealed
         case finished
+        case caughtUp
     }
 
     struct SessionSummary: Equatable {
@@ -145,7 +146,7 @@ final class SessionViewModel {
             currentNote = notesByID[firstEntry.id]
             updatePresentedMode()
         } else {
-            finish(now: now)
+            phase = .caughtUp
         }
     }
 
@@ -206,7 +207,7 @@ final class SessionViewModel {
     }
 
     func close() {
-        guard phase != .finished else { return }
+        guard phase != .finished, phase != .caughtUp else { return }
 
         let now = clock.now()
         recordStudySeconds(now: now)

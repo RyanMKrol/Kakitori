@@ -121,6 +121,8 @@ struct HomeView: View {
                         activeSessionDeck = nil
                     }
                 )
+            } else if activeSession.phase == .caughtUp {
+                caughtUpView
             } else {
                 SessionView(viewModel: activeSession, onClose: {
                     activeSession.close()
@@ -135,6 +137,38 @@ struct HomeView: View {
         let allStats = (try? modelContext.fetch(FetchDescriptor<DailyStats>())) ?? []
         let activeDays = Set(allStats.map(\.day))
         return DailyStats.currentStreak(activeDays: activeDays, now: AppClock.system.now(), clock: .system)
+    }
+
+    private var caughtUpView: some View {
+        VStack(spacing: 32) {
+            Spacer()
+            VStack(spacing: 16) {
+                Text("All caught up")
+                    .font(.title.bold())
+                    .foregroundStyle(KakitoriTheme.ink)
+                Text("Nothing due right now")
+                    .font(.body)
+                    .foregroundStyle(KakitoriTheme.ink.opacity(0.6))
+            }
+            Spacer()
+            Button(action: {
+                activeSession = nil
+                activeSessionDeck = nil
+            }, label: {
+                Text("Back to home")
+                    .kakitoriFont(size: 16, weight: .semibold)
+                    .foregroundStyle(KakitoriTheme.paper)
+                    .frame(maxWidth: .infinity)
+                    .padding(12)
+                    .background(KakitoriTheme.accent)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+            })
+            .accessibilityIdentifier("caught-up-back-home")
+            .padding()
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(KakitoriTheme.paper)
+        .accessibilityIdentifier("session-caught-up")
     }
 
     private func dueCount(for deck: Deck) -> Int {
