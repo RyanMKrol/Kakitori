@@ -49,6 +49,11 @@ final class SessionViewModel {
     private var modeResolver: ModeResolver
     private let dailyStatsRow: DailyStats?
 
+    /// True when this session is a Free Study session: SRS-decoupled, endless, never persists a
+    /// `CardSchedule` change or a `DailyStats` write. See the dedicated Free Study initializer.
+    private let isFreeStudy: Bool
+    private var freeStudySource: FreeStudySource?
+
     var newCount: Int {
         queue.newCount
     }
@@ -100,6 +105,7 @@ final class SessionViewModel {
         self.clock = clock
         self.audio = audio
         rng = SplitMix64(seed: seed)
+        isFreeStudy = false
 
         let deckScripts = Set(deck.sections.flatMap(\.notes).compactMap { !$0.isDeleted ? $0.script : nil })
         let availableModes = ModeAvailability.deckModes(scripts: deckScripts).filter { $0 != .mixed }
@@ -150,6 +156,57 @@ final class SessionViewModel {
         }
     }
 
+    /// Constructs the view model in Free Study mode (idea #8 Part B): a session completely
+    /// decoupled from the SRS. It draws only previously-seen cards (`CardState != .new`) from
+    /// `FreeStudySource`, shuffled and endless, and never reads or writes `CardSchedule` /
+    /// `DailyStats` — the deck's daily target is left untouched. Ending is user-initiated
+    /// (`close()`); Free Study never auto-finishes.
+    init(
+        freeStudyDeck deck: Deck,
+        mode: PracticeMode,
+        modelContext: ModelContext,
+        clock: AppClock,
+        seed: UInt64,
+        audio: any AudioPlaying = AudioService()
+    ) {
+        self.mode = mode
+        deckName = deck.name
+        deckKey = deck.sourceDeckName
+        self.modelContext = modelContext
+        self.clock = clock
+        self.audio = audio
+        rng = SplitMix64(seed: seed)
+        isFreeStudy = true
+
+        let deckScripts = Set(deck.sections.flatMap(\.notes).compactMap { !$0.isDeleted ? $0.script : nil })
+        let availableModes = ModeAvailability.deckModes(scripts: deckScripts).filter { $0 != .mixed }
+        modeResolver = ModeResolver(sessionMode: mode, availableModes: availableModes)
+
+        sessionStart = clock.now()
+
+        // Free Study never touches the daily target or completion tracking — left inert.
+        dailyStatsRow = nil
+        dayTarget = 0
+        dayCompleted = 0
+
+        let notes = deck.sections.flatMap(\.notes).filter { !$0.isDeleted }
+        let built = Self.buildEntries(notes: notes, mode: mode, audio: audio, completedTodayIDs: [])
+        notesByID = built.notesByID
+
+        // Unused in Free Study — the endless FreeStudySource drives card selection instead.
+        queue = SessionQueue(entries: [])
+
+        var source = FreeStudySource(entries: built.entries, rng: &rng)
+        if let firstEntry = source.next(rng: &rng) {
+            currentEntry = firstEntry
+            currentNote = notesByID[firstEntry.id]
+        } else {
+            phase = .caughtUp
+        }
+        freeStudySource = source
+        updatePresentedMode()
+    }
+
     func showAnswer() {
         guard phase == .prompt, currentEntry != nil, currentNote != nil else { return }
         phase = .revealed
@@ -161,7 +218,18 @@ final class SessionViewModel {
     }
 
     func grade(_ grade: Grade) {
-        guard phase == .revealed, let currentEntry, let note = currentNote, let schedule = note.schedule else {
+        guard phase == .revealed, currentEntry != nil, currentNote != nil else {
+            return
+        }
+
+        // Free Study's grading control is a single 'Next / Keep going' advance, not the four SRS
+        // grade buttons — persist nothing and return before any scheduler/StatsRecorder call.
+        if isFreeStudy {
+            advanceFreeStudy()
+            return
+        }
+
+        guard let currentEntry, let note = currentNote, let schedule = note.schedule else {
             return
         }
 
@@ -206,8 +274,27 @@ final class SessionViewModel {
         }
     }
 
+    /// Free Study's advance path: pulls the next card from the endless `FreeStudySource` and
+    /// persists nothing — no `scheduler.apply`, no `CardSchedule` mutation, no `StatsRecorder`
+    /// call. `cardsWritten` is tracked in-memory only, for the session summary display.
+    func advanceFreeStudy() {
+        cardsWritten += 1
+        guard let nextEntry = freeStudySource?.next(rng: &rng) else {
+            currentEntry = nil
+            currentNote = nil
+            phase = .caughtUp
+            return
+        }
+        currentEntry = nextEntry
+        currentNote = notesByID[nextEntry.id]
+        updatePresentedMode()
+        phase = .prompt
+        hasAutoplayed = false
+    }
+
     func close() {
         guard phase != .finished, phase != .caughtUp else { return }
+        guard !isFreeStudy else { return }
 
         let now = clock.now()
         recordStudySeconds(now: now)
