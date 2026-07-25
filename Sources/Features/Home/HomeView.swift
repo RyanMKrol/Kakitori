@@ -11,7 +11,6 @@ struct HomeView: View {
     @State private var setupDeck: Deck?
     @State private var activeSession: SessionViewModel?
     @State private var activeSessionDeck: Deck?
-    @State private var deckPendingRestudy: Deck?
 
     var body: some View {
         NavigationStack(path: $navigationPath) {
@@ -80,12 +79,6 @@ struct HomeView: View {
             }
             .fullScreenCover(
                 isPresented: sessionCoverBinding,
-                onDismiss: {
-                    if let deckPendingRestudy {
-                        setupDeck = deckPendingRestudy
-                        self.deckPendingRestudy = nil
-                    }
-                },
                 content: { sessionCoverContent }
             )
         }
@@ -117,7 +110,6 @@ struct HomeView: View {
                         activeSessionDeck = nil
                     },
                     onStudyAnother: {
-                        deckPendingRestudy = activeSessionDeck
                         self.activeSession = nil
                         activeSessionDeck = nil
                     }
