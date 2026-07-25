@@ -2325,7 +2325,7 @@
     {
       "id": "T090",
       "title": "Show caught-up state inline on the deck setup sheet and retire the full-screen interstitial",
-      "status": "blocked",
+      "status": "done",
       "dependsOn": [
         "T089"
       ],
@@ -2353,7 +2353,7 @@
     {
       "id": "T091",
       "title": "Rework Summary buttons to Free Study (top) and Back home (bottom)",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [
         "T089",
         "T090"

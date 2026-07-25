@@ -24,7 +24,7 @@ struct CanvasPaneView: View {
                     TraceGuideLayer(
                         units: segmentedUnits,
                         maxBoxesPerRow: maxBoxesPerRow,
-                        isVisible: viewModel.mode == .trace
+                        isVisible: viewModel.presentedMode == .trace
                     )
                     WritingCanvas(controller: controller, colorScheme: colorScheme)
                         .frame(
@@ -58,7 +58,7 @@ struct CanvasPaneView: View {
     }
 
     private var hint: String {
-        switch viewModel.mode {
+        switch viewModel.presentedMode {
         case .trace:
             "Trace each character in its box"
         case .listen:

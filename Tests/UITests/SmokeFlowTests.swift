@@ -9,25 +9,43 @@ final class SmokeFlowTests: XCTestCase {
         let app = XCUIApplication()
         app.launch()
 
-        // A deck row — query by identifier prefix (rows carry deck-row-<name>), not display name.
+        // Deck rows — query by identifier prefix (rows carry deck-row-<name>), not display name.
         // The bundled decks import on first launch, so allow generous time for that one-time load.
-        let deckRow = app.descendants(matching: .any)
+        let deckRows = app.descendants(matching: .any)
             .matching(NSPredicate(format: "identifier BEGINSWITH 'deck-row-'"))
-            .firstMatch
-        XCTAssertTrue(deckRow.waitForExistence(timeout: 60), "A bundled deck row should appear on Home once loaded.")
-        deckRow.tap()
-
-        // Deck setup sheet → Trace mode → Start writing.
-        let traceMode = app.buttons["mode-trace"]
-        XCTAssertTrue(traceMode.waitForExistence(timeout: 10), "The deck setup sheet should offer mode-trace.")
-        traceMode.tap()
-
-        let startWriting = app.buttons["start-writing"]
         XCTAssertTrue(
-            startWriting.waitForExistence(timeout: 10),
-            "start-writing should be available once a mode is picked."
+            deckRows.firstMatch.waitForExistence(timeout: 60),
+            "A bundled deck row should appear on Home once loaded."
         )
-        startWriting.tap()
+
+        // Don't assume the FIRST deck has cards due. A deck that has finished its daily target
+        // offers Free Study instead of "Start writing", and this test needs a normal SRS session.
+        // A fresh simulator hits that on deck 0, but a device that has already been studied today
+        // does not — and the local Definition-of-Done gate runs on exactly such a device, so
+        // assuming deck 0 makes the whole gate fail as the day progresses.
+        let startWriting = app.buttons["start-writing"]
+        let closeSheet = app.buttons["deck-setup-close"]
+        var startedSession = false
+
+        for index in 0 ..< deckRows.count {
+            deckRows.element(boundBy: index).tap()
+
+            let traceMode = app.buttons["mode-trace"]
+            XCTAssertTrue(traceMode.waitForExistence(timeout: 10), "The deck setup sheet should offer mode-trace.")
+            traceMode.tap()
+
+            if startWriting.waitForExistence(timeout: 3) {
+                startWriting.tap()
+                startedSession = true
+                break
+            }
+
+            // Caught up — close and try the next deck.
+            closeSheet.tap()
+            XCTAssertTrue(closeSheet.waitForNonExistence(timeout: 5), "The deck setup sheet should dismiss.")
+        }
+
+        XCTAssertTrue(startedSession, "No deck had cards due — every bundled deck is already done for today.")
 
         // In the session: reveal the answer.
         let showAnswer = app.buttons["show-answer"]

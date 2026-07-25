@@ -88,13 +88,16 @@ struct SessionView: View {
                     .kakitoriFont(size: 12, weight: .bold)
                     .lineLimit(1)
 
+                // The card's resolved mode, not the session's pick — matches the reference
+                // prototype, and in a mixed session "Mixed" tells the user nothing about the card
+                // in front of them.
                 HStack(spacing: 4) {
-                    Text(viewModel.mode.glyph)
+                    Text(viewModel.presentedMode.glyph)
                         .kakitoriFont(size: 11)
                         .accessibilityHidden(true)
                     Text("·")
                         .kakitoriFont(size: 11)
-                    Text(viewModel.mode.label)
+                    Text(viewModel.presentedMode.label)
                         .kakitoriFont(size: 11)
                 }
                 .foregroundStyle(KakitoriTheme.ink.opacity(0.6))

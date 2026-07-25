@@ -45,7 +45,10 @@ struct PromptPaneView: View {
 
     @ViewBuilder
     private var promptView: some View {
-        switch viewModel.mode {
+        // `presentedMode`, NOT `mode`: `mode` is the session-level pick, which is `.mixed` for a
+        // mixed session and would fall through to the trace prompt on every card. The resolved
+        // per-card mode is what the user is actually being asked to do.
+        switch viewModel.presentedMode {
         case .listen:
             listenModePrompt
         case .translate:

@@ -7,11 +7,11 @@ final class ModeResolverTests: XCTestCase {
         let qualifyAll: (PracticeMode) -> Bool = { _ in true }
 
         let modes = [
-            resolver.nextMode(cardState: .learning, qualifies: qualifyAll),
-            resolver.nextMode(cardState: .learning, qualifies: qualifyAll),
-            resolver.nextMode(cardState: .learning, qualifies: qualifyAll),
-            resolver.nextMode(cardState: .learning, qualifies: qualifyAll),
-            resolver.nextMode(cardState: .learning, qualifies: qualifyAll),
+            resolver.nextMode(qualifies: qualifyAll),
+            resolver.nextMode(qualifies: qualifyAll),
+            resolver.nextMode(qualifies: qualifyAll),
+            resolver.nextMode(qualifies: qualifyAll),
+            resolver.nextMode(qualifies: qualifyAll),
         ]
 
         XCTAssertEqual(modes, [.trace, .listen, .translate, .trace, .listen])
@@ -21,47 +21,45 @@ final class ModeResolverTests: XCTestCase {
         var resolver = ModeResolver(sessionMode: .mixed, availableModes: [.trace, .listen, .translate])
         let qualifyAll: (PracticeMode) -> Bool = { _ in true }
 
-        let mode1 = resolver.nextMode(cardState: .learning, qualifies: qualifyAll)
+        let mode1 = resolver.nextMode(qualifies: qualifyAll)
         XCTAssertEqual(mode1, .trace)
 
         let skipListen: (PracticeMode) -> Bool = { mode in
             mode != .listen
         }
-        let mode2 = resolver.nextMode(cardState: .learning, qualifies: skipListen)
+        let mode2 = resolver.nextMode(qualifies: skipListen)
         XCTAssertEqual(mode2, .translate)
 
         // After translate the rotation wraps back to trace.
-        let mode3 = resolver.nextMode(cardState: .learning, qualifies: qualifyAll)
+        let mode3 = resolver.nextMode(qualifies: qualifyAll)
         XCTAssertEqual(mode3, .trace)
     }
 
-    func testNewCardForcedToTrace() {
+    /// The chosen mode is honoured on every card, including a card's very first exposure. An
+    /// earlier build forced first exposures into Trace; that override is gone.
+    func testChosenModeIsHonouredOnEveryCard() {
         var resolver = ModeResolver(sessionMode: .listen, availableModes: [])
         let qualifyAll: (PracticeMode) -> Bool = { _ in true }
 
-        let mode1 = resolver.nextMode(cardState: .new, qualifies: qualifyAll)
-        XCTAssertEqual(mode1, .trace)
-
-        let mode2 = resolver.nextMode(cardState: .learning, qualifies: qualifyAll)
-        XCTAssertEqual(mode2, .listen)
+        XCTAssertEqual(resolver.nextMode(qualifies: qualifyAll), .listen)
+        XCTAssertEqual(resolver.nextMode(qualifies: qualifyAll), .listen)
     }
 
-    func testNewCardDoesNotConsumeRotationStep() {
+    /// Mixed rotates from the very first card — no card is skipped over or pinned to Trace.
+    func testMixedRotatesFromTheFirstCard() {
         var resolver = ModeResolver(sessionMode: .mixed, availableModes: [.trace, .listen, .translate])
         let qualifyAll: (PracticeMode) -> Bool = { _ in true }
 
-        let mode1 = resolver.nextMode(cardState: .new, qualifies: qualifyAll)
-        XCTAssertEqual(mode1, .trace)
-
-        let mode2 = resolver.nextMode(cardState: .learning, qualifies: qualifyAll)
-        XCTAssertEqual(mode2, .trace)
+        XCTAssertEqual(resolver.nextMode(qualifies: qualifyAll), .trace)
+        XCTAssertEqual(resolver.nextMode(qualifies: qualifyAll), .listen)
+        XCTAssertEqual(resolver.nextMode(qualifies: qualifyAll), .translate)
     }
 
     func testNonMixedModeIgnoresAvailableModes() {
         var resolver = ModeResolver(sessionMode: .translate, availableModes: [.trace, .listen])
         let qualifyAll: (PracticeMode) -> Bool = { _ in true }
 
-        let mode = resolver.nextMode(cardState: .learning, qualifies: qualifyAll)
+        let mode = resolver.nextMode(qualifies: qualifyAll)
         XCTAssertEqual(mode, .translate)
     }
 
@@ -69,7 +67,7 @@ final class ModeResolverTests: XCTestCase {
         var resolver = ModeResolver(sessionMode: .listen, availableModes: [])
         let qualifyNone: (PracticeMode) -> Bool = { _ in false }
 
-        let mode = resolver.nextMode(cardState: .learning, qualifies: qualifyNone)
+        let mode = resolver.nextMode(qualifies: qualifyNone)
         XCTAssertEqual(mode, .trace)
     }
 
@@ -77,7 +75,7 @@ final class ModeResolverTests: XCTestCase {
         var resolver = ModeResolver(sessionMode: .mixed, availableModes: [])
         let qualifyAll: (PracticeMode) -> Bool = { _ in true }
 
-        let mode = resolver.nextMode(cardState: .learning, qualifies: qualifyAll)
+        let mode = resolver.nextMode(qualifies: qualifyAll)
         XCTAssertEqual(mode, .trace)
     }
 
@@ -85,7 +83,7 @@ final class ModeResolverTests: XCTestCase {
         var resolver = ModeResolver(sessionMode: .mixed, availableModes: [.trace, .listen, .translate])
         let qualifyNone: (PracticeMode) -> Bool = { _ in false }
 
-        let mode = resolver.nextMode(cardState: .learning, qualifies: qualifyNone)
+        let mode = resolver.nextMode(qualifies: qualifyNone)
         XCTAssertEqual(mode, .trace)
     }
 }

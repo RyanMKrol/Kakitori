@@ -95,9 +95,12 @@ During the session:
 **Scheduling state is per card, not per mode.** A card graded in any mode updates the single
 shared schedule. Mode choice is a session-level lens:
 
-- New cards default to appearing in **Trace** regardless of the chosen mode for their first
-  exposure (a card you've never seen shouldn't be a memory test). After first grading, the
-  card follows the session's chosen mode.
+- **The mode the user picks is honoured on every card**, including a card's first exposure.
+  (Earlier drafts forced first exposures into Trace on the grounds that a card you've never seen
+  shouldn't be a memory test. That override is gone: when you pick a mode, you get that mode.)
+  The only reason a card appears in a different mode is that it can't support the chosen one —
+  no audio for Listen, no English gloss for Translate — and it then falls back to Trace, which
+  every card supports.
 - This keeps the model simple; per-mode scheduling (separate card per mode, like Anki's
   Recognition/Production templates) is a possible future change — see §8.
 
