@@ -402,12 +402,7 @@ final class SessionViewModel {
             )
         }
 
-        guard let currentEntry else {
-            presentedMode = .trace
-            return
-        }
-
-        presentedMode = modeResolver.nextMode(cardState: currentEntry.snapshot.state, qualifies: qualifies)
+        presentedMode = modeResolver.nextMode(qualifies: qualifies)
     }
 
     func triggerAutoplayOnCardAppearance() {

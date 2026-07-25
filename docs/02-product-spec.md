@@ -86,7 +86,9 @@ The modes differ only in the *prompt* and in whether guides appear in the canvas
 - Prompt pane: "Write over the faded guides" + instruction text. The reading is shown.
 - Canvas: each guide box contains the target character rendered as a **faded grey guide**;
   the user writes directly over it.
-- Purpose: first exposure / motor learning. This is the default mode for `new` cards.
+- Purpose: first exposure / motor learning. It is also the fallback whenever a card can't support
+  the mode the user chose (no audio, no English gloss), since every card can be traced. It is not
+  forced on `new` cards: a chosen mode applies to every card (see `03-srs-algorithm.md` §6).
 
 ### 2.2 Listen & Write (聞き取り)
 
