@@ -29,6 +29,19 @@ public enum KakitoriTheme {
     public static let ink = Color(uiColor: inkUIColor)
     public static let inkFaint = ink.opacity(0.12)
     public static let accent = Color(red: 196 / 255, green: 59 / 255, blue: 46 / 255)
+    private static let freeStudyAccentLight = UIColor(red: 40 / 255, green: 110 / 255, blue: 210 / 255, alpha: 1)
+    private static let freeStudyAccentDark = UIColor(red: 90 / 255, green: 150 / 255, blue: 235 / 255, alpha: 1)
+
+    /// Accent for the Free Study feature (Start Free Study button, Summary button, running-session
+    /// badge): a blue distinct from the vermillion `accent`, legible on both light and dark `paper`.
+    public static let freeStudyAccent = Color(uiColor: UIColor { trait in
+        trait.userInterfaceStyle == .dark ? freeStudyAccentDark : freeStudyAccentLight
+    })
+
+    /// Shared on-screen label for the Free Study feature, used consistently across the
+    /// deck-setup button, the Summary button, and the running-session badge.
+    public static let freeStudyLabel = "Free Study"
+
     public static let boxLine = ink.opacity(0.08)
 
     /// Elevated card surface, distinct from `paper` for light-mode elevation contrast.
