@@ -2325,7 +2325,7 @@
     {
       "id": "T090",
       "title": "Show caught-up state inline on the deck setup sheet and retire the full-screen interstitial",
-      "status": "pending",
+      "status": "blocked",
       "dependsOn": [
         "T089"
       ],
