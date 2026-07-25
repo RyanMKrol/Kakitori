@@ -17,7 +17,8 @@ struct CanvasPaneView: View {
                 let gridSize = GuideBoxGridGeometry.gridSize(
                     units: segmentedUnits,
                     maxBoxesPerRow: maxBoxesPerRow,
-                    availableWidth: geometry.size.width
+                    availableWidth: geometry.size.width,
+                    availableHeight: geometry.size.height
                 )
 
                 ZStack {
@@ -56,8 +57,12 @@ struct CanvasPaneView: View {
         return TargetSegmenter.segment(target)
     }
 
+    private var isCompact: Bool {
+        horizontalSizeClass == .compact
+    }
+
     private var maxBoxesPerRow: Int {
-        horizontalSizeClass == .compact ? 4 : 6
+        isCompact ? 4 : 6
     }
 
     private var hint: String {
@@ -73,25 +78,43 @@ struct CanvasPaneView: View {
         }
     }
 
+    /// The hint labels the canvas, so it sits centred over it on iPad rather than pinned to the far
+    /// left with the buttons pinned to the far right — across a full-width iPad that reads as two
+    /// unrelated things at opposite corners. Compact keeps them in a row; there isn't the width to
+    /// centre the hint without it running into the buttons.
     private var topRow: some View {
-        HStack(alignment: .top) {
-            Text(hint)
-                .kakitoriFont(size: 13)
-                .foregroundStyle(KakitoriTheme.ink.opacity(0.5))
-                .accessibilityIdentifier("canvas-hint")
+        ZStack(alignment: .top) {
+            if !isCompact {
+                hintLabel
+                    .frame(maxWidth: .infinity)
+                    .multilineTextAlignment(.center)
+            }
 
-            Spacer()
-
-            HStack(spacing: 8) {
-                pillButton(title: "↶ Undo", identifier: "canvas-undo") {
-                    controller.undo()
+            HStack(alignment: .top) {
+                if isCompact {
+                    hintLabel
                 }
 
-                pillButton(title: "Clear", identifier: "canvas-clear") {
-                    controller.clear()
+                Spacer()
+
+                HStack(spacing: 8) {
+                    pillButton(title: "↶ Undo", identifier: "canvas-undo") {
+                        controller.undo()
+                    }
+
+                    pillButton(title: "Clear", identifier: "canvas-clear") {
+                        controller.clear()
+                    }
                 }
             }
         }
+    }
+
+    private var hintLabel: some View {
+        Text(hint)
+            .kakitoriFont(size: 13)
+            .foregroundStyle(KakitoriTheme.ink.opacity(0.5))
+            .accessibilityIdentifier("canvas-hint")
     }
 
     private func pillButton(title: String, identifier: String, action: @escaping () -> Void) -> some View {

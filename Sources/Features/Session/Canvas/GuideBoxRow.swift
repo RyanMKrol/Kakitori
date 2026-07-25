@@ -27,7 +27,9 @@ struct GuideBoxRow: View {
                         }
                         let boxSize = GuideBoxGridGeometry.boxSize(
                             forRowBoxCount: rowBoxCount,
-                            availableWidth: geometry.size.width
+                            availableWidth: geometry.size.width,
+                            availableHeight: geometry.size.height,
+                            rowCount: wrappedRows.count
                         )
 
                         HStack(spacing: GuideBoxGridGeometry.interItemSpacing) {

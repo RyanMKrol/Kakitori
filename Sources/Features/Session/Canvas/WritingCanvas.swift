@@ -39,9 +39,10 @@ struct WritingCanvas: UIViewRepresentable {
     static let inkType: PKInkingTool.InkType = .fountainPen
 
     /// The BASE width. PencilKit scales each point either side of it from the input dynamics, so
-    /// the drawn stroke ranges roughly half to double this. Sized up from the old flat 6pt pen: a
-    /// tapering stroke needs headroom above the old width to read as a brush at its thickest.
-    static let brushWidth: CGFloat = 9
+    /// the drawn stroke ranges roughly half to double this. Sized up from the old flat 6pt pen (a
+    /// tapering stroke needs headroom above the old width to read as a brush at its thickest), then
+    /// trimmed back ~17% from the first pass at 9pt, which wrote a touch heavy on real hardware.
+    static let brushWidth: CGFloat = 7.5
 
     let controller: WritingCanvasController
 

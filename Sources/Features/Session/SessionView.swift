@@ -15,41 +15,22 @@ struct SessionView: View {
         ZStack {
             KakitoriTheme.paper.ignoresSafeArea()
 
-            if isCompact {
-                compactLayout
-            } else {
-                regularLayout
+            GeometryReader { geometry in
+                stackedLayout(promptHeight: promptBandHeight(forTotalHeight: geometry.size.height))
             }
         }
     }
 
-    /// Regular (iPad / regular width): side-by-side prompt pane + canvas/action column.
-    private var regularLayout: some View {
-        VStack(spacing: 0) {
-            topBar
-                .frame(height: 60)
-                .overlay(alignment: .bottom) {
-                    Divider().background(KakitoriTheme.boxLine)
-                }
-
-            HStack(spacing: 0) {
-                promptPane
-                    .frame(maxWidth: .infinity)
-
-                VStack(spacing: 0) {
-                    canvasPane
-                        .frame(maxHeight: .infinity)
-
-                    actionRow
-                }
-                .frame(maxWidth: .infinity)
-            }
-            .frame(maxHeight: .infinity)
-        }
-    }
-
-    /// Compact (iPhone / portrait, docs/06 §2.3): prompt band above the canvas, actions pinned bottom.
-    private var compactLayout: some View {
+    /// One vertical stack on every device: prompt band across the top, the writing surface filling
+    /// everything below it, actions pinned full-width at the bottom.
+    ///
+    /// iPad used to be side-by-side (prompt left, canvas right). That left the canvas boxed into
+    /// half the width with dead space around them, stranded the canvas hint mid-page away from the
+    /// canvas it labels, pushed the primary button into the bottom-right corner, and — because the
+    /// answer replaced only the left column — put the answer off in the top-left. Stacking gives
+    /// the prompt (and the answer that replaces it) the full width, centred, and gives the canvas
+    /// every point that's left.
+    private func stackedLayout(promptHeight: CGFloat) -> some View {
         VStack(spacing: 0) {
             topBar
                 .frame(height: 60)
@@ -58,7 +39,7 @@ struct SessionView: View {
                 }
 
             promptPane
-                .frame(height: 280)
+                .frame(height: promptHeight)
                 .overlay(alignment: .bottom) {
                     Divider().background(KakitoriTheme.boxLine)
                 }
@@ -68,6 +49,15 @@ struct SessionView: View {
 
             actionRow
         }
+    }
+
+    /// How much height the prompt band takes. iPhone keeps its fixed 280 (docs/06 §2.3). On iPad it
+    /// scales with the screen and is clamped, so a short landscape window doesn't hand most of its
+    /// height to the prompt and starve the canvas, and a tall portrait one doesn't leave the prompt
+    /// marooned in a band of empty paper.
+    private func promptBandHeight(forTotalHeight totalHeight: CGFloat) -> CGFloat {
+        guard !isCompact else { return 280 }
+        return min(340, max(260, totalHeight * 0.30))
     }
 
     // MARK: - Top Bar
