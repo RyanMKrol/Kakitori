@@ -21,7 +21,17 @@ final class WritingCanvasController {
 }
 
 struct WritingCanvas: UIViewRepresentable {
-    static let penWidth: CGFloat = 6
+    /// Kana and kanji are brush forms: a stroke swells where the brush is pressed and tapers into
+    /// the はらい sweep at the end. A uniform-width `.pen` flattens that away, so writing practice
+    /// looks nothing like the model the user is copying. `.fountainPen` modulates width per point
+    /// from pressure, speed and tilt, which is the closest PencilKit ink to a brush. It varies on
+    /// speed alone, so finger drawing gets the thick/thin too — pressure is a bonus with a Pencil.
+    static let inkType: PKInkingTool.InkType = .fountainPen
+
+    /// The BASE width. PencilKit scales each point either side of it from the input dynamics, so
+    /// the drawn stroke ranges roughly half to double this. Sized up from the old flat 6pt pen: a
+    /// tapering stroke needs headroom above the old width to read as a brush at its thickest.
+    static let brushWidth: CGFloat = 9
 
     let controller: WritingCanvasController
 
@@ -59,10 +69,17 @@ struct WritingCanvas: UIViewRepresentable {
         canvasView.tool = Self.inkingTool(for: colorScheme)
     }
 
-    private static func inkingTool(for colorScheme: ColorScheme) -> PKInkingTool {
+    static func inkingTool(for colorScheme: ColorScheme) -> PKInkingTool {
         let style: UIUserInterfaceStyle = colorScheme == .dark ? .dark : .light
         let trait = UITraitCollection(userInterfaceStyle: style)
-        return PKInkingTool(.pen, color: KakitoriTheme.resolvedInkColor(for: trait), width: penWidth)
+        return PKInkingTool(inkType, color: KakitoriTheme.resolvedInkColor(for: trait), width: resolvedWidth)
+    }
+
+    /// Each ink has its own legal width range and PencilKit silently clamps out-of-range values —
+    /// so clamp deliberately, and let the test assert the base width is one the ink can honour.
+    static var resolvedWidth: CGFloat {
+        let range = inkType.validWidthRange
+        return min(max(brushWidth, range.lowerBound), range.upperBound)
     }
 
     func makeCoordinator() -> Coordinator {
