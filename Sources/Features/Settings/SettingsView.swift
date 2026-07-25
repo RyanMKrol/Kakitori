@@ -49,7 +49,7 @@ struct SettingsView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 8))
                         .frame(width: 60)
                         .onReceive(Just(newCardsPerDay)) { value in
-                            if newCardsText.isEmpty {
+                            if newCardsText.isEmpty, focusedField != .newCards {
                                 newCardsText = "\(value)"
                             }
                         }
@@ -82,7 +82,7 @@ struct SettingsView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 8))
                         .frame(width: 60)
                         .onReceive(Just(maxReviewsPerDay)) { value in
-                            if maxReviewsText.isEmpty {
+                            if maxReviewsText.isEmpty, focusedField != .maxReviews {
                                 maxReviewsText = "\(value)"
                             }
                         }
