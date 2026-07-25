@@ -48,6 +48,7 @@ struct DeckSetupSheet: View {
     let enTitle: String
     let dueCount: Int
     let onStart: (PracticeMode) -> Void
+    let onStartFreeStudy: (PracticeMode) -> Void
     let onClose: () -> Void
     let availableModes: [PracticeMode]
 
@@ -59,6 +60,7 @@ struct DeckSetupSheet: View {
         dueCount: Int,
         availableModes: [PracticeMode],
         onStart: @escaping (PracticeMode) -> Void,
+        onStartFreeStudy: @escaping (PracticeMode) -> Void,
         onClose: @escaping () -> Void
     ) {
         self.jpTitle = jpTitle
@@ -66,8 +68,15 @@ struct DeckSetupSheet: View {
         self.dueCount = dueCount
         self.availableModes = availableModes
         self.onStart = onStart
+        self.onStartFreeStudy = onStartFreeStudy
         self.onClose = onClose
         _selectedMode = State(initialValue: availableModes.first)
+    }
+
+    /// A deck with nothing left due today. The sheet still offers every practice mode — Free Study
+    /// runs in whichever one is picked; it just reads and writes no SRS state.
+    private var isCaughtUp: Bool {
+        dueCount == 0
     }
 
     var body: some View {
@@ -75,6 +84,9 @@ struct DeckSetupSheet: View {
             headerBand
 
             VStack(spacing: 24) {
+                if isCaughtUp {
+                    caughtUpMessage
+                }
                 modeCaption
                 modeList
                 Spacer()
@@ -95,7 +107,7 @@ struct DeckSetupSheet: View {
                     .font(KakitoriTheme.japaneseDisplayFont(size: 28))
                     .foregroundStyle(KakitoriTheme.paper)
 
-                Text("\(enTitle) · \(dueCount) cards to study")
+                Text(isCaughtUp ? "\(enTitle) · nothing left due today" : "\(enTitle) · \(dueCount) cards to study")
                     .font(.subheadline)
                     .foregroundStyle(KakitoriTheme.paper.opacity(0.8))
             }
@@ -112,6 +124,21 @@ struct DeckSetupSheet: View {
         }
         .padding(20)
         .background(KakitoriTheme.ink)
+    }
+
+    private var caughtUpMessage: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("All study done for the day.")
+                .kakitoriFont(size: 20, weight: .bold)
+                .foregroundStyle(KakitoriTheme.ink)
+
+            Text("You've already completed your study for the day. This is an endless practice run.")
+                .font(.subheadline)
+                .foregroundStyle(KakitoriTheme.ink.opacity(0.6))
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityIdentifier("deck-setup-caught-up")
     }
 
     private var modeCaption: some View {
@@ -188,33 +215,70 @@ struct DeckSetupSheet: View {
         .frame(width: 24, height: 24)
     }
 
+    @ViewBuilder
     private var startButton: some View {
+        if isCaughtUp {
+            actionButton(
+                title: "Start \(KakitoriTheme.freeStudyLabel)",
+                background: KakitoriTheme.freeStudyAccent,
+                identifier: "start-free-study",
+                action: onStartFreeStudy
+            )
+        } else {
+            actionButton(
+                title: "Start writing",
+                background: KakitoriTheme.accent,
+                identifier: "start-writing",
+                action: onStart
+            )
+        }
+    }
+
+    private func actionButton(
+        title: String,
+        background: Color,
+        identifier: String,
+        action: @escaping (PracticeMode) -> Void
+    ) -> some View {
         Button(
             action: {
                 guard let mode = selectedMode else { return }
-                onStart(mode)
+                action(mode)
             },
             label: {
-                Text("Start writing")
+                Text(title)
                     .kakitoriFont(size: 16, weight: .semibold)
                     .foregroundStyle(KakitoriTheme.paper)
                     .frame(maxWidth: .infinity)
                     .padding(16)
-                    .background(KakitoriTheme.accent)
+                    .background(background)
             }
         )
-        .accessibilityIdentifier("start-writing")
+        .accessibilityIdentifier(identifier)
         .padding(16)
     }
 }
 
-#Preview {
+#Preview("Cards due") {
     DeckSetupSheet(
         jpTitle: "ひらがな",
         enTitle: "Hiragana",
         dueCount: 10,
         availableModes: [.trace, .listen, .mixed],
         onStart: { _ in },
+        onStartFreeStudy: { _ in },
+        onClose: {}
+    )
+}
+
+#Preview("Caught up") {
+    DeckSetupSheet(
+        jpTitle: "ひらがな",
+        enTitle: "Hiragana",
+        dueCount: 0,
+        availableModes: [.trace, .listen, .mixed],
+        onStart: { _ in },
+        onStartFreeStudy: { _ in },
         onClose: {}
     )
 }

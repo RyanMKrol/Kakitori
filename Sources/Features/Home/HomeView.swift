@@ -58,6 +58,7 @@ struct HomeView: View {
                         dueCount: dueCount(for: setupDeck),
                         availableModes: availableModes,
                         onStart: { mode in startSession(deck: setupDeck, mode: mode) },
+                        onStartFreeStudy: { mode in startFreeStudySession(deck: setupDeck, mode: mode) },
                         onClose: { self.setupDeck = nil }
                     )
                     .presentationDetents([.large])
@@ -114,8 +115,6 @@ struct HomeView: View {
                         activeSessionDeck = nil
                     }
                 )
-            } else if activeSession.phase == .caughtUp {
-                caughtUpView
             } else {
                 SessionView(viewModel: activeSession, onClose: {
                     activeSession.close()
@@ -130,56 +129,6 @@ struct HomeView: View {
         let allStats = (try? modelContext.fetch(FetchDescriptor<DailyStats>())) ?? []
         let activeDays = Set(allStats.map(\.day))
         return DailyStats.currentStreak(activeDays: activeDays, now: AppClock.system.now(), clock: .system)
-    }
-
-    private var caughtUpView: some View {
-        VStack(spacing: 32) {
-            Spacer()
-            VStack(spacing: 16) {
-                Text("All caught up")
-                    .font(.title.bold())
-                    .foregroundStyle(KakitoriTheme.ink)
-                Text("Nothing due right now")
-                    .font(.body)
-                    .foregroundStyle(KakitoriTheme.ink.opacity(0.6))
-            }
-            Spacer()
-            VStack(spacing: 12) {
-                Button(action: {
-                    if let deck = activeSessionDeck {
-                        startFreeStudySession(deck: deck)
-                    }
-                }, label: {
-                    Text("Start Free Study")
-                        .kakitoriFont(size: 16, weight: .semibold)
-                        .foregroundStyle(KakitoriTheme.ink)
-                        .frame(maxWidth: .infinity)
-                        .padding(12)
-                        .background(KakitoriTheme.surface)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                        .overlay(RoundedRectangle(cornerRadius: 12).stroke(KakitoriTheme.boxLine, lineWidth: 1))
-                })
-                .accessibilityIdentifier("start-free-study")
-
-                Button(action: {
-                    activeSession = nil
-                    activeSessionDeck = nil
-                }, label: {
-                    Text("Back to home")
-                        .kakitoriFont(size: 16, weight: .semibold)
-                        .foregroundStyle(KakitoriTheme.paper)
-                        .frame(maxWidth: .infinity)
-                        .padding(12)
-                        .background(KakitoriTheme.accent)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                })
-                .accessibilityIdentifier("caught-up-back-home")
-            }
-            .padding()
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(KakitoriTheme.paper)
-        .accessibilityIdentifier("session-caught-up")
     }
 
     private func dueCount(for deck: Deck) -> Int {
@@ -217,16 +166,22 @@ struct HomeView: View {
         )
     }
 
-    private func startFreeStudySession(deck: Deck) {
+    private func startFreeStudySession(deck: Deck, mode: PracticeMode) {
         setupDeck = nil
-        activeSessionDeck = deck
-        activeSession = SessionViewModel(
+        let session = SessionViewModel(
             freeStudyDeck: deck,
-            mode: .trace,
+            mode: mode,
             modelContext: modelContext,
             clock: .system,
             seed: UInt64.random(in: UInt64.min ... UInt64.max)
         )
+        // Defensive only: Free Study needs a non-empty previously-seen pool, and an empty one
+        // reports itself as `.caughtUp`. The UI can't reach that state (a caught-up deck has
+        // always been studied, and an unstudied deck has cards due so it offers "Start writing"),
+        // and there is no caught-up screen any more — so bail silently rather than show anything.
+        guard session.phase != .caughtUp else { return }
+        activeSessionDeck = deck
+        activeSession = session
     }
 
     private var header: some View {
