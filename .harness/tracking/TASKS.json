@@ -2269,7 +2269,7 @@
     {
       "id": "T088",
       "title": "Fix Listen autoplay regression: fire once the writing card has appeared and settled",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [],
       "gate": null,
       "tags": [
