@@ -56,6 +56,7 @@ struct HomeView: View {
                         jpTitle: setupDeck.jpTitle ?? setupDeck.name,
                         enTitle: setupDeck.name,
                         dueCount: dueCount(for: setupDeck),
+                        isCaughtUp: isCaughtUp(for: setupDeck),
                         availableModes: availableModes,
                         onStart: { mode in startSession(deck: setupDeck, mode: mode) },
                         onStartFreeStudy: { mode in startFreeStudySession(deck: setupDeck, mode: mode) },
@@ -144,6 +145,17 @@ struct HomeView: View {
             newIntroducedToday: stats?.newIntroduced ?? 0,
             reviewsDoneToday: stats?.reviewsDone ?? 0
         ).total
+    }
+
+    /// Same call the Home deck card's "All caught up" line makes, so the card and the setup sheet
+    /// always agree about a deck.
+    private func isCaughtUp(for deck: Deck) -> Bool {
+        let stats = todayStats(for: deck)
+        return DailyAllowance.isDayComplete(
+            dailyTarget: stats?.dailyTarget ?? 0,
+            completedToday: stats?.completedToday ?? 0,
+            liveAllowanceTotal: dueCount(for: deck)
+        )
     }
 
     private func todayStats(for deck: Deck) -> DailyStats? {

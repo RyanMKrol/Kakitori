@@ -47,6 +47,13 @@ struct DeckSetupSheet: View {
     let jpTitle: String
     let enTitle: String
     let dueCount: Int
+    /// The deck has finished its daily target. Decided by `DailyAllowance.isDayComplete` and
+    /// passed in, NOT re-derived from `dueCount` here — the Home deck card says "All caught up"
+    /// off the same call, and a deck can still have a non-zero live allowance once its target is
+    /// met, so inferring it from `dueCount == 0` made the two screens contradict each other.
+    /// The sheet still offers every practice mode when caught up: Free Study runs in whichever
+    /// one is picked, it just reads and writes no SRS state.
+    let isCaughtUp: Bool
     let onStart: (PracticeMode) -> Void
     let onStartFreeStudy: (PracticeMode) -> Void
     let onClose: () -> Void
@@ -58,6 +65,7 @@ struct DeckSetupSheet: View {
         jpTitle: String,
         enTitle: String,
         dueCount: Int,
+        isCaughtUp: Bool,
         availableModes: [PracticeMode],
         onStart: @escaping (PracticeMode) -> Void,
         onStartFreeStudy: @escaping (PracticeMode) -> Void,
@@ -66,17 +74,12 @@ struct DeckSetupSheet: View {
         self.jpTitle = jpTitle
         self.enTitle = enTitle
         self.dueCount = dueCount
+        self.isCaughtUp = isCaughtUp
         self.availableModes = availableModes
         self.onStart = onStart
         self.onStartFreeStudy = onStartFreeStudy
         self.onClose = onClose
         _selectedMode = State(initialValue: availableModes.first)
-    }
-
-    /// A deck with nothing left due today. The sheet still offers every practice mode — Free Study
-    /// runs in whichever one is picked; it just reads and writes no SRS state.
-    private var isCaughtUp: Bool {
-        dueCount == 0
     }
 
     var body: some View {
@@ -107,7 +110,9 @@ struct DeckSetupSheet: View {
                     .font(KakitoriTheme.japaneseDisplayFont(size: 28))
                     .foregroundStyle(KakitoriTheme.paper)
 
-                Text(isCaughtUp ? "\(enTitle) · nothing left due today" : "\(enTitle) · \(dueCount) cards to study")
+                // Matches the Home deck card's wording when the day's target is met, so the two
+                // screens read the same about the same deck.
+                Text(isCaughtUp ? "\(enTitle) · all caught up" : "\(enTitle) · \(dueCount) cards to study")
                     .font(.subheadline)
                     .foregroundStyle(KakitoriTheme.paper.opacity(0.8))
             }
@@ -264,6 +269,7 @@ struct DeckSetupSheet: View {
         jpTitle: "ひらがな",
         enTitle: "Hiragana",
         dueCount: 10,
+        isCaughtUp: false,
         availableModes: [.trace, .listen, .mixed],
         onStart: { _ in },
         onStartFreeStudy: { _ in },
@@ -276,6 +282,7 @@ struct DeckSetupSheet: View {
         jpTitle: "ひらがな",
         enTitle: "Hiragana",
         dueCount: 0,
+        isCaughtUp: true,
         availableModes: [.trace, .listen, .mixed],
         onStart: { _ in },
         onStartFreeStudy: { _ in },

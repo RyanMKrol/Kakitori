@@ -38,6 +38,20 @@ struct DailyAllowance: Equatable {
         max(0, cap - doneToday)
     }
 
+    /// Has this deck finished its fixed daily target? This is the SINGLE definition of
+    /// "done for today" — the Home deck card's "All caught up" line and the deck setup sheet's
+    /// Free Study variant both go through it, so the two can never disagree about the same deck.
+    /// (They used to: the card compared progress against the day's snapshotted target while the
+    /// sheet asked whether the live allowance was empty, so a deck could read "All caught up" on
+    /// Home and still offer "Start writing · 4 cards to study" on the sheet.)
+    ///
+    /// `dailyTarget` is the DailyStats snapshot for today; it is 0 before any study happens, in
+    /// which case the live allowance total stands in as the denominator.
+    static func isDayComplete(dailyTarget: Int, completedToday: Int, liveAllowanceTotal: Int) -> Bool {
+        let allotment = dailyTarget > 0 ? dailyTarget : liveAllowanceTotal
+        return allotment == 0 || min(completedToday, allotment) >= allotment
+    }
+
     /// Today's allotment for a single pool of notes, mirroring `SessionQueue.build`'s cap logic:
     /// due learning/relearning is uncapped; new cards and due reviews are capped by the
     /// remaining daily allowance.

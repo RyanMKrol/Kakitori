@@ -281,7 +281,11 @@ struct DeckCardView: View {
     }
 
     var isAllCaughtUp: Bool {
-        todayAllotment == 0 || completedToday >= todayAllotment
+        DailyAllowance.isDayComplete(
+            dailyTarget: dailyTarget,
+            completedToday: completedTodayCount,
+            liveAllowanceTotal: allowance.total
+        )
     }
 
     private var allowance: DailyAllowance {
