@@ -9,6 +9,7 @@ struct SettingsView: View {
     @AppStorage("showRomaji") private var showRomaji = true
 
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.dismiss) private var dismiss
     @Environment(DeckLoadModel.self) private var deckLoad
 
     @State private var newCardsText: String
@@ -150,24 +151,27 @@ struct SettingsView: View {
         .padding(.horizontal)
     }
 
+    /// Wipes progress, kicks off the deck reload, and returns to Home. Staying on Settings after
+    /// confirming leaves you looking at the one screen that shows nothing about what just happened —
+    /// the reset is visible on Home, so that's where the confirmation should land you.
     private func performReset() {
         try? AppDataReset.resetAll(container: modelContext.container)
         Task { await deckLoad.retry(container: modelContext.container) }
+        dismiss()
     }
 
+    /// A number outside the allowed range is CLAMPED into it, not thrown away. Discarding it looked
+    /// like the field was broken: type 99 into a field that capped at 50 and the whole entry was
+    /// dropped, so the box snapped back to what it said before with no hint why.
     private func commitNewCardsValue() {
-        let min = 1
-        let max = 50
-        if let value = Int(newCardsText.trimmingCharacters(in: .whitespaces)), value >= min, value <= max {
+        if let value = DailyLimits.clampNewCardsPerDay(newCardsText) {
             newCardsPerDay = value
         }
         newCardsText = "\(newCardsPerDay)"
     }
 
     private func commitMaxReviewsValue() {
-        let min = 10
-        let max = 500
-        if let value = Int(maxReviewsText.trimmingCharacters(in: .whitespaces)), value >= min, value <= max {
+        if let value = DailyLimits.clampMaxReviewsPerDay(maxReviewsText) {
             maxReviewsPerDay = value
         }
         maxReviewsText = "\(maxReviewsPerDay)"

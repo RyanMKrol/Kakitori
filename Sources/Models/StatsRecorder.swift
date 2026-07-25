@@ -48,10 +48,17 @@ enum StatsRecorder {
         dailyStats.secondsStudied += seconds
     }
 
-    /// Ensure the (today, deck) `DailyStats` row exists and, on first creation for the day, SNAPSHOT
-    /// the deck's `dailyTarget` — the fixed number of cards to practise today (unified-progress). The
-    /// snapshot is taken with nothing done yet, so it's the full fresh quota and never shrinks as
-    /// cards are completed. Idempotent: an existing row is returned unchanged.
+    /// Ensure the (today, deck) `DailyStats` row exists and SNAPSHOT the deck's `dailyTarget` — the
+    /// number of cards to practise today (unified-progress). The snapshot is taken with nothing done
+    /// yet, so it's the full fresh quota and never shrinks as cards are completed.
+    ///
+    /// An existing row's target is RAISED if the current daily limits now allow more than it was
+    /// snapshotted with — raise the new-cards limit at lunchtime and today's target grows to match,
+    /// rather than staying stuck on the number the day started with. It is never lowered: the target
+    /// is the denominator of a progress bar, and shrinking it mid-day can put completed above total
+    /// and would walk the bar backwards. Recomputing costs nothing when the limits haven't moved —
+    /// cards finished today are no longer due, so the fresh quota only comes out larger when the
+    /// limits themselves grew.
     @discardableResult
     static func ensureDailyStats(
         for deck: Deck,
@@ -64,14 +71,6 @@ enum StatsRecorder {
         let dayKey = clock.adjustedDay(for: now)
         let deckKey: String? = deck.sourceDeckName
 
-        var descriptor = FetchDescriptor<DailyStats>(
-            predicate: #Predicate { $0.day == dayKey && $0.deckKey == deckKey }
-        )
-        descriptor.fetchLimit = 1
-        if let existing = try context.fetch(descriptor).first {
-            return existing
-        }
-
         let target = DailyAllowance.forDeck(
             deck,
             now: now,
@@ -81,6 +80,18 @@ enum StatsRecorder {
             newIntroducedToday: 0,
             reviewsDoneToday: 0
         ).total
+
+        var descriptor = FetchDescriptor<DailyStats>(
+            predicate: #Predicate { $0.day == dayKey && $0.deckKey == deckKey }
+        )
+        descriptor.fetchLimit = 1
+        if let existing = try context.fetch(descriptor).first {
+            // Cards already finished today are part of the day's work, so they count towards the
+            // raised target rather than being added on top of it.
+            existing.dailyTarget = max(existing.dailyTarget, target + existing.completedToday)
+            return existing
+        }
+
         let row = DailyStats(day: dayKey, deckKey: deckKey, dailyTarget: target)
         context.insert(row)
         return row
