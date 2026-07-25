@@ -144,6 +144,43 @@ final class SessionViewModelTests: SessionViewModelTestCase {
         XCTAssertEqual(viewModel.gradeCounts[.good], 1)
     }
 
+    // MARK: - Advancing never leaks the next card's answer
+
+    /// Grading advances the card and starts the answer block's fade-out in the same beat. The block
+    /// renders `revealedNote`, so the answer on screen must stay the card just graded until the next
+    /// reveal — otherwise the next card's answer is readable through the fade.
+    func testRevealedNoteHoldsGradedCardWhileAnswerFadesOut() throws {
+        let scripted = ScriptedClock(baseNow)
+        let clock = makeClock(scripted)
+        let deck = makeDeck()
+
+        let firstNote = makeReviewNote(target: "あ", dueBefore: baseNow, deck: deck)
+        let secondNote = makeReviewNote(target: "い", dueBefore: baseNow, deck: deck)
+
+        let viewModel = SessionViewModel(
+            deck: deck, mode: .trace, modelContext: modelContext, clock: clock, seed: 42
+        )
+
+        XCTAssertNil(viewModel.revealedNote, "nothing is revealed before the first Show answer")
+
+        viewModel.showAnswer()
+        let gradedID = try XCTUnwrap(viewModel.currentNote?.id)
+        XCTAssertEqual(viewModel.revealedNote?.id, gradedID)
+
+        viewModel.grade(.good)
+
+        // The card has moved on, but the fading answer block must still show the graded card.
+        XCTAssertNotEqual(viewModel.currentNote?.id, gradedID)
+        XCTAssertEqual(viewModel.revealedNote?.id, gradedID)
+
+        // Only the next reveal — by which point the block is invisible — swaps the answer.
+        let nextID = try XCTUnwrap(viewModel.currentNote?.id)
+        viewModel.showAnswer()
+        XCTAssertEqual(viewModel.revealedNote?.id, nextID)
+
+        XCTAssertEqual(Set([firstNote.id, secondNote.id]), Set([gradedID, nextID]))
+    }
+
     // MARK: - Close preserves partial progress
 
     func testClosePreservesPartialProgress() throws {
