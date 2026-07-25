@@ -210,6 +210,16 @@ final class SessionViewModel {
     func showAnswer() {
         guard phase == .prompt, currentEntry != nil, currentNote != nil else { return }
         phase = .revealed
+        triggerAutoplayOnReveal()
+    }
+
+    /// The revealed answer block offers a Play audio control; with "Audio autoplay" on, play it
+    /// instead of making the user reach for it. Skipped when this card already auto-played — in
+    /// Listen mode the audio IS the prompt, and revealing shouldn't fire a second burst.
+    private func triggerAutoplayOnReveal() {
+        guard autoplayEnabled, !hasAutoplayed else { return }
+        hasAutoplayed = true
+        replayAudio()
     }
 
     func replayAudio() {
