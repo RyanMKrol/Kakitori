@@ -2102,7 +2102,7 @@
     {
       "id": "T082",
       "title": "Don't launch a hollow session when a deck is already caught up",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [],
       "gate": null,
       "tags": [
