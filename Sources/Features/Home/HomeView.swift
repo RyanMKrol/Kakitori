@@ -110,9 +110,11 @@ struct HomeView: View {
                         self.activeSession = nil
                         activeSessionDeck = nil
                     },
-                    onStudyAnother: {
-                        self.activeSession = nil
-                        activeSessionDeck = nil
+                    // "Keep going" — pick the same deck back up in the mode just finished, with
+                    // no SRS strings attached. Works after a normal session and a Free Study one.
+                    onStartFreeStudy: {
+                        guard let deck = activeSessionDeck else { return }
+                        startFreeStudySession(deck: deck, mode: activeSession.mode)
                     }
                 )
             } else {

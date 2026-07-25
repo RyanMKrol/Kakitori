@@ -15,7 +15,7 @@ final class SummaryCompactRenderTests: XCTestCase {
             streakDays: 5,
             isFreeStudy: false,
             onBackToDecks: {},
-            onStudyAnother: {}
+            onStartFreeStudy: {}
         )
         .environment(\.horizontalSizeClass, .compact)
         .frame(width: 390, height: 844)

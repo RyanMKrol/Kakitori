@@ -15,7 +15,7 @@ final class SummaryRenderTests: XCTestCase {
             streakDays: 5,
             isFreeStudy: false,
             onBackToDecks: {},
-            onStudyAnother: {}
+            onStartFreeStudy: {}
         )
         .frame(width: 1194, height: 834)
 

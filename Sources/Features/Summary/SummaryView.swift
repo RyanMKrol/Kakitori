@@ -10,7 +10,7 @@ struct SummaryView: View {
     let streakDays: Int
     let isFreeStudy: Bool
     let onBackToDecks: () -> Void
-    let onStudyAnother: () -> Void
+    let onStartFreeStudy: () -> Void
 
     @State private var discScale: CGFloat = 0.7
     @State private var discOpacity: Double = 0
@@ -105,6 +105,17 @@ struct SummaryView: View {
 
     private var buttonsView: some View {
         VStack(spacing: 12) {
+            Button(action: onStartFreeStudy) {
+                Text("Start \(KakitoriTheme.freeStudyLabel)")
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 48)
+                    .kakitoriFont(size: 16, weight: .semibold)
+                    .foregroundStyle(KakitoriTheme.paper)
+                    .background(KakitoriTheme.freeStudyAccent)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+            }
+            .accessibilityIdentifier("start-free-study")
+
             Button(action: onBackToDecks) {
                 Text(isCompact ? "Back home" : "Back to decks")
                     .frame(maxWidth: .infinity)
@@ -115,21 +126,6 @@ struct SummaryView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 12))
             }
             .accessibilityIdentifier("back-to-decks")
-
-            Button(action: onStudyAnother) {
-                Text(isCompact ? "Study another script" : "Study another deck")
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 48)
-                    .kakitoriFont(size: 16, weight: .semibold)
-                    .foregroundStyle(KakitoriTheme.ink)
-                    .background(KakitoriTheme.surface)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(KakitoriTheme.boxLine, lineWidth: 1)
-                    )
-            }
-            .accessibilityIdentifier("study-another")
         }
     }
 }
