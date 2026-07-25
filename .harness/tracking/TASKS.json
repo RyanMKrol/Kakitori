@@ -2190,7 +2190,7 @@
     {
       "id": "T085",
       "title": "'Study another' on Summary routes to a deck/script picker, not the same deck",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [
         "T082"
       ],
