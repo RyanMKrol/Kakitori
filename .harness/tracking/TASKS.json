@@ -2128,7 +2128,7 @@
     {
       "id": "T083",
       "title": "Free Study session path decoupled from SRS (no schedule, no stats)",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [
         "T082"
       ],
