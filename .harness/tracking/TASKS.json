@@ -2265,6 +2265,117 @@
         "workType": "bugfix",
         "risk": []
       }
+    },
+    {
+      "id": "T088",
+      "title": "Fix Listen autoplay regression: fire once the writing card has appeared and settled",
+      "status": "pending",
+      "dependsOn": [],
+      "gate": null,
+      "tags": [
+        "session",
+        "audio",
+        "autoplay",
+        "bugfix",
+        "regression"
+      ],
+      "scope": [
+        "Sources/Features/Session/SessionViewModel.swift",
+        "Sources/Features/Session/CanvasPaneView.swift",
+        "Sources/Features/Session/SessionView.swift",
+        "Tests/UnitTests/SessionViewModelTests.swift"
+      ],
+      "design": null,
+      "verify": [],
+      "expectsTest": true,
+      "spec": ".harness/tasks/T088.md",
+      "facets": {
+        "layer": "views",
+        "workType": "bugfix",
+        "risk": []
+      }
+    },
+    {
+      "id": "T089",
+      "title": "Add a blue theme token and a shared Free Study label constant",
+      "status": "pending",
+      "dependsOn": [],
+      "gate": null,
+      "tags": [
+        "free-study-entry-points",
+        "theme",
+        "idea-2",
+        "idea-3"
+      ],
+      "scope": [
+        "Sources/Support/**"
+      ],
+      "design": null,
+      "verify": [],
+      "expectsTest": false,
+      "spec": ".harness/tasks/T089.md",
+      "facets": {
+        "layer": "views",
+        "workType": "style",
+        "risk": [
+          "cross-cutting"
+        ]
+      }
+    },
+    {
+      "id": "T090",
+      "title": "Show caught-up state inline on the deck setup sheet and retire the full-screen interstitial",
+      "status": "pending",
+      "dependsOn": [
+        "T089"
+      ],
+      "gate": null,
+      "tags": [
+        "free-study-entry-points",
+        "idea-2"
+      ],
+      "scope": [
+        "Sources/Features/DeckSetup/**",
+        "Sources/Features/Home/**"
+      ],
+      "design": null,
+      "verify": [],
+      "expectsTest": false,
+      "spec": ".harness/tasks/T090.md",
+      "facets": {
+        "layer": "views",
+        "workType": "feature",
+        "risk": [
+          "cross-cutting"
+        ]
+      }
+    },
+    {
+      "id": "T091",
+      "title": "Rework Summary buttons to Free Study (top) and Back home (bottom)",
+      "status": "pending",
+      "dependsOn": [
+        "T089",
+        "T090"
+      ],
+      "gate": null,
+      "tags": [
+        "free-study-entry-points",
+        "idea-3"
+      ],
+      "scope": [
+        "Sources/Features/Summary/**",
+        "Sources/Features/Home/**"
+      ],
+      "design": null,
+      "verify": [],
+      "expectsTest": false,
+      "spec": ".harness/tasks/T091.md",
+      "facets": {
+        "layer": "views",
+        "workType": "feature",
+        "risk": []
+      }
     }
   ]
 }
