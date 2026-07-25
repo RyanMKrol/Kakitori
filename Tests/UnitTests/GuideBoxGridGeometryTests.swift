@@ -25,21 +25,24 @@ final class GuideBoxGridGeometryTests: XCTestCase {
 
     func testWrappedMultiRowTargetStacksRowHeights() {
         let units: [SegmentedUnit] = (0 ..< 8).map { .box("字\($0)") }
+        let availableWidth: CGFloat = 1000
 
-        let size = GuideBoxGridGeometry.gridSize(units: units, maxBoxesPerRow: 6, availableWidth: 1000)
+        let size = GuideBoxGridGeometry.gridSize(units: units, maxBoxesPerRow: 6, availableWidth: availableWidth)
         let rows = GuideBoxGridGeometry.rows(units: units, maxBoxesPerRow: 6)
 
         XCTAssertEqual(rows.count, 2)
         XCTAssertEqual(rows[0].count, 6)
         XCTAssertEqual(rows[1].count, 2)
 
-        let expectedHeight = GuideBoxGridGeometry.maxBoxSize * 2 + GuideBoxGridGeometry.rowSpacing
+        let boxSizeRow1 = GuideBoxGridGeometry.boxSize(forRowBoxCount: 6, availableWidth: availableWidth)
+        let boxSizeRow2 = GuideBoxGridGeometry.boxSize(forRowBoxCount: 2, availableWidth: availableWidth)
+        let expectedHeight = boxSizeRow1 + boxSizeRow2 + GuideBoxGridGeometry.rowSpacing
         XCTAssertEqual(size.height, expectedHeight)
     }
 
     func testNarrowPaneShrinksBoxesBelowMaxSize() {
         let units: [SegmentedUnit] = [.box("あ"), .box("り")]
-        let availableWidth: CGFloat = 200
+        let availableWidth: CGFloat = 500
 
         let size = GuideBoxGridGeometry.gridSize(units: units, maxBoxesPerRow: 6, availableWidth: availableWidth)
         let expectedBoxSize = (availableWidth - GuideBoxGridGeometry.horizontalInset) / 2

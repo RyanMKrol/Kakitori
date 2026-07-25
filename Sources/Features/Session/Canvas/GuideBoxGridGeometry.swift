@@ -3,9 +3,9 @@ import CoreGraphics
 /// Pure layout math for the guide-box grid, shared by `GuideBoxRow` (which renders it) and
 /// `CanvasPaneView` (which sizes the writing surface to match it) so the two can never drift apart.
 enum GuideBoxGridGeometry {
-    static let maxBoxSize: CGFloat = 160
-    static let horizontalInset: CGFloat = 40
-    static let interItemSpacing: CGFloat = 4
+    static let maxBoxSize: CGFloat = 250
+    static let horizontalInset: CGFloat = 20
+    static let interItemSpacing: CGFloat = 1
     static let rowSpacing: CGFloat = 8
 
     /// Wraps units into rows of at most `maxBoxesPerRow` boxes, keeping inline units attached
