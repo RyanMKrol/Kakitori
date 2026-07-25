@@ -22,6 +22,13 @@ final class SessionViewModel {
 
     private(set) var phase: Phase = .prompt
     private(set) var currentNote: Note?
+
+    /// The note the answer block is showing. Set at reveal and deliberately NOT cleared when the
+    /// card advances: leaving `.revealed` fades the answer block out over a beat, and if the block
+    /// read `currentNote` the NEXT card's answer would render into it mid-fade and be readable for
+    /// a fraction of a second — giving the answer away before the user has written anything. It
+    /// changes again only on the next `showAnswer()`, by which point the block is fully invisible.
+    private(set) var revealedNote: Note?
     private(set) var gradeCounts: [Grade: Int] = [:]
     private(set) var cardsWritten = 0
     private(set) var summary: SessionSummary?
@@ -209,6 +216,7 @@ final class SessionViewModel {
 
     func showAnswer() {
         guard phase == .prompt, currentEntry != nil, currentNote != nil else { return }
+        revealedNote = currentNote
         phase = .revealed
         triggerAutoplayOnReveal()
     }

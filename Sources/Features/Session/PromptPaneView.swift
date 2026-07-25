@@ -34,10 +34,14 @@ struct PromptPaneView: View {
                 .background(KakitoriTheme.paper)
                 .accessibilityHidden(viewModel.phase == .revealed)
 
+            // A view at opacity 0 still takes taps, and this one covers the whole pane — so hit
+            // testing follows the visible layer, or the invisible answer block would swallow taps
+            // meant for the prompt (Listen mode's replay button sits right under it).
             answerBlock
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(KakitoriTheme.paper)
                 .opacity(viewModel.phase == .revealed ? 1 : 0)
+                .allowsHitTesting(viewModel.phase == .revealed)
                 .accessibilityHidden(viewModel.phase != .revealed)
         }
         .animation(.easeInOut(duration: 0.25), value: viewModel.phase)
@@ -143,34 +147,40 @@ struct PromptPaneView: View {
     }
 
     private var answerBlock: some View {
-        VStack(spacing: 16) {
+        // `revealedNote`, NOT `currentNote`: grading advances the card and starts the answer's
+        // fade-out in the same beat, so a block bound to `currentNote` would swap in the NEXT
+        // card's answer while still on screen. `revealedNote` holds the answer being dismissed
+        // until the next reveal, so nothing new renders here until the block is invisible.
+        let note = viewModel.revealedNote
+
+        return VStack(spacing: 16) {
             Text("ANSWER")
                 .kakitoriFont(size: 12, weight: .semibold)
                 .tracking(0.15)
                 .foregroundStyle(KakitoriTheme.accent)
 
-            let unitCount = viewModel.currentNote?.units.count ?? 1
+            let unitCount = note?.units.count ?? 1
             let fontSize: CGFloat = isCompact ? 64 : (unitCount <= 2 ? 96 : 64)
 
-            if let target = viewModel.currentNote?.target {
+            if let target = note?.target {
                 Text(target)
                     .font(KakitoriTheme.japaneseDisplayFontFixed(size: fontSize, bold: true))
                     .foregroundStyle(KakitoriTheme.ink)
             }
 
-            if let reading = viewModel.currentNote?.pronunciation {
+            if let reading = note?.pronunciation {
                 Text(reading)
                     .font(KakitoriTheme.japaneseDisplayFont(size: 22, bold: true))
                     .foregroundStyle(KakitoriTheme.accent)
             }
 
-            if let english = viewModel.currentNote?.english {
+            if let english = note?.english {
                 Text(english)
                     .kakitoriFont(size: 17)
                     .foregroundStyle(KakitoriTheme.ink)
             }
 
-            if let hint = viewModel.currentNote?.hint, !hint.isEmpty {
+            if let hint = note?.hint, !hint.isEmpty {
                 Text(hint)
                     .kakitoriFont(size: 15)
                     .foregroundStyle(KakitoriTheme.ink)
