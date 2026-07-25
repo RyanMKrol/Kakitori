@@ -2074,7 +2074,7 @@
     {
       "id": "T081",
       "title": "Fire card autoplay on view appearance, not in view-model init/grade",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [
         "T080"
       ],
