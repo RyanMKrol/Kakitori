@@ -8,13 +8,14 @@ final class WritingCanvasController {
     weak var canvasView: PKCanvasView?
 
     /// The nib angle the brush is pinned to, in radians, or nil while it follows the pencil.
-    ///
-    /// `@ObservationIgnored` on purpose: nothing in a view body reads these, and the ink is applied
-    /// straight to the canvas below. Observing them would mean mutating tracked state from
-    /// `updateUIView`, which runs inside the view update.
-    @ObservationIgnored private(set) var lockedBrushAngle: CGFloat?
+    /// Observed: the brush menu shows and edits it.
+    private(set) var lockedBrushAngle: CGFloat?
 
-    /// Set from `updateUIView`, so the ink can be rebuilt (on an angle change) without the view.
+    /// Whether the brush menu is on screen. Set by a Pencil hold, cleared by the menu itself.
+    var isBrushMenuPresented = false
+
+    /// `@ObservationIgnored` on purpose: nothing in a view body reads this, and it is assigned from
+    /// `updateUIView` — mutating tracked state there would be a write during the view update.
     @ObservationIgnored var colorScheme: ColorScheme = .light
 
     func undo() {
@@ -158,12 +159,9 @@ struct WritingCanvas: UIViewRepresentable {
     final class Coordinator: NSObject, PKCanvasViewDelegate, UIPencilInteractionDelegate {
         let controller: WritingCanvasController
 
-        /// Squeeze-in-progress state: when it started, the roll it started at, and the roll it was
-        /// last seen at. Reset on every `.began` so an interrupted squeeze can't leak into the next.
+        /// When the squeeze in progress started. Reset on every `.began` so an interrupted squeeze
+        /// can't leak into the next one.
         private var squeezeStart: TimeInterval?
-        private var squeezeStartRoll: CGFloat?
-        private var squeezeLatestRoll: CGFloat?
-        private var brushAngleBeforeSqueeze: CGFloat?
 
         init(controller: WritingCanvasController) {
             self.controller = controller
@@ -177,13 +175,10 @@ struct WritingCanvas: UIViewRepresentable {
             controller.undo()
         }
 
-        /// The Pencil Pro squeeze carries two things, told apart by how long it's held:
+        /// The Pencil Pro squeeze, told apart by how long it's held:
         ///
         /// - A quick squeeze clears the canvas — reset and go again without reaching for the button.
-        /// - Squeezing, rolling the pencil, then releasing pins the brush's face to that angle. The
-        ///   angle a brush draws well at and the grip that's comfortable to write with aren't the
-        ///   same angle, and without this the only way to fix one is to give up the other.
-        /// - Holding without rolling releases the pin, so there's a way back out.
+        /// - Holding opens the brush menu, which is where the angle lock lives.
         ///
         /// The system plays the Pencil's haptic on recognition, so there's none to fire here.
         /// Honours the Settings preference: `.ignore` means the user turned squeeze off (or turned
@@ -191,88 +186,33 @@ struct WritingCanvas: UIViewRepresentable {
         func pencilInteraction(_: UIPencilInteraction, didReceiveSqueeze squeeze: UIPencilInteraction.Squeeze) {
             guard UIPencilInteraction.preferredSqueezeAction != .ignore else { return }
 
-            // `hoverPose` is nil unless the pencil is in hover range, so a squeeze made with the
-            // pencil away from the screen reports no roll at all — hence the optionals throughout.
-            let roll = squeeze.hoverPose?.rollAngle
-
             switch squeeze.phase {
             case .began:
                 squeezeStart = squeeze.timestamp
-                squeezeStartRoll = roll
-                squeezeLatestRoll = roll
-                brushAngleBeforeSqueeze = controller.lockedBrushAngle
-
-            case .changed:
-                if let roll {
-                    squeezeStartRoll = squeezeStartRoll ?? roll
-                    squeezeLatestRoll = roll
-                    // Follow the roll live, so the nib angle being chosen is visible while
-                    // choosing it rather than a surprise on release.
-                    controller.previewBrushAngle(roll)
-                }
 
             case .ended:
-                applySqueeze(endedAt: squeeze.timestamp, roll: roll)
-                resetSqueezeTracking()
+                let outcome = PencilSqueeze.outcome(
+                    duration: squeeze.timestamp - (squeezeStart ?? squeeze.timestamp),
+                    canLockAngle: WritingCanvas.canLockBrushAngle
+                )
+                squeezeStart = nil
 
-            case .cancelled:
-                restoreBrushAngleFromBeforeSqueeze()
-                resetSqueezeTracking()
-
-            @unknown default:
-                restoreBrushAngleFromBeforeSqueeze()
-                resetSqueezeTracking()
-            }
-        }
-
-        private func applySqueeze(endedAt timestamp: TimeInterval, roll: CGFloat?) {
-            let finalRoll = roll ?? squeezeLatestRoll
-            let rollDelta = zip2(squeezeStartRoll, finalRoll).map { $1 - $0 }
-
-            let outcome = PencilSqueeze.outcome(
-                duration: timestamp - (squeezeStart ?? timestamp),
-                rollDelta: rollDelta,
-                canLockAngle: WritingCanvas.canLockBrushAngle
-            )
-
-            switch outcome {
-            case .clearCanvas:
-                // A live preview may have nudged the nib while the pencil was gripped; this
-                // squeeze turned out not to be about the angle, so put it back.
-                restoreBrushAngleFromBeforeSqueeze()
-                controller.clear()
-
-            case .lockBrushAngle:
-                if let finalRoll {
-                    controller.lockBrushAngle(to: finalRoll)
-                } else {
-                    restoreBrushAngleFromBeforeSqueeze()
+                switch outcome {
+                case .clearCanvas:
+                    controller.clear()
+                case .showBrushMenu:
+                    controller.isBrushMenuPresented = true
                 }
 
-            case .releaseBrushAngleLock:
-                controller.releaseBrushAngleLock()
+            case .changed:
+                break
+
+            case .cancelled:
+                squeezeStart = nil
+
+            @unknown default:
+                squeezeStart = nil
             }
-        }
-
-        private func restoreBrushAngleFromBeforeSqueeze() {
-            if let previous = brushAngleBeforeSqueeze {
-                controller.lockBrushAngle(to: previous)
-            } else {
-                controller.releaseBrushAngleLock()
-            }
-        }
-
-        private func resetSqueezeTracking() {
-            squeezeStart = nil
-            squeezeStartRoll = nil
-            squeezeLatestRoll = nil
-            brushAngleBeforeSqueeze = nil
-        }
-
-        /// Both-or-nothing pairing of two optionals — a roll delta needs a start AND an end.
-        private func zip2<A, B>(_ first: A?, _ second: B?) -> (A, B)? {
-            guard let first, let second else { return nil }
-            return (first, second)
         }
     }
 }
