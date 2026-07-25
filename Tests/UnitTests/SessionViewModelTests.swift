@@ -144,6 +144,32 @@ final class SessionViewModelTests: SessionViewModelTestCase {
         XCTAssertEqual(viewModel.gradeCounts[.good], 1)
     }
 
+    /// The last card graded "Again" comes back as the SAME note, so views can't key their per-card
+    /// work off the note id — it never changes, and the card returns with no audio and the previous
+    /// attempt still on the canvas. `presentationCount` is what marks it as a fresh presentation.
+    func testReenteredLastCardCountsAsAFreshPresentation() throws {
+        let scripted = ScriptedClock(baseNow)
+        let clock = makeClock(scripted)
+        let deck = makeDeck()
+
+        let note = makeReviewNote(target: "あ", dueBefore: baseNow, deck: deck)
+
+        let viewModel = SessionViewModel(
+            deck: deck, mode: .trace, modelContext: modelContext, clock: clock, seed: 42
+        )
+
+        XCTAssertEqual(viewModel.presentationCount, 1)
+        let presentedID = try XCTUnwrap(viewModel.currentNote?.id)
+        XCTAssertEqual(presentedID, note.id)
+
+        viewModel.showAnswer()
+        viewModel.grade(.again)
+
+        XCTAssertEqual(viewModel.currentNote?.id, note.id, "the only card left re-enters as itself")
+        XCTAssertEqual(viewModel.presentationCount, 2, "a re-entry is a new presentation")
+        XCTAssertEqual(viewModel.phase, .prompt)
+    }
+
     // MARK: - Advancing never leaks the next card's answer
 
     /// Grading advances the card and starts the answer block's fade-out in the same beat. The block
