@@ -2243,7 +2243,7 @@
     {
       "id": "T087",
       "title": "Grow the writing canvas to fill the pane, as one continuous surface sized to N characters",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [],
       "gate": null,
       "tags": [
