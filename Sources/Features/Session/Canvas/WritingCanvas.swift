@@ -11,8 +11,18 @@ final class WritingCanvasController {
         canvasView?.undoManager?.undo()
     }
 
+    /// Wipes the canvas, but registers the wipe with the undo manager first. Clearing is the one
+    /// destructive thing on this screen and it now has a hardware trigger (a Pencil squeeze), so a
+    /// mis-fire has to be recoverable — Undo (button or Pencil double-tap) puts the writing back.
     func clear() {
-        canvasView?.drawing = PKDrawing()
+        guard let canvasView, !canvasView.drawing.strokes.isEmpty else { return }
+
+        let previous = canvasView.drawing
+        canvasView.undoManager?.registerUndo(withTarget: canvasView) { canvas in
+            canvas.drawing = previous
+        }
+        canvasView.drawing = PKDrawing()
+        drawingDidChange(isEmpty: true)
     }
 
     func drawingDidChange(isEmpty: Bool) {
@@ -100,6 +110,20 @@ struct WritingCanvas: UIViewRepresentable {
 
         func pencilInteractionDidTap(_: UIPencilInteraction) {
             controller.undo()
+        }
+
+        /// Pencil Pro squeeze → clear the canvas, so a practice round is reset without reaching for
+        /// the Clear button. A squeeze is a continuous gesture; act once, when it ends. The system
+        /// plays the Pencil's own haptic on recognition, so there's nothing to fire here.
+        ///
+        /// Honours the Settings preference: `.ignore` means the user turned squeeze off (or off via
+        /// Accessibility), and an app that clears the canvas anyway is ignoring that choice.
+        func pencilInteraction(_: UIPencilInteraction, didReceiveSqueeze squeeze: UIPencilInteraction.Squeeze) {
+            guard squeeze.phase == .ended,
+                  UIPencilInteraction.preferredSqueezeAction != .ignore
+            else { return }
+
+            controller.clear()
         }
     }
 }
