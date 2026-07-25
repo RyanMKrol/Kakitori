@@ -2160,7 +2160,7 @@
     {
       "id": "T084",
       "title": "Free Study entry point + visibly-distinct Free Study session UI",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [
         "T082",
         "T083"
