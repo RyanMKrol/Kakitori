@@ -102,37 +102,48 @@ struct SessionView: View {
 
             Spacer()
 
-            VStack(spacing: 4) {
-                progressBar
-                Text("\(done) done · \(left) left")
-                    .kakitoriFont(size: 10, weight: .semibold)
+            if viewModel.isFreeStudy {
+                Text("Free Study")
+                    .kakitoriFont(size: 11, weight: .semibold)
                     .foregroundStyle(KakitoriTheme.ink)
-            }
-            .frame(maxWidth: 120)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(KakitoriTheme.surface)
+                    .cornerRadius(6)
+                    .accessibilityIdentifier("free-study-badge")
+            } else {
+                VStack(spacing: 4) {
+                    progressBar
+                    Text("\(done) done · \(left) left")
+                        .kakitoriFont(size: 10, weight: .semibold)
+                        .foregroundStyle(KakitoriTheme.ink)
+                }
+                .frame(maxWidth: 120)
 
-            Spacer()
+                Spacer()
 
-            HStack(spacing: 8) {
-                chip(
-                    count: viewModel.newCount,
-                    label: "new",
-                    foreground: KakitoriTheme.chipNewForeground,
-                    background: KakitoriTheme.chipNewBackground
-                )
-                chip(
-                    count: viewModel.learnCount,
-                    label: "learn",
-                    foreground: KakitoriTheme.chipLearnForeground,
-                    background: KakitoriTheme.chipLearnBackground
-                )
-                chip(
-                    count: viewModel.dueCount,
-                    label: "due",
-                    foreground: KakitoriTheme.chipDueForeground,
-                    background: KakitoriTheme.chipDueBackground
-                )
+                HStack(spacing: 8) {
+                    chip(
+                        count: viewModel.newCount,
+                        label: "new",
+                        foreground: KakitoriTheme.chipNewForeground,
+                        background: KakitoriTheme.chipNewBackground
+                    )
+                    chip(
+                        count: viewModel.learnCount,
+                        label: "learn",
+                        foreground: KakitoriTheme.chipLearnForeground,
+                        background: KakitoriTheme.chipLearnBackground
+                    )
+                    chip(
+                        count: viewModel.dueCount,
+                        label: "due",
+                        foreground: KakitoriTheme.chipDueForeground,
+                        background: KakitoriTheme.chipDueBackground
+                    )
+                }
+                .frame(maxWidth: 140)
             }
-            .frame(maxWidth: 140)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 8)

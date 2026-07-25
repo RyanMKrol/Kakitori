@@ -13,6 +13,7 @@ final class SummaryCompactRenderTests: XCTestCase {
             goodCount: 7,
             easyCount: 2,
             streakDays: 5,
+            isFreeStudy: false,
             onBackToDecks: {},
             onStudyAnother: {}
         )

@@ -8,6 +8,7 @@ struct SummaryView: View {
     let goodCount: Int
     let easyCount: Int
     let streakDays: Int
+    let isFreeStudy: Bool
     let onBackToDecks: () -> Void
     let onStudyAnother: () -> Void
 

@@ -51,7 +51,7 @@ final class SessionViewModel {
 
     /// True when this session is a Free Study session: SRS-decoupled, endless, never persists a
     /// `CardSchedule` change or a `DailyStats` write. See the dedicated Free Study initializer.
-    private let isFreeStudy: Bool
+    let isFreeStudy: Bool
     private var freeStudySource: FreeStudySource?
 
     var newCount: Int {

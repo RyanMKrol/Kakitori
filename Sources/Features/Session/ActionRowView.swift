@@ -8,6 +8,14 @@ struct ActionRowView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
+        if viewModel.isFreeStudy {
+            freeStudyLayout
+        } else {
+            srsLayout
+        }
+    }
+
+    private var srsLayout: some View {
         ZStack {
             // Invisible sizer: the grade row is always laid out (and is the taller of the two —
             // it stacks four buttons vertically at accessibility sizes) so the action area reserves
@@ -26,6 +34,37 @@ struct ActionRowView: View {
             }
         }
         .animation(.easeInOut(duration: 0.25), value: viewModel.phase)
+    }
+
+    private var freeStudyLayout: some View {
+        ZStack {
+            showAnswerButton
+                .hidden()
+                .accessibilityHidden(true)
+
+            if viewModel.phase == .revealed {
+                freeStudyNextButton
+                    .transition(KakitoriTheme.emphasisTransition(reduceMotion: reduceMotion))
+            } else {
+                showAnswerButton
+                    .transition(KakitoriTheme.emphasisTransition(reduceMotion: reduceMotion))
+            }
+        }
+        .animation(.easeInOut(duration: 0.25), value: viewModel.phase)
+    }
+
+    private var freeStudyNextButton: some View {
+        Button(action: { viewModel.grade(.good) }, label: {
+            Text("Next")
+                .kakitoriFont(size: 16, weight: .semibold)
+                .foregroundStyle(KakitoriTheme.paper)
+                .frame(maxWidth: .infinity)
+                .frame(minHeight: 56)
+                .background(KakitoriTheme.ink)
+                .cornerRadius(14)
+        })
+        .accessibilityIdentifier("free-study-next")
+        .padding(16)
     }
 
     private var showAnswerButton: some View {

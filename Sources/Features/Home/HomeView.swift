@@ -111,6 +111,7 @@ struct HomeView: View {
                     goodCount: summary.gradeCounts[.good] ?? 0,
                     easyCount: summary.gradeCounts[.easy] ?? 0,
                     streakDays: currentStreak,
+                    isFreeStudy: activeSession.isFreeStudy,
                     onBackToDecks: {
                         self.activeSession = nil
                         activeSessionDeck = nil
@@ -151,19 +152,37 @@ struct HomeView: View {
                     .foregroundStyle(KakitoriTheme.ink.opacity(0.6))
             }
             Spacer()
-            Button(action: {
-                activeSession = nil
-                activeSessionDeck = nil
-            }, label: {
-                Text("Back to home")
-                    .kakitoriFont(size: 16, weight: .semibold)
-                    .foregroundStyle(KakitoriTheme.paper)
-                    .frame(maxWidth: .infinity)
-                    .padding(12)
-                    .background(KakitoriTheme.accent)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-            })
-            .accessibilityIdentifier("caught-up-back-home")
+            VStack(spacing: 12) {
+                Button(action: {
+                    if let deck = activeSessionDeck {
+                        startFreeStudySession(deck: deck)
+                    }
+                }, label: {
+                    Text("Start Free Study")
+                        .kakitoriFont(size: 16, weight: .semibold)
+                        .foregroundStyle(KakitoriTheme.ink)
+                        .frame(maxWidth: .infinity)
+                        .padding(12)
+                        .background(KakitoriTheme.surface)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .overlay(RoundedRectangle(cornerRadius: 12).stroke(KakitoriTheme.boxLine, lineWidth: 1))
+                })
+                .accessibilityIdentifier("start-free-study")
+
+                Button(action: {
+                    activeSession = nil
+                    activeSessionDeck = nil
+                }, label: {
+                    Text("Back to home")
+                        .kakitoriFont(size: 16, weight: .semibold)
+                        .foregroundStyle(KakitoriTheme.paper)
+                        .frame(maxWidth: .infinity)
+                        .padding(12)
+                        .background(KakitoriTheme.accent)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                })
+                .accessibilityIdentifier("caught-up-back-home")
+            }
             .padding()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -200,6 +219,18 @@ struct HomeView: View {
         activeSession = SessionViewModel(
             deck: deck,
             mode: mode,
+            modelContext: modelContext,
+            clock: .system,
+            seed: UInt64.random(in: UInt64.min ... UInt64.max)
+        )
+    }
+
+    private func startFreeStudySession(deck: Deck) {
+        setupDeck = nil
+        activeSessionDeck = deck
+        activeSession = SessionViewModel(
+            freeStudyDeck: deck,
+            mode: .trace,
             modelContext: modelContext,
             clock: .system,
             seed: UInt64.random(in: UInt64.min ... UInt64.max)
