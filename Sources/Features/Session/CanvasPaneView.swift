@@ -39,11 +39,14 @@ struct CanvasPaneView: View {
             }
         }
         .padding(16)
-        .task(id: viewModel.currentNote?.id) {
+        // Keyed on `presentationCount`, NOT the note id: when the last card in the queue is graded
+        // "Again" it comes straight back as the same note, so an id-keyed task never re-fires and the
+        // card would return silently, with the previous attempt still on the canvas.
+        .task(id: viewModel.presentationCount) {
             try? await Task.sleep(nanoseconds: 100_000_000) // 100ms post-appearance settle
             viewModel.triggerAutoplayOnCardAppearance()
         }
-        .onChange(of: viewModel.currentNote?.id) {
+        .onChange(of: viewModel.presentationCount) {
             controller.clear()
         }
     }

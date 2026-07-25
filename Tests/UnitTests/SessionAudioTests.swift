@@ -50,6 +50,39 @@ final class SessionAudioTests: SessionViewModelTestCase {
         )
     }
 
+    /// The LAST card graded "Again" re-enters as the same note, so the view can't key its autoplay
+    /// off the note id — it never changes. It keys off `presentationCount` instead, and autoplay is
+    /// re-armed per presentation, so the card that comes back speaks again instead of sitting silent.
+    func testListenModeAutoplaysAgainWhenTheLastCardReenters() throws {
+        let scripted = ScriptedClock(baseNow)
+        let clock = makeClock(scripted)
+        let deck = makeDeck()
+
+        let note = makeReviewNote(target: "あ", dueBefore: baseNow, deck: deck)
+        note.audioFilename = "a.mp3"
+        note.deck = deck
+        try modelContext.save()
+
+        let fake = FakeAudioPlayer()
+        let viewModel = SessionViewModel(
+            deck: deck, mode: .listen, modelContext: modelContext, clock: clock, seed: 42, audio: fake
+        )
+
+        let presentations = viewModel.presentationCount
+        viewModel.triggerAutoplayOnCardAppearance()
+        XCTAssertEqual(fake.calls.count, 1)
+
+        // "Again" on the only card in the queue puts the SAME note straight back in front of the user.
+        viewModel.showAnswer()
+        scripted.advance(by: 30)
+        viewModel.grade(.again)
+        XCTAssertEqual(viewModel.currentNote?.id, note.id)
+        XCTAssertGreaterThan(viewModel.presentationCount, presentations, "the view sees a new card")
+
+        viewModel.triggerAutoplayOnCardAppearance()
+        XCTAssertEqual(fake.calls.count, 2, "the re-entered card auto-plays its audio again")
+    }
+
     func testTraceModeDoesNotAutoplayAudio() throws {
         let scripted = ScriptedClock(baseNow)
         let clock = makeClock(scripted)

@@ -29,6 +29,13 @@ final class SessionViewModel {
     /// a fraction of a second — giving the answer away before the user has written anything. It
     /// changes again only on the next `showAnswer()`, by which point the block is fully invisible.
     private(set) var revealedNote: Note?
+
+    /// Bumps every time a card is PRESENTED, including when the same card comes straight back after
+    /// "Again" — which is what happens once it's the only card left in the queue. Views key their
+    /// per-card work (autoplay, clearing the canvas) off this rather than `currentNote?.id`: on a
+    /// re-entry the note id is unchanged, so an id-keyed `.task` / `.onChange` never fires and the
+    /// card silently comes back with no audio and the last attempt's ink still on the canvas.
+    private(set) var presentationCount = 0
     private(set) var gradeCounts: [Grade: Int] = [:]
     private(set) var cardsWritten = 0
     private(set) var summary: SessionSummary?
@@ -155,9 +162,7 @@ final class SessionViewModel {
         )
 
         if let firstEntry = queue.next(now: now) {
-            currentEntry = firstEntry
-            currentNote = notesByID[firstEntry.id]
-            updatePresentedMode()
+            present(firstEntry)
         } else {
             phase = .caughtUp
         }
@@ -205,13 +210,25 @@ final class SessionViewModel {
 
         var source = FreeStudySource(entries: built.entries, rng: &rng)
         if let firstEntry = source.next(rng: &rng) {
-            currentEntry = firstEntry
-            currentNote = notesByID[firstEntry.id]
+            present(firstEntry)
         } else {
             phase = .caughtUp
+            updatePresentedMode()
         }
         freeStudySource = source
+    }
+
+    /// Puts a card in front of the user: the single place `currentNote` is set to something the user
+    /// has to answer. Everything a fresh presentation needs — the resolved mode, the prompt phase,
+    /// the autoplay reset, the presentation counter the views key off — lives here, so a card that
+    /// re-enters the queue is set up exactly like a brand new one.
+    private func present(_ entry: QueueEntry) {
+        currentEntry = entry
+        currentNote = notesByID[entry.id]
         updatePresentedMode()
+        phase = .prompt
+        hasAutoplayed = false
+        presentationCount += 1
     }
 
     func showAnswer() {
@@ -282,11 +299,7 @@ final class SessionViewModel {
         if dayTarget > 0, dayCompleted >= dayTarget {
             finish(now: now)
         } else if let nextEntry = queue.next(now: now) {
-            self.currentEntry = nextEntry
-            currentNote = notesByID[nextEntry.id]
-            updatePresentedMode()
-            phase = .prompt
-            hasAutoplayed = false
+            present(nextEntry)
         } else {
             finish(now: now)
         }
@@ -303,11 +316,7 @@ final class SessionViewModel {
             phase = .caughtUp
             return
         }
-        currentEntry = nextEntry
-        currentNote = notesByID[nextEntry.id]
-        updatePresentedMode()
-        phase = .prompt
-        hasAutoplayed = false
+        present(nextEntry)
     }
 
     func close() {
