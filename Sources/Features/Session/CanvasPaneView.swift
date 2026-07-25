@@ -40,6 +40,7 @@ struct CanvasPaneView: View {
         }
         .padding(16)
         .task(id: viewModel.currentNote?.id) {
+            try? await Task.sleep(nanoseconds: 100_000_000) // 100ms post-appearance settle
             viewModel.triggerAutoplayOnCardAppearance()
         }
         .onChange(of: viewModel.currentNote?.id) {

@@ -460,4 +460,47 @@ final class SessionViewModelTests: XCTestCase {
         viewModel.triggerAutoplayOnCardAppearance()
         XCTAssertTrue(fake.calls.isEmpty, "auto-play must respect the Audio autoplay setting being off")
     }
+
+    // MARK: - Regression: autoplay fires exactly once per card
+
+    func testListenModeAutoplayFiresExactlyOncePerCardRealPath() throws {
+        let scripted = ScriptedClock(baseNow)
+        let clock = makeClock(scripted)
+        let deck = makeDeck()
+
+        let noteA = makeReviewNote(target: "あ", dueBefore: baseNow, deck: deck)
+        noteA.audioFilename = "a.mp3"
+        noteA.deck = deck
+        let noteB = makeReviewNote(target: "い", dueBefore: baseNow, deck: deck)
+        noteB.audioFilename = "i.mp3"
+        noteB.deck = deck
+        try modelContext.save()
+
+        let fake = FakeAudioPlayer()
+        let viewModel = SessionViewModel(
+            deck: deck, mode: .listen, modelContext: modelContext, clock: clock, seed: 42, audio: fake
+        )
+
+        // Init does NOT auto-play (no view trigger yet).
+        XCTAssertEqual(viewModel.presentedMode, .listen)
+        XCTAssertTrue(fake.calls.isEmpty, "audio should NOT auto-play during init()")
+
+        // Simulate the view appearing (after settle delay): exactly one autoplay for first card.
+        viewModel.triggerAutoplayOnCardAppearance()
+        XCTAssertEqual(fake.calls.count, 1, "REGRESSION: first card should autoplay exactly once")
+
+        // Grade and advance to the next card.
+        viewModel.showAnswer()
+        scripted.advance(by: 30)
+        viewModel.grade(.good)
+        XCTAssertEqual(viewModel.phase, .prompt, "there should be a second card to show")
+
+        // During grade/advance, hasAutoplayed is reset and presentedMode updated, but NO audio yet.
+        XCTAssertEqual(fake.calls.count, 1, "audio should NOT auto-play during grade/advance")
+        XCTAssertEqual(viewModel.presentedMode, .listen, "second card is also review, stays listen")
+
+        // Simulate the second card's view appearing: exactly one MORE autoplay (total 2).
+        viewModel.triggerAutoplayOnCardAppearance()
+        XCTAssertEqual(fake.calls.count, 2, "REGRESSION: second card should autoplay exactly once, total 2")
+    }
 }
