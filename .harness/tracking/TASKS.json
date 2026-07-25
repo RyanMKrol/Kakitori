@@ -2219,7 +2219,7 @@
     {
       "id": "T086",
       "title": "Settings number fields: allow clearing while focused so a new value can be typed",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [],
       "gate": null,
       "tags": [
