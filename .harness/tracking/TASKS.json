@@ -2298,7 +2298,7 @@
     {
       "id": "T089",
       "title": "Add a blue theme token and a shared Free Study label constant",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [],
       "gate": null,
       "tags": [
