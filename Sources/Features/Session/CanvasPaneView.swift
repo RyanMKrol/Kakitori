@@ -40,18 +40,6 @@ struct CanvasPaneView: View {
             }
         }
         .padding(16)
-        // Over the canvas rather than in a popover: the menu adjusts the ink, and you want to see
-        // the strokes you already wrote while deciding which way the brush should point.
-        .overlay(alignment: .topTrailing) {
-            if controller.isBrushMenuPresented {
-                BrushMenu(controller: controller) {
-                    controller.isBrushMenuPresented = false
-                }
-                .padding(16)
-                .transition(.opacity.combined(with: .scale(scale: 0.96, anchor: .topTrailing)))
-            }
-        }
-        .animation(.easeInOut(duration: 0.2), value: controller.isBrushMenuPresented)
         // Keyed on `presentationCount`, NOT the note id: when the last card in the queue is graded
         // "Again" it comes straight back as the same note, so an id-keyed task never re-fires and the
         // card would return silently, with the previous attempt still on the canvas.
@@ -110,14 +98,6 @@ struct CanvasPaneView: View {
                 Spacer()
 
                 HStack(spacing: 8) {
-                    // The same menu a Pencil hold opens. Most people don't have a Pencil Pro, and
-                    // the ones who do won't guess the gesture exists without seeing it somewhere.
-                    if WritingCanvas.canLockBrushAngle {
-                        pillButton(title: "Brush", identifier: "canvas-brush-menu") {
-                            controller.isBrushMenuPresented = true
-                        }
-                    }
-
                     pillButton(title: "↶ Undo", identifier: "canvas-undo") {
                         controller.undo()
                     }
