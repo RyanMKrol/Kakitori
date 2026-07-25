@@ -1402,7 +1402,7 @@
     {
       "id": "T054",
       "title": "App icon",
-      "status": "pending",
+      "status": "done",
       "dependsOn": [
         "T008"
       ],
