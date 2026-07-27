@@ -11,7 +11,11 @@
     @MainActor final class SessionLayoutRenderTests: XCTestCase {
         private let tokyo = TimeZone(identifier: "Asia/Tokyo")!
 
-        private func makeViewModel(mode: PracticeMode) throws -> SessionViewModel {
+        private func makeViewModel(
+            mode: PracticeMode,
+            target: String = "ザ",
+            reading: String = "za"
+        ) throws -> SessionViewModel {
             let container = try ModelContainer(
                 for: Deck.self, Section.self, Note.self, CardSchedule.self, DailyStats.self,
                 configurations: ModelConfiguration(isStoredInMemoryOnly: true)
@@ -32,13 +36,13 @@
             context.insert(section)
 
             let note = Note(
-                target: "ザ",
-                pronunciation: "za",
-                english: "za",
+                target: target,
+                pronunciation: reading,
+                english: reading,
                 script: .katakana,
-                units: ["ザ"]
+                units: [target]
             )
-            note.audioFilename = "za.mp3"
+            note.audioFilename = "\(reading).mp3"
             let schedule = CardSchedule(
                 state: .review,
                 stepIndex: 0,
@@ -85,6 +89,15 @@
             let revealed = try makeViewModel(mode: .listen)
             revealed.showAnswer()
             try render(revealed, size: landscape, named: "layout-landscape-answer.png")
+        }
+
+        /// き is the character that separates the candidate faces: written by hand its bottom curve
+        /// is a separate stroke with a visible gap, and the system faces join it on. Rendered
+        /// through the real answer view so the comparison is judged as it actually appears.
+        func testAnswerFontComparisonOnKi() throws {
+            let revealed = try makeViewModel(mode: .trace, target: "き", reading: "ki")
+            revealed.showAnswer()
+            try render(revealed, size: CGSize(width: 820, height: 1180), named: "fonts-ki-answer.png")
         }
 
         func testPortraitPromptAndAnswer() throws {
