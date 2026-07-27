@@ -202,7 +202,7 @@ final class DailyAllowanceTests: XCTestCase {
             dailyStats: [stats],
             now: now,
             clock: clock,
-            settings: AppSettings()
+            settings: TestSettings.make()
         )
 
         XCTAssertEqual(remaining.total, 0)
@@ -217,7 +217,7 @@ final class DailyAllowanceTests: XCTestCase {
             dailyStats: [],
             now: now,
             clock: clock,
-            settings: AppSettings()
+            settings: TestSettings.make()
         )
 
         XCTAssertEqual(remaining.total, 3)
@@ -238,7 +238,7 @@ final class DailyAllowanceTests: XCTestCase {
             dailyStats: [stats],
             now: now,
             clock: clock,
-            settings: AppSettings()
+            settings: TestSettings.make()
         )
 
         XCTAssertEqual(remaining.total, 2)
@@ -246,6 +246,9 @@ final class DailyAllowanceTests: XCTestCase {
 
     // MARK: - DeckCardView reads "all caught up" when only the daily cap is hit
 
+    /// The limit is passed in rather than read from the device: the cap being 10 is the whole
+    /// premise of this test, and reading the real settings makes it fail the moment someone changes
+    /// New cards per day on the simulator.
     func testDeckCardAllCaughtUpWhenBacklogRemainsButCapIsHit() {
         let deck = makeDeck(states: [.new, .new, .new])
         let deckCard = DeckCardView(
@@ -253,6 +256,7 @@ final class DailyAllowanceTests: XCTestCase {
             now: now,
             newIntroducedToday: 10,
             reviewsDoneToday: 0,
+            settings: TestSettings.make(newCardsPerDay: 10),
             onStudy: { _ in }
         )
         XCTAssertTrue(deckCard.isAllCaughtUp)
@@ -265,9 +269,24 @@ final class DailyAllowanceTests: XCTestCase {
             now: now,
             newIntroducedToday: 8,
             reviewsDoneToday: 0,
+            settings: TestSettings.make(newCardsPerDay: 10),
             onStudy: { _ in }
         )
         XCTAssertFalse(deckCard.isAllCaughtUp)
+    }
+
+    /// A raised limit has to reach the deck card too, not just the session.
+    func testDeckCardFollowsARaisedNewCardLimit() {
+        let deck = makeDeck(states: [.new, .new, .new])
+        let deckCard = DeckCardView(
+            deck: deck,
+            now: now,
+            newIntroducedToday: 10,
+            reviewsDoneToday: 0,
+            settings: TestSettings.make(newCardsPerDay: 999),
+            onStudy: { _ in }
+        )
+        XCTAssertFalse(deckCard.isAllCaughtUp, "10 introduced is nowhere near a 999 cap")
     }
 
     // MARK: - Completed today progress tracking

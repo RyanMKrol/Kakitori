@@ -170,6 +170,61 @@ final class SessionViewModelTests: SessionViewModelTestCase {
         XCTAssertEqual(viewModel.phase, .prompt)
     }
 
+    // MARK: - The configured daily limits drive the session
+
+    /// The session used to be built against the SRSConstants defaults because Home never passed the
+    /// user's limits, so a session stopped after 10 new cards however high the setting went.
+    func testSessionQueueAndTargetFollowTheConfiguredLimits() throws {
+        let scripted = ScriptedClock(baseNow)
+        let clock = makeClock(scripted)
+        let deck = makeDeck()
+
+        for index in 0 ..< 40 {
+            let note = Note(target: "あ\(index)", script: .hiragana)
+            note.schedule = CardSchedule(state: .new)
+            deck.sections[0].notes.append(note)
+            modelContext.insert(note)
+            try modelContext.insert(XCTUnwrap(note.schedule))
+        }
+        try modelContext.save()
+
+        let viewModel = SessionViewModel(
+            deck: deck,
+            mode: .trace,
+            modelContext: modelContext,
+            clock: clock,
+            seed: 42,
+            newPerDay: 30,
+            maxReviewsPerDay: 999
+        )
+
+        XCTAssertEqual(viewModel.newCount, 30, "the queue serves the configured number of new cards")
+        XCTAssertEqual(viewModel.sessionCardCount, 30, "and the day's target matches")
+    }
+
+    /// The same deck with the default limit — the contrast is the bug: 10, not 30.
+    func testSessionQueueIsCappedByASmallerLimit() throws {
+        let scripted = ScriptedClock(baseNow)
+        let clock = makeClock(scripted)
+        let deck = makeDeck()
+
+        for index in 0 ..< 40 {
+            let note = Note(target: "い\(index)", script: .hiragana)
+            note.schedule = CardSchedule(state: .new)
+            deck.sections[0].notes.append(note)
+            modelContext.insert(note)
+            try modelContext.insert(XCTUnwrap(note.schedule))
+        }
+        try modelContext.save()
+
+        let viewModel = SessionViewModel(
+            deck: deck, mode: .trace, modelContext: modelContext, clock: clock, seed: 42,
+            newPerDay: 5, maxReviewsPerDay: 999
+        )
+
+        XCTAssertEqual(viewModel.newCount, 5)
+    }
+
     // MARK: - Advancing never leaks the next card's answer
 
     /// Grading advances the card and starts the answer block's fade-out in the same beat. The block

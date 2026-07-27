@@ -171,12 +171,18 @@ struct HomeView: View {
     private func startSession(deck: Deck, mode: PracticeMode) {
         setupDeck = nil
         activeSessionDeck = deck
+        // The limits MUST be passed. SessionViewModel defaults them to SRSConstants (10 new / 100
+        // reviews) for tests, so leaving them off silently built every session against 10 new cards
+        // no matter what Settings said — the session just stopped at 10 and the setting looked dead.
+        let settings = AppSettings()
         activeSession = SessionViewModel(
             deck: deck,
             mode: mode,
             modelContext: modelContext,
             clock: .system,
-            seed: UInt64.random(in: UInt64.min ... UInt64.max)
+            seed: UInt64.random(in: UInt64.min ... UInt64.max),
+            newPerDay: settings.newCardsPerDay,
+            maxReviewsPerDay: settings.maxReviewsPerDay
         )
     }
 
