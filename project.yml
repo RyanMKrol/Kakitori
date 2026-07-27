@@ -23,6 +23,16 @@ targets:
       # deferred; these ship inside the app so the content is always present with no onboarding.
       - path: BundledDecks
         buildPhase: resources
+      # Handwriting-form typefaces, bundled because iOS ships none. The system Japanese faces all
+      # draw the PRINTED forms — き and さ with the bottom curve joined on — where a person writing
+      # by hand lifts the pen and leaves a gap. These two draw the handwritten forms, which is the
+      # whole point when the glyph on screen is the model being copied. Both are SIL OFL 1.1; the
+      # licences ship beside them as that licence requires.
+      #
+      # Listed under `sources` with buildPhase: resources, NOT under a `resources:` key — XcodeGen
+      # has no such key on a target and silently ignores it, which puts nothing in the bundle.
+      - path: Fonts
+        buildPhase: resources
     resources:
       - path: Sources/Support/PrivacyInfo.xcprivacy
         buildPhase: resources
@@ -45,6 +55,12 @@ targets:
       properties:
         UILaunchScreen: {}                  # REQUIRED — no letterboxing (legacy mode)
         CFBundleDisplayName: Kakitori
+        # Bundled fonts are NOT registered just by being in the bundle — without this key
+        # UIFont(name:) returns nil and SwiftUI silently substitutes the system face, which for
+        # Japanese looks close enough to pass unnoticed.
+        UIAppFonts:
+          - KleeOne-SemiBold.ttf
+          - ZenKurenaido-Regular.ttf
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
           - UIInterfaceOrientationLandscapeLeft

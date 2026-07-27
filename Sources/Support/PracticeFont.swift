@@ -8,23 +8,27 @@ import UIKit
 /// flares and stroke-contrast of a brush, which is decoration a person writing with a pen doesn't
 /// reproduce — hence the comparison.
 ///
-/// Only Hiragino ships on every iOS install. The textbook faces you'd actually want for
-/// handwriting — 教科書体 proper, or Klee, or Toppan Bunkyu — are not on the simulator runtime and
-/// can't be relied on, so `resolvedFontName` falls back and `isAvailable` says whether the choice
-/// is the real thing or a substitute. Without that, two options rendering the same fallback would
-/// look identical with no explanation.
+/// The distinction that decides this isn't weight or flourish, it's WHICH FORM the face draws.
+/// き and さ are written with the bottom curve as a separate stroke — pen lifted, visible gap — and
+/// り with its two strokes apart. Every Japanese face iOS ships (Hiragino Sans, Maru Gothic,
+/// Mincho) draws the printed forms instead, with those strokes joined on. Copying those teaches the
+/// wrong hand. 教科書体, the class of face Japanese schools use precisely because it matches
+/// handwriting, isn't on iOS at any weight, so the handwriting faces here are bundled with the app.
+///
+/// `resolvedFontName` falls back and `isAvailable` reports whether a choice is the real thing or a
+/// substitute — a bundled font that failed to register would otherwise silently render as the
+/// system face and look like a legitimate option.
 enum PracticeFont: String, CaseIterable, Identifiable {
-    /// Uniform-width sans. No brush contrast at all — the plain skeleton of each character, which
-    /// is the closest of the three to what a pen actually produces.
+    /// System sans, the current front-runner. Even strokes, no flourishes — but PRINTED forms, so
+    /// き and さ come out joined. Kept as the reference to judge the others against.
     case gothic
 
-    /// Rounded terminals. Same skeleton as the gothic, softer ends — reads as handwritten without
-    /// the stroke-contrast of a brush face.
-    case maruGothic
+    /// Bundled. A pen/pencil face from Fontworks with 楷書 bones, close to what 教科書体 is for:
+    /// handwritten forms, moderate stroke variation, made to be read and copied.
+    case kleeOne
 
-    /// The current face: 明朝, a serif whose weight varies through the stroke and whose ends flare.
-    /// Kept in the comparison as the control — it's what the app looks like today.
-    case mincho
+    /// Bundled. Handwriting proper — looser and more personal than Klee, same correct forms.
+    case zenKurenaido
 
     var id: String {
         rawValue
@@ -34,17 +38,25 @@ enum PracticeFont: String, CaseIterable, Identifiable {
     var displayName: String {
         switch self {
         case .gothic: "Gothic"
-        case .maruGothic: "Rounded"
-        case .mincho: "Mincho (current)"
+        case .kleeOne: "Klee One"
+        case .zenKurenaido: "Zen Kurenaido"
         }
     }
 
     /// One line on what the face does to the characters being copied.
     var summary: String {
         switch self {
-        case .gothic: "Even strokes, no flourishes"
-        case .maruGothic: "Even strokes, softened ends"
-        case .mincho: "Brush-style contrast and flared ends"
+        case .gothic: "Printed forms — き joins up"
+        case .kleeOne: "Pen forms — き keeps its gap"
+        case .zenKurenaido: "Handwriting — き keeps its gap"
+        }
+    }
+
+    /// Whether this face draws the separated strokes a person writing by hand actually makes.
+    var usesHandwrittenForms: Bool {
+        switch self {
+        case .gothic: false
+        case .kleeOne, .zenKurenaido: true
         }
     }
 
@@ -53,12 +65,16 @@ enum PracticeFont: String, CaseIterable, Identifiable {
         switch self {
         case .gothic:
             (["HiraginoSans-W3", "HiraKakuProN-W3"], ["HiraginoSans-W6", "HiraKakuProN-W6"])
-        case .maruGothic:
-            // Maru Gothic ships in a single W4 weight, so bold falls back to the gothic's W6
-            // rather than letting SwiftUI synthesise a smeared fake bold.
-            (["HiraMaruProN-W4"], ["HiraMaruProN-W4", "HiraginoSans-W6"])
-        case .mincho:
-            (["HiraMinProN-W3"], ["HiraMinProN-W6"])
+        case .kleeOne:
+            // Bundled at ONE weight, SemiBold — Klee's Regular is far lighter than the system
+            // gothic it's being judged against, and a weight difference that big reads as a
+            // quality difference. Bold maps to the same file rather than a heavier system face:
+            // substituting Hiragino would swap the letterforms back to printed ones, which is the
+            // exact thing this option exists to avoid.
+            (["KleeOne-SemiBold"], ["KleeOne-SemiBold"])
+        case .zenKurenaido:
+            // Ships in one weight only, so it renders lighter than the other two by design.
+            (["ZenKurenaido-Regular"], ["ZenKurenaido-Regular"])
         }
     }
 
