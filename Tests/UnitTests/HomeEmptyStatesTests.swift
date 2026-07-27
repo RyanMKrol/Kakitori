@@ -36,7 +36,7 @@ final class HomeEmptyStatesTests: XCTestCase {
             dailyStats: [],
             now: now,
             clock: .fixed(now),
-            settings: AppSettings()
+            settings: TestSettings.make()
         )
         XCTAssertEqual(allowance.total, 0)
         XCTAssertEqual(allowance.scriptCount, 0)
@@ -50,7 +50,7 @@ final class HomeEmptyStatesTests: XCTestCase {
             dailyStats: [],
             now: now,
             clock: .fixed(now),
-            settings: AppSettings()
+            settings: TestSettings.make()
         )
         XCTAssertEqual(allowance.total, 1)
         XCTAssertEqual(allowance.scriptCount, 1)
