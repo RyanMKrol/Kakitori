@@ -91,14 +91,19 @@
             try render(revealed, size: landscape, named: "layout-landscape-answer.png")
         }
 
-        /// き is the character that separates the candidate faces: written by hand its bottom curve
-        /// is a separate stroke with a visible gap, and the system faces join it on. Rendered
-        /// through the real answer view so the comparison is judged as it actually appears.
-        func testAnswerFontComparisonOnKi() throws {
+        /// き is the character that shows the app is drawing handwritten forms: written by hand its
+        /// bottom curve is a separate stroke with a visible gap, and every system face joins it on.
+        /// Rendered through the real answer view — if the bundled face ever stops loading, the gap
+        /// closes here and it's obvious in the screenshot.
+        func testAnswerRendersKiWithItsGap() throws {
             let revealed = try makeViewModel(mode: .trace, target: "き", reading: "ki")
             revealed.showAnswer()
             try render(revealed, size: CGSize(width: 820, height: 1180), named: "fonts-ki-answer.png")
         }
+
+        // No trace-guide render here: the guide is drawn behind the PencilKit canvas, and
+        // ImageRenderer replaces any UIViewRepresentable with a placeholder that covers it. The
+        // guide has to be checked on a running simulator.
 
         func testPortraitPromptAndAnswer() throws {
             let portrait = CGSize(width: 820, height: 1180)

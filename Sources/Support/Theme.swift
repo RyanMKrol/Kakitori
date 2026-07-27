@@ -67,16 +67,18 @@ public enum KakitoriTheme {
 
     /// Content glyphs (answer targets, trace guides): scales with Dynamic Type, matching
     /// prompt/answer metadata text (reading, English, hint).
+    ///
+    /// Both of these go through `PracticeFont` — the app draws Japanese in ONE typeface, and it's a
+    /// handwriting face on purpose (see `PracticeFont`). Hardcoding a system face here is what
+    /// would quietly put printed letterforms back in front of someone learning to write.
     public static func japaneseDisplayFont(size: CGFloat, bold: Bool = false) -> Font {
-        let fontName = bold ? "HiraMinProN-W6" : "HiraMinProN-W3"
-        return Font.custom(fontName, size: size)
+        PracticeFont.font(size: size, bold: bold)
     }
 
     /// Answer glyphs and guide-box glyphs: fixed size regardless of Dynamic Type — they're
     /// the content being written, not chrome.
     public static func japaneseDisplayFontFixed(size: CGFloat, bold: Bool = false) -> Font {
-        let fontName = bold ? "HiraMinProN-W6" : "HiraMinProN-W3"
-        return Font.custom(fontName, fixedSize: size)
+        PracticeFont.fixedFont(size: size, bold: bold)
     }
 }
 

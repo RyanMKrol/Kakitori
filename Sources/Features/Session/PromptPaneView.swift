@@ -178,13 +178,13 @@ struct PromptPaneView: View {
 
             if isTight {
                 HStack(alignment: .center, spacing: 28) {
-                    answerTargetComparison
+                    answerTarget
                     VStack(alignment: .leading, spacing: 10) {
                         answerDetails(alignment: .leading)
                     }
                 }
             } else {
-                answerTargetComparison
+                answerTarget
                 answerDetails(alignment: .center)
             }
 
@@ -203,51 +203,19 @@ struct PromptPaneView: View {
         viewModel.revealedNote
     }
 
-    /// The answer glyph, rendered once per candidate typeface so the faces can be compared on the
-    /// character actually being practised rather than on a specimen sheet. Temporary: once a face
-    /// is chosen this collapses back to a single glyph.
     @ViewBuilder
-    private var answerTargetComparison: some View {
+    private var answerTarget: some View {
+        let unitCount = revealedNote?.units.count ?? 1
+        let fontSize: CGFloat = isCompact ? 64 : (unitCount <= 2 ? 96 : 64)
+
         if let target = revealedNote?.target {
-            let unitCount = revealedNote?.units.count ?? 1
-            let fontSize = comparisonFontSize(unitCount: unitCount)
-
-            // Always side by side, including on the phone: the whole point is judging the three
-            // against each other, and stacked samples can't be compared without scrolling.
-            HStack(alignment: .top, spacing: isCompact ? 8 : 20) {
-                ForEach(PracticeFont.allCases) { face in
-                    VStack(spacing: 4) {
-                        Text(target)
-                            .font(face.fixedFont(size: fontSize, bold: true))
-                            .foregroundStyle(KakitoriTheme.ink)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.4)
-                            .accessibilityIdentifier("answer-target-\(face.rawValue)")
-
-                        Text(face.displayName)
-                            .kakitoriFont(size: isCompact ? 10 : 11, weight: .semibold)
-                            .foregroundStyle(KakitoriTheme.accent)
-                            .multilineTextAlignment(.center)
-
-                        // Says so rather than quietly rendering a substitute — two options showing
-                        // the same fallback would otherwise look like a tie between real choices.
-                        Text(face.isAvailable ? face.summary : "Not on this device — showing a substitute")
-                            .kakitoriFont(size: isCompact ? 9 : 10)
-                            .foregroundStyle(KakitoriTheme.ink.opacity(0.55))
-                            .multilineTextAlignment(.center)
-                            .lineLimit(3)
-                    }
-                    .frame(maxWidth: .infinity)
-                }
-            }
+            Text(target)
+                .font(KakitoriTheme.japaneseDisplayFontFixed(size: fontSize, bold: true))
+                .foregroundStyle(KakitoriTheme.ink)
+                .lineLimit(1)
+                .minimumScaleFactor(0.4)
+                .accessibilityIdentifier("answer-target")
         }
-    }
-
-    /// Three glyphs share the width one used to have, so they're sized down from the single-glyph
-    /// sizes — still big enough to judge stroke shapes, which is the point of the comparison.
-    private func comparisonFontSize(unitCount: Int) -> CGFloat {
-        if isCompact { return unitCount <= 2 ? 40 : 30 }
-        return unitCount <= 2 ? 72 : 48
     }
 
     @ViewBuilder
