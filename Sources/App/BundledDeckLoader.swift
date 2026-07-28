@@ -12,7 +12,9 @@ enum BundledDeckLoader {
     /// Bump when the bundled `.apkg` set changes so existing installs re-import on their next launch.
     /// (v3: fixes the doubled `Media/Media/<deckID>` copy path so deck audio actually resolves —
     /// existing installs must re-import to copy the media to the correct location.)
-    static let bundleVersion = 3
+    /// (v4: every kana card's audio replaced with Tofugu's recordings — the note fields now point at
+    /// different filenames, so an install that doesn't re-import keeps playing the old audio.)
+    static let bundleVersion = 4
     private static let versionKey = "loadedBundledDecksVersion"
 
     /// Resource base-names (without extension) of the shipped decks, in display order. The single
