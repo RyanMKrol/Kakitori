@@ -50,11 +50,13 @@ final class BundledDeckImportTests: XCTestCase {
         // sourceDeckName is the split key (the re-import idempotence key), not the friendly name.
         XCTAssertEqual(byName["Hiragana"]?.sourceDeckName, "Kakitori Foundations::Hiragana")
 
-        // 100% of each section imported AND visible via sections.
-        XCTAssertEqual(try visibleCount(XCTUnwrap(byName["Hiragana"])), 104)
-        XCTAssertEqual(try visibleCount(XCTUnwrap(byName["Katakana"])), 104)
+        // 100% of each section imported AND visible via sections. The kana counts are the Tofugu
+        // decks card-for-card — 101 hiragana and 124 katakana — since those decks are the source
+        // of every kana card and its audio.
+        XCTAssertEqual(try visibleCount(XCTUnwrap(byName["Hiragana"])), 101)
+        XCTAssertEqual(try visibleCount(XCTUnwrap(byName["Katakana"])), 124)
         XCTAssertEqual(try visibleCount(XCTUnwrap(byName["Kanji"])), 87)
-        XCTAssertEqual(try container.mainContext.fetch(FetchDescriptor<Note>()).count, 295, "Total notes")
+        XCTAssertEqual(try container.mainContext.fetch(FetchDescriptor<Note>()).count, 312, "Total notes")
     }
 
     @MainActor
@@ -68,8 +70,8 @@ final class BundledDeckImportTests: XCTestCase {
         try await importer.importDeckSplitBySection(from: foundationsURL(), titles: BundledDeckLoader.sectionTitles)
         try await importer.importDeckSplitBySection(from: foundationsURL(), titles: BundledDeckLoader.sectionTitles)
 
-        // Still exactly 3 decks / 295 notes after a second import — matched by sourceDeckName, no dupes.
+        // Still exactly 3 decks / 312 notes after a second import — matched by sourceDeckName, no dupes.
         XCTAssertEqual(try container.mainContext.fetch(FetchDescriptor<Deck>()).count, 3)
-        XCTAssertEqual(try container.mainContext.fetch(FetchDescriptor<Note>()).count, 295)
+        XCTAssertEqual(try container.mainContext.fetch(FetchDescriptor<Note>()).count, 312)
     }
 }

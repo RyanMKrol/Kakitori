@@ -14,7 +14,9 @@ enum BundledDeckLoader {
     /// existing installs must re-import to copy the media to the correct location.)
     /// (v4: every kana card's audio replaced with Tofugu's recordings — the note fields now point at
     /// different filenames, so an install that doesn't re-import keeps playing the old audio.)
-    static let bundleVersion = 4
+    /// (v5: the kana decks are now card-for-card the Tofugu decks — 6 cards without Tofugu audio
+    /// dropped, 23 extended katakana added. Card SET changed, not just media.)
+    static let bundleVersion = 5
     private static let versionKey = "loadedBundledDecksVersion"
 
     /// Resource base-names (without extension) of the shipped decks, in display order. The single
